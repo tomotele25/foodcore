@@ -30,7 +30,7 @@ export default function ManagerOrder() {
         const token = session?.user?.accessToken;
         if (!token) return;
 
-        const res = await axios.get("${BACKENDURL}/api/manager/orders", {
+        const res = await axios.get(`${BACKENDURL}/api/manager/orders`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

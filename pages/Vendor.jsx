@@ -20,7 +20,7 @@ const Vendor = () => {
 
     const fetchVendors = async () => {
       try {
-        const res = await axios.get("${BACKENDURL}/api/vendor/getVendors");
+        const res = await axios.get(`${BACKENDURL}/api/vendor/getVendors`);
         if (isMounted) {
           setVendors(res.data.vendors || []);
           setLoading(false);

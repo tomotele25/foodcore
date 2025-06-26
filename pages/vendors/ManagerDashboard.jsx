@@ -24,7 +24,7 @@ export default function ManagerDashboard() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await axios.get("${BACKENDURL}/api/manager/orders", {
+        const res = await axios.get(`${BACKENDURL}/api/manager/orders`, {
           headers: {
             Authorization: `Bearer ${session?.user?.accessToken}`,
           },

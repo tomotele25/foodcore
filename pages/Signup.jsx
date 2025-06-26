@@ -39,7 +39,7 @@ const Signup = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post("${BACKENDURL}/api/auth/user/signup", {
+      const res = await axios.post(`${BACKENDURL}/api/auth/user/signup`, {
         fullname: formData.fullname,
         contact: formData.contact,
         email: formData.email,
