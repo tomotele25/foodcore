@@ -35,7 +35,7 @@ export default function VendorDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const [storeStatus, setStoreStatus] = useState("opened");
+  const [storeStatus, setStoreStatus] = useState("");
   const [loadingStatus, setLoadingStatus] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
