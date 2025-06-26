@@ -74,7 +74,7 @@ export default function VendorDashboard() {
     const newStatus = storeStatus === "opened" ? "closed" : "opened";
     setLoadingStatus(true);
     try {
-      const res = await axios.patch("${BACKENDURL}/api/vendor/toggleStatus", {
+      const res = await axios.put(`${BACKENDURL}/api/vendor/toggleStatus`, {
         vendorId,
         status: newStatus,
       });
