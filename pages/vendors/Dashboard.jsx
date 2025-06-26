@@ -26,79 +26,62 @@ const menuItems = [
   { name: "Manage Team", icon: Users, path: "/vendors/ManageTeam" },
   { name: "Settings", icon: Settings, path: "/vendor/settings" },
 ];
-const BACKENDURL =
-  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+
+const BACKENDURL = "http://localhost:2006";
+
 export default function VendorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
-
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
   const [storeStatus, setStoreStatus] = useState("");
-  const [loadingStatus, setLoadingStatus] = useState(false);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/Login");
+    if (status === "unauthenticated") router.push("/Login");
+  }, [status]);
+
+  const fetchStoreStatus = async () => {
+    try {
+      const res = await axios.get(
+        `${BACKENDURL}/api/getVendorStatus/${session?.user?.vendorId}`
+      );
+      setStoreStatus(res.data.status);
+    } catch (error) {
+      console.error("Error fetching status:", error);
     }
-  }, [status, router]);
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const res = await axios.get(
+        `${BACKENDURL}/api/getAllOrders?vendorId=${session?.user?.vendorId}`
+      );
+      setOrders(res.data.orders || []);
+    } catch (err) {
+      console.error("Failed to fetch orders:", err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!session?.user?.vendorId) return;
-
-      try {
-        const res = await axios.get(
-          `${BACKENDURL}/api/getAllOrders?vendorId=${session.user.vendorId}`
-        );
-        setOrders(res.data.orders || []); // ✅ Fix: extract actual array
-      } catch (err) {
-        console.error("Failed to fetch orders:", err);
-      } finally {
-        setLoadingOrders(false);
-      }
-    };
-
     if (status === "authenticated") {
+      fetchStoreStatus();
       fetchOrders();
     }
   }, [session, status]);
 
-  const toggleStatus = async () => {
-    const vendorId = session?.user.vendorId;
-    if (!vendorId) return;
-
-    const newStatus = storeStatus === "opened" ? "closed" : "opened";
-    setLoadingStatus(true);
-    try {
-      const res = await axios.put(`${BACKENDURL}/api/vendor/toggleStatus`, {
-        vendorId,
-        status: newStatus,
-      });
-      setStoreStatus(res.data.vendor.status);
-      toast.success(`Store is now ${res.data.vendor.status}`);
-    } catch (error) {
-      console.error("Toggle error:", error);
-      toast.error("Failed to update store status");
-    } finally {
-      setLoadingStatus(false);
-    }
-  };
-
-  const logout = async (e) => {
-    e.preventDefault();
+  const handleLogout = async () => {
     const toastId = toast.loading("Logging out...");
     try {
       await signOut({ redirect: false });
       toast.dismiss(toastId);
-      toast.success("Logged out successfully");
+      toast.success("Logged out");
       router.push("/");
     } catch (error) {
       toast.dismiss(toastId);
-      toast.error("Failed to logout");
+      toast.error("Logout failed");
     }
   };
 
@@ -115,7 +98,10 @@ export default function VendorDashboard() {
           <div>
             <div className="flex items-center justify-between px-4 py-4 border-b">
               <h1 className="text-xl font-bold text-[#AE2108]">Vendor Panel</h1>
-              <button onClick={toggleSidebar} className="md:hidden">
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="md:hidden"
+              >
                 <X size={24} />
               </button>
             </div>
@@ -127,159 +113,128 @@ export default function VendorDashboard() {
                   className="flex items-center gap-3 text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md"
                 >
                   <Icon size={18} />
-                  <span>{name}</span>
+                  {name}
                 </Link>
               ))}
             </nav>
           </div>
           <div className="px-4 mb-4">
             <button
-              onClick={logout}
+              onClick={handleLogout}
               className="flex items-center gap-3 text-red-500 hover:bg-red-100 px-3 py-2 rounded-md w-full"
             >
               <LogOut size={18} />
-              <span>Logout</span>
+              Logout
             </button>
           </div>
         </aside>
 
         {/* Main */}
-        <div className="flex-1 flex flex-col">
-          <header className="flex items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-10">
-            <button className="md:hidden" onClick={toggleSidebar}>
+        <main className="flex-1 p-4 md:p-6">
+          <header className="flex items-center justify-between mb-6">
+            <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu size={24} />
             </button>
             <h2 className="text-lg font-semibold text-gray-800">Dashboard</h2>
           </header>
 
-          <main className="flex-1 p-4 md:p-6">
-            {/* Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-              <div className="bg-white p-5 rounded-xl shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-600">Orders</h3>
-                <p className="text-2xl font-bold text-[#AE2108] mt-2">
-                  {loadingOrders ? "..." : orders.length}
-                </p>
-              </div>
-              <div className="bg-white p-5 rounded-xl shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-600">Revenue</h3>
-                <p className="text-2xl font-bold text-[#AE2108] mt-2">
-                  ₦
-                  {loadingOrders
-                    ? "..."
-                    : Array.isArray(orders)
-                    ? orders
-                        .reduce(
-                          (acc, order) => acc + (order.totalAmount || 0),
-                          0
-                        )
-                        .toLocaleString()
-                    : "0"}
-                </p>
-              </div>
-              <div className="bg-white p-5 rounded-xl shadow-sm">
-                <h3 className="text-sm font-semibold text-gray-600">Ratings</h3>
-                <p className="text-2xl font-bold text-[#AE2108] mt-2">4.8</p>
+          {/* Store Status Display Only */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between bg-white p-5 rounded-lg shadow">
+              <div className="text-gray-700">
+                Store is currently{" "}
+                <span className="font-bold text-[#AE2108] capitalize">
+                  {storeStatus}
+                </span>
               </div>
             </div>
+          </div>
 
-            {/* Store Status */}
-            <div className="mt-10">
-              <h3 className="text-xl font-semibold mb-4 text-gray-800">
-                Store Availability
-              </h3>
-              <div className="bg-white p-5 rounded-xl shadow flex items-center justify-between">
-                <p className="text-gray-700">
-                  Your store is currently{" "}
-                  <span className="font-bold capitalize text-[#AE2108]">
-                    {storeStatus}
-                  </span>
-                </p>
-                <button
-                  onClick={toggleStatus}
-                  disabled={loadingStatus}
-                  className={`px-4 py-2 rounded-lg font-medium text-white transition ${
-                    storeStatus === "opened"
-                      ? "bg-red-500 hover:bg-red-600"
-                      : "bg-green-600 hover:bg-green-700"
-                  }`}
-                >
-                  {loadingStatus
-                    ? "Updating..."
-                    : storeStatus === "opened"
-                    ? "Set to Closed"
-                    : "Set to Opened"}
-                </button>
-              </div>
+          {/* Metrics */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div className="bg-white p-5 rounded-xl shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-600">Orders</h3>
+              <p className="text-2xl font-bold text-[#AE2108] mt-2">
+                {loadingOrders ? "..." : orders.length}
+              </p>
             </div>
+            <div className="bg-white p-5 rounded-xl shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-600">Revenue</h3>
+              <p className="text-2xl font-bold text-[#AE2108] mt-2">
+                ₦
+                {loadingOrders
+                  ? "..."
+                  : orders
+                      .reduce((sum, order) => sum + (order.totalAmount || 0), 0)
+                      .toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-white p-5 rounded-xl shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-600">Rating</h3>
+              <p className="text-2xl font-bold text-[#AE2108] mt-2">4.8</p>
+            </div>
+          </div>
 
-            {/* Orders Table */}
-            <div className="mt-10">
-              <h3 className="text-xl font-semibold mb-4 text-gray-800">
-                Recent Orders
-              </h3>
-              <div className="overflow-x-auto rounded-xl shadow">
-                <table className="min-w-full bg-white text-sm">
-                  <thead className="bg-gray-100 text-left">
+          {/* Orders Table */}
+          <div>
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">
+              Recent Orders
+            </h3>
+            <div className="overflow-x-auto rounded-xl shadow bg-white">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-100 text-left">
+                  <tr>
+                    <th className="px-4 py-3">Order ID</th>
+                    <th className="px-4 py-3">Customer</th>
+                    <th className="px-4 py-3">Total</th>
+                    <th className="px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadingOrders ? (
                     <tr>
-                      <th className="px-4 py-3 font-semibold">Order ID</th>
-                      <th className="px-4 py-3 font-semibold">Customer</th>
-                      <th className="px-4 py-3 font-semibold">Total</th>
-                      <th className="px-4 py-3 font-semibold">Status</th>
+                      <td colSpan="4" className="text-center py-6">
+                        Loading...
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {loadingOrders ? (
-                      <tr>
-                        <td colSpan="4" className="text-center px-4 py-6">
-                          Loading...
+                  ) : orders.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan="4"
+                        className="text-center py-6 text-gray-500"
+                      >
+                        No orders yet
+                      </td>
+                    </tr>
+                  ) : (
+                    orders.slice(0, 5).map((order) => (
+                      <tr key={order._id} className="border-t">
+                        <td className="px-4 py-3">
+                          #{order._id.slice(-6).toUpperCase()}
                         </td>
-                      </tr>
-                    ) : orders.length === 0 ? (
-                      <tr>
+                        <td className="px-4 py-3">
+                          {order.guestInfo?.name || "Guest"}
+                        </td>
+                        <td className="px-4 py-3">₦{order.totalAmount}</td>
                         <td
-                          colSpan="4"
-                          className="text-center px-4 py-6 text-gray-500"
+                          className={`px-4 py-3 font-medium ${
+                            order.status === "completed"
+                              ? "text-green-600"
+                              : order.status === "cancelled"
+                              ? "text-red-600"
+                              : "text-yellow-600"
+                          }`}
                         >
-                          No recent orders
+                          {order.status || "Pending"}
                         </td>
                       </tr>
-                    ) : (
-                      orders.slice(0, 5).map((order) => {
-                        const status = (
-                          order.status || "Pending"
-                        ).toLowerCase();
-                        const colorClass =
-                          status === "completed"
-                            ? "text-green-600"
-                            : status === "cancelled"
-                            ? "text-red-600"
-                            : "text-yellow-600";
-
-                        return (
-                          <tr key={order._id} className="border-t">
-                            <td className="px-4 py-3">
-                              #{order._id.slice(-6).toUpperCase()}
-                            </td>
-                            <td className="px-4 py-3">
-                              {order.guestInfo?.name || "Guest"}
-                            </td>
-                            <td className="px-4 py-3">₦{order.totalAmount}</td>
-                            <td
-                              className={`px-4 py-3 font-medium ${colorClass}`}
-                            >
-                              {status.charAt(0).toUpperCase() + status.slice(1)}
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-          </main>
-        </div>
+          </div>
+        </main>
       </div>
     </>
   );

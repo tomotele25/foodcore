@@ -13,32 +13,67 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 export default function ManagerDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const [orders, setOrders] = useState([]);
+  const [vendorStatus, setVendorStatus] = useState("");
   const { data: session } = useSession();
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
   useEffect(() => {
+    if (!session?.user?.accessToken) return;
+
     const fetchOrders = async () => {
       try {
         const res = await axios.get(`${BACKENDURL}/api/manager/orders`, {
-          headers: {
-            Authorization: `Bearer ${session?.user?.accessToken}`,
-          },
+          headers: { Authorization: `Bearer ${session.user.accessToken}` },
         });
         setOrders(res.data.orders);
-      } catch (err) {
-        console.error("Failed to fetch manager orders:", err);
+      } catch {
+        toast.error("Failed to load orders");
       }
     };
 
-    if (session?.user?.accessToken) {
-      fetchOrders();
-    }
+    const fetchVendorStatus = async () => {
+      try {
+        const res = await axios.get(`${BACKENDURL}/api/getManagerWithStatus`, {
+          headers: { Authorization: `Bearer ${session.user.accessToken}` },
+        });
+        const status = res.data?.managers?.[0]?.vendorStatus;
+        if (status) setVendorStatus(status);
+      } catch {
+        toast.error("Failed to load store status");
+      }
+    };
+
+    fetchOrders();
+    fetchVendorStatus();
   }, [session]);
+
+  const toggleStoreStatus = async () => {
+    const newStatus = vendorStatus === "opened" ? "closed" : "opened";
+
+    try {
+      const res = await axios.put(
+        `${BACKENDURL}/api/vendor/toggleStatus`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${session?.user?.accessToken}`,
+          },
+        }
+      );
+      setVendorStatus(res.data.vendor?.status);
+      toast.success(`Store is now ${res.data.vendor?.status}`);
+    } catch {
+      toast.error("Could not toggle store status");
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -102,6 +137,7 @@ export default function ManagerDashboard() {
         </div>
       </div>
 
+      {/* Toggle button for mobile */}
       <button
         onClick={toggleSidebar}
         className="fixed top-4 left-4 z-50 md:hidden bg-white p-2 rounded-md shadow-md"
@@ -111,59 +147,88 @@ export default function ManagerDashboard() {
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-auto">
-        <h1 className="text-2xl font-bold text-[#AE2108] mb-4">Manager</h1>
-        <p className="text-gray-600 mb-6">
-          This is your dashboard. You can manage orders, products, and your
-          profile.
-        </p>
+        <h1 className="text-2xl font-bold text-[#AE2108] mb-4">
+          Manager Overview
+        </h1>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 shadow-sm rounded">
-            <thead>
-              <tr className="text-left bg-gray-100 border-b border-gray-300">
-                <th className="p-3 text-sm font-semibold">Guest</th>
-                <th className="p-3 text-sm font-semibold">Phone</th>
-                <th className="p-3 text-sm font-semibold">Items</th>
-                <th className="p-3 text-sm font-semibold">Total</th>
-                <th className="p-3 text-sm font-semibold">Status</th>
-                <th className="p-3 text-sm font-semibold">Toggle</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders?.map((order, index) => (
-                <tr key={index} className="border-t hover:bg-gray-50 text-sm">
-                  <td className="p-3">{order.guestInfo?.name}</td>
-                  <td className="p-3">{order.guestInfo?.phone}</td>
-                  <td className="p-3">
-                    <ul className="space-y-1">
-                      {order.items?.map((item, i) => (
-                        <li key={i}>
-                          {item.name} x{item.quantity} - ₦{item.price}
-                        </li>
-                      ))}
-                    </ul>
-                  </td>
-                  <td className="p-3">₦{order.totalAmount}</td>
-                  <td className="p-3">
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${
-                        order.status === "pending"
-                          ? "text-yellow-700 bg-yellow-100"
-                          : "text-green-700 bg-green-100"
-                      }`}
-                    >
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="p-3">
-                    <button className="border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-100 text-sm">
-                      Toggle
-                    </button>
-                  </td>
-                </tr>
+        {/* Vendor status */}
+        {vendorStatus && (
+          <div className="flex items-center gap-4 mb-6">
+            <p className="text-sm text-gray-600">
+              Store status:{" "}
+              <span
+                className={`font-semibold capitalize ${
+                  vendorStatus === "opened" ? "text-green-700" : "text-red-600"
+                }`}
+              >
+                {vendorStatus}
+              </span>
+            </p>
+            <button
+              onClick={toggleStoreStatus}
+              className={`px-4 py-2 text-sm text-white rounded-lg shadow transition ${
+                vendorStatus === "opened"
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
+            >
+              {vendorStatus === "opened" ? "Close Store" : "Open Store"}
+            </button>
+          </div>
+        )}
+
+        {/* Overview cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow p-5">
+            <h3 className="text-gray-600 text-sm mb-2">Total Orders</h3>
+            <p className="text-3xl font-bold text-[#AE2108]">{orders.length}</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-5">
+            <h3 className="text-gray-600 text-sm mb-2">Recent Status</h3>
+            <p className="text-md font-semibold capitalize">
+              {orders[0]?.status || "No orders yet"}
+            </p>
+          </div>
+        </div>
+
+        {/* Recent Orders */}
+        <div className="bg-white rounded-lg shadow p-5">
+          <h3 className="text-lg font-bold mb-4 text-[#AE2108]">
+            Recent Orders
+          </h3>
+          <ul className="divide-y divide-gray-200">
+            {orders
+              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+              .slice(0, 5)
+              .map((order) => (
+                <li key={order._id} className="py-3 text-sm">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="font-medium">{order.guestInfo?.name}</p>
+                      <p className="text-gray-500">
+                        {order.items.length} items – ₦{order.totalAmount}
+                      </p>
+                    </div>
+                    <div>
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          order.status === "completed"
+                            ? "bg-green-100 text-green-700"
+                            : order.status === "pending"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-red-100 text-red-600"
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </div>
+                  </div>
+                </li>
               ))}
-            </tbody>
-          </table>
+          </ul>
+          {orders.length === 0 && (
+            <p className="text-gray-500 text-sm">No recent orders found.</p>
+          )}
         </div>
       </main>
     </div>

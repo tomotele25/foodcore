@@ -14,6 +14,7 @@ import {
   UtensilsCrossed,
   Settings,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function ManagerOrder() {
   const { data: session, status } = useSession();
@@ -21,9 +22,12 @@ export default function ManagerOrder() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
   const router = useRouter();
+
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+
   useEffect(() => {
     const fetchManagerOrders = async () => {
       try {
@@ -51,6 +55,38 @@ export default function ManagerOrder() {
   }, [status, session]);
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+
+  const handleToggleStatus = async (orderId, currentStatus) => {
+    const newStatus = currentStatus === "pending" ? "completed" : "pending";
+
+    try {
+      await axios.put(
+        `${BACKENDURL}/api/order/${orderId}`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${session?.user?.accessToken}`,
+          },
+        }
+      );
+
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+
+      toast.success(`Order marked as ${newStatus}`);
+    } catch (err) {
+      console.error("Status update failed", err);
+      toast.error("Failed to update order status");
+    }
+  };
+
+  const filteredOrders =
+    statusFilter === "all"
+      ? orders
+      : orders.filter((order) => order.status === statusFilter);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -120,13 +156,27 @@ export default function ManagerOrder() {
 
       {/* Main Content */}
       <main className="flex-1 p-4 md:p-6 overflow-auto">
-        <h1 className="text-2xl font-bold text-[#AE2108] mb-6">Orders</h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold text-[#AE2108]">Orders</h1>
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-600">Filter:</label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border border-gray-300 px-3 py-1 rounded text-sm"
+            >
+              <option value="all">All</option>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+            </select>
+          </div>
+        </div>
 
         {loading ? (
           <p className="text-gray-600">Loading orders...</p>
         ) : error ? (
           <p className="text-red-500">{error}</p>
-        ) : orders.length === 0 ? (
+        ) : filteredOrders.length === 0 ? (
           <p className="text-gray-500">No orders found.</p>
         ) : (
           <div className="overflow-x-auto rounded-xl shadow-sm bg-white">
@@ -142,7 +192,7 @@ export default function ManagerOrder() {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
+                {filteredOrders.map((order) => (
                   <tr key={order._id} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium">
                       #{order._id.slice(-6).toUpperCase()}
@@ -155,11 +205,27 @@ export default function ManagerOrder() {
                     </td>
                     <td className="px-4 py-3">₦{order.totalAmount}</td>
                     <td className="px-4 py-3 capitalize">
-                      {order.status || "pending"}
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          order.status === "completed"
+                            ? "bg-green-100 text-green-700"
+                            : order.status === "pending"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {order.status}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
-                      <button className="border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-100 text-sm">
-                        Toggle
+                      <button
+                        onClick={() =>
+                          handleToggleStatus(order._id, order.status)
+                        }
+                        className="border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-100 text-xs"
+                      >
+                        Mark{" "}
+                        {order.status === "pending" ? "Completed" : "Pending"}
                       </button>
                     </td>
                   </tr>

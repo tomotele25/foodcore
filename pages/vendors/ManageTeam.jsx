@@ -22,6 +22,7 @@ export default function CreateManager() {
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   const [managers, setManagers] = useState([]);
+  const [vendorStatus, setVendorStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,7 +36,7 @@ export default function CreateManager() {
       if (!session?.user?.accessToken) return;
 
       try {
-        const res = await axios.get("${BACKENDURL}/api/getManagers", {
+        const res = await axios.get(`${BACKENDURL}/api/getManagers`, {
           headers: {
             Authorization: `Bearer ${session?.user?.accessToken}`,
           },
@@ -60,7 +61,7 @@ export default function CreateManager() {
 
     try {
       const res = await axios.post(
-        "${BACKENDURL}/api/createManager",
+        `${BACKENDURL}/api/createManager`,
         {
           fullname: formData.fullName,
           email: formData.email,
@@ -75,8 +76,12 @@ export default function CreateManager() {
         }
       );
 
-      toast.success("Manager added successfully");
+      toast.success(
+        `Manager added successfully. Store is currently ${res.data.vendorStatus}`
+      );
+
       setManagers((prev) => [res.data.manager, ...prev]);
+      setVendorStatus(res.data.vendorStatus); // ✅ Update store status
       setShowModal(false);
       setFormData({ fullName: "", email: "", phone: "" });
     } catch (err) {
@@ -151,6 +156,15 @@ export default function CreateManager() {
         <h2 className="text-2xl font-semibold text-[#AE2108] mb-6">
           Team Members
         </h2>
+
+        {vendorStatus && (
+          <p className="text-sm mb-4 text-gray-600">
+            Store is currently:{" "}
+            <span className="font-semibold capitalize text-[#AE2108]">
+              {vendorStatus}
+            </span>
+          </p>
+        )}
 
         {managers.length === 0 ? (
           <p className="text-gray-500">No managers yet.</p>
