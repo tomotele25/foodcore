@@ -15,6 +15,8 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -37,15 +39,12 @@ const Signup = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post(
-        "http://localhost:2006/api/auth/user/signup",
-        {
-          fullname: formData.fullname,
-          contact: formData.contact,
-          email: formData.email,
-          password: formData.password,
-        }
-      );
+      const res = await axios.post("${BACKENDURL}/api/auth/user/signup", {
+        fullname: formData.fullname,
+        contact: formData.contact,
+        email: formData.email,
+        password: formData.password,
+      });
 
       if (res.data.success) {
         toast.success("Signup successful");

@@ -12,15 +12,15 @@ const Vendor = () => {
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const vendorsPerPage = 8;
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchVendors = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:2006/api/vendor/getVendors"
-        );
+        const res = await axios.get("${BACKENDURL}/api/vendor/getVendors");
         if (isMounted) {
           setVendors(res.data.vendors || []);
           setLoading(false);

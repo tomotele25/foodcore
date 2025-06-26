@@ -18,7 +18,8 @@ import Link from "next/link";
 export default function ManageProducts() {
   const router = useRouter();
   const { data: session } = useSession();
-
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -33,14 +34,11 @@ export default function ManageProducts() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:2006/api/product/my-products",
-          {
-            headers: {
-              Authorization: `Bearer ${session?.user?.accessToken}`,
-            },
-          }
-        );
+        const res = await axios.get("${BACKENDURL}/api/product/my-products", {
+          headers: {
+            Authorization: `Bearer ${session?.user?.accessToken}`,
+          },
+        });
         setProducts(res.data.products || []);
       } catch (err) {
         toast.error("Failed to load products");
@@ -64,7 +62,7 @@ export default function ManageProducts() {
 
     try {
       const res = await axios.post(
-        "http://localhost:2006/api/product/createProduct",
+        "${BACKENDURL}/api/product/createProduct",
         {
           productName: formData.name,
           price: formData.price,
@@ -99,7 +97,7 @@ export default function ManageProducts() {
   const handleToggle = async (productId) => {
     try {
       const res = await axios.patch(
-        `http://localhost:2006/api/product/${productId}/toggle-availability`,
+        `${BACKENDURL}/api/product/${productId}/toggle-availability`,
         {},
         {
           headers: {
@@ -182,7 +180,7 @@ export default function ManageProducts() {
                     src={
                       prod.image.startsWith("http")
                         ? prod.image
-                        : `http://localhost:2006/uploads/${prod.image}`
+                        : `${BACKENDURL}/uploads/${prod.image}`
                     }
                     alt={prod.productName}
                     className="w-full h-28 object-cover rounded-md mb-2"

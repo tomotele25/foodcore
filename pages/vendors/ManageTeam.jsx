@@ -18,6 +18,8 @@ import Link from "next/link";
 export default function CreateManager() {
   const router = useRouter();
   const { data: session } = useSession();
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   const [managers, setManagers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -33,7 +35,7 @@ export default function CreateManager() {
       if (!session?.user?.accessToken) return;
 
       try {
-        const res = await axios.get("http://localhost:2006/api/getManagers", {
+        const res = await axios.get("${BACKENDURL}/api/getManagers", {
           headers: {
             Authorization: `Bearer ${session?.user?.accessToken}`,
           },
@@ -58,7 +60,7 @@ export default function CreateManager() {
 
     try {
       const res = await axios.post(
-        "http://localhost:2006/api/createManager",
+        "${BACKENDURL}/api/createManager",
         {
           fullname: formData.fullName,
           email: formData.email,
@@ -89,7 +91,7 @@ export default function CreateManager() {
       return;
 
     try {
-      await axios.delete(`http://localhost:2006/api/vendor/team/${id}`, {
+      await axios.delete(`${BACKENDURL}/api/vendor/team/${id}`, {
         headers: {
           Authorization: `Bearer ${session?.user?.accessToken}`,
         },

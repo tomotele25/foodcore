@@ -19,18 +19,16 @@ export default function ManagerDashboard() {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
   const [orders, setOrders] = useState([]);
   const { data: session } = useSession();
-
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:2006/api/manager/orders",
-          {
-            headers: {
-              Authorization: `Bearer ${session?.user?.accessToken}`,
-            },
-          }
-        );
+        const res = await axios.get("${BACKENDURL}/api/manager/orders", {
+          headers: {
+            Authorization: `Bearer ${session?.user?.accessToken}`,
+          },
+        });
         setOrders(res.data.orders);
       } catch (err) {
         console.error("Failed to fetch manager orders:", err);

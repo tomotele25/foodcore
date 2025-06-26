@@ -26,7 +26,8 @@ const menuItems = [
   { name: "Manage Team", icon: Users, path: "/vendors/ManageTeam" },
   { name: "Settings", icon: Settings, path: "/vendor/settings" },
 ];
-
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 export default function VendorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
@@ -51,7 +52,7 @@ export default function VendorDashboard() {
 
       try {
         const res = await axios.get(
-          `http://localhost:2006/api/getAllOrders?vendorId=${session.user.vendorId}`
+          `${BACKENDURL}/api/getAllOrders?vendorId=${session.user.vendorId}`
         );
         setOrders(res.data.orders || []); // ✅ Fix: extract actual array
       } catch (err) {
@@ -73,10 +74,10 @@ export default function VendorDashboard() {
     const newStatus = storeStatus === "opened" ? "closed" : "opened";
     setLoadingStatus(true);
     try {
-      const res = await axios.put(
-        "http://localhost:2006/api/vendor/toggleStatus",
-        { vendorId, status: newStatus }
-      );
+      const res = await axios.put("${BACKENDURL}/api/vendor/toggleStatus", {
+        vendorId,
+        status: newStatus,
+      });
       setStoreStatus(res.data.vendor.status);
       toast.success(`Store is now ${res.data.vendor.status}`);
     } catch (error) {

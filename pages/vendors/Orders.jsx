@@ -14,6 +14,8 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -27,7 +29,7 @@ export default function OrdersPage() {
         }
 
         const res = await axios.get(
-          `http://localhost:2006/api/getAllOrders?vendorId=${vendorId}`
+          `${BACKENDURL}/api/getAllOrders?vendorId=${vendorId}`
         );
 
         // ✅ Correct way to extract orders from response

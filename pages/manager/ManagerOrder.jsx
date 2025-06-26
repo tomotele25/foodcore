@@ -22,21 +22,19 @@ export default function ManagerOrder() {
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
-
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
   useEffect(() => {
     const fetchManagerOrders = async () => {
       try {
         const token = session?.user?.accessToken;
         if (!token) return;
 
-        const res = await axios.get(
-          "http://localhost:2006/api/manager/orders",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const res = await axios.get("${BACKENDURL}/api/manager/orders", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         setOrders(res.data.orders || []);
       } catch (err) {

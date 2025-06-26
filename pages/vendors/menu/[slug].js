@@ -15,6 +15,8 @@ const VendorMenuPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   const { cart, addToCart, removeFromCart, emptyCart } = useCart();
 
@@ -27,7 +29,7 @@ const VendorMenuPage = () => {
 
       try {
         const res = await axios.get(
-          `http://localhost:2006/api/product/vendor/slug/${slug}`
+          `${BACKENDURL}/api/product/vendor/slug/${slug}`
         );
 
         if (!res.data.success) {
@@ -101,7 +103,7 @@ const VendorMenuPage = () => {
                       src={
                         product.image?.startsWith("http")
                           ? product.image
-                          : `http://localhost:2006/uploads/${product.image}`
+                          : `${BACKENDURL}/uploads/${product.image}`
                       }
                       alt={product.productName}
                       fill

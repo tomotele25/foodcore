@@ -1,5 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
 export const customProvider = CredentialsProvider({
   name: "Credentials",
@@ -10,13 +12,10 @@ export const customProvider = CredentialsProvider({
 
   async authorize(credentials) {
     try {
-      const res = await axios.post(
-        "http://localhost:2005/api/auth/user/login",
-        {
-          email: credentials.email,
-          password: credentials.password,
-        }
-      );
+      const res = await axios.post(`${BACKENDURL}/api/auth/user/login`, {
+        email: credentials.email,
+        password: credentials.password,
+      });
 
       const user = res.data.user;
       const accessToken = res.data.accessToken;

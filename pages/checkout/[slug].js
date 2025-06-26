@@ -9,7 +9,8 @@ import { useRouter } from "next/router";
 const Checkout = () => {
   const router = useRouter();
   const { slug } = router.query;
-
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
   const { cart, addToCart, removeFromCart } = useCart();
   const cartItems = Object.values(cart);
 
@@ -42,7 +43,7 @@ const Checkout = () => {
     if (!slug) return;
     const fetchVendor = async () => {
       try {
-        const res = await axios.get(`http://localhost:2006/api/vendor/${slug}`);
+        const res = await axios.get(`${BACKENDURL}/api/vendor/${slug}`);
         setVendor(res.data.vendor);
       } catch (err) {
         console.error("Vendor fetch failed:", err);
@@ -91,7 +92,7 @@ const Checkout = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:2006/api/orders",
+        "${BACKENDURL}/api/orders",
         orderPayload
       );
       alert("Order placed successfully!");
@@ -126,7 +127,7 @@ const Checkout = () => {
                   src={
                     item.image?.startsWith("http")
                       ? item.image
-                      : `http://localhost:2006/uploads/${item.image}`
+                      : `${BACKENDURL}/uploads/${item.image}`
                   }
                   alt={item.productName}
                   fill

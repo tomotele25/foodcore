@@ -56,7 +56,7 @@ const ManageVendor = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:2006/api/vendor/create", {
+      const res = await axios.post("${BACKENDURL}/api/vendor/create", {
         fullname: form.fullname,
         email: form.email,
         password: "vendor123",
