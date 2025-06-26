@@ -26,9 +26,8 @@ const menuItems = [
   { name: "Manage Team", icon: Users, path: "/vendors/ManageTeam" },
   { name: "Settings", icon: Settings, path: "/vendor/settings" },
 ];
-
-const BACKENDURL = "http://localhost:2006";
-
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 export default function VendorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [storeStatus, setStoreStatus] = useState("");
