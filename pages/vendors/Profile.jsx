@@ -1,20 +1,30 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  LogOut,
+  Menu,
+  X,
+} from "lucide-react";
+import Link from "next/link";
+
+const menuItems = [
+  { name: "Dashboard", icon: LayoutDashboard, path: "/vendor/dashboard" },
+  { name: "Profile", icon: Users, path: "/vendor/profile" },
+  { name: "Settings", icon: Settings, path: "/vendor/settings" },
+];
 
 const Profile = () => {
   const { data: session, status } = useSession();
+
   const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/Login");
-    }
-  }, [status, router]);
-
-  // State for form data and edit mode
   const [formData, setFormData] = useState({
     fullname: "",
     email: "",
@@ -24,7 +34,16 @@ const Profile = () => {
     address: "",
   });
   const [editMode, setEditMode] = useState(false);
-  const [tempData, setTempData] = useState({ ...formData }); // for cancel revert
+  const [tempData, setTempData] = useState({ ...formData });
+
+  const [currentPassword, setCurrentPassword] = useState("vendor123"); // Just placeholder for now
+  const [newPassword, setNewPassword] = useState("");
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/Login");
+    }
+  }, [status]);
 
   useEffect(() => {
     if (session?.vendor) {
@@ -42,156 +61,197 @@ const Profile = () => {
     }
   }, [session]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setTempData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleEditClick = () => {
-    setEditMode(true);
-  };
-
+  const handleEditClick = () => setEditMode(true);
   const handleCancelClick = () => {
-    setTempData(formData); // revert changes
+    setTempData(formData);
     setEditMode(false);
   };
+
+  const handleChange = (e) =>
+    setTempData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSaveClick = (e) => {
     e.preventDefault();
-    // For now, just update formData locally
     setFormData(tempData);
     setEditMode(false);
-
-    alert("Profile saved! (Implement backend save here)");
+    alert("Profile saved! (Implement backend call)");
   };
 
+  const handlePasswordUpdate = () => {
+    alert(`Password updated to: ${newPassword}`);
+    setNewPassword("");
+  };
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white rounded-xl shadow-md p-6">
-      {/* Back Button */}
-      <button
-        onClick={() => router.push("/vendor/dashboard")}
-        className="text-gray-600 mb-6 hover:text-[#AE2108] flex items-center gap-1 font-medium"
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar */}
+      {/* Sidebar */}
+      <div
+        className={`fixed z-30 inset-y-0 left-0 w-64 bg-white shadow-md transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
-        ← Back to Dashboard
-      </button>
-
-      {/* Profile Avatar */}
-      <div className="flex justify-center mb-6">
-        <div className="w-24 h-24 rounded-full bg-[#AE2108] flex items-center justify-center text-white text-4xl font-semibold uppercase shadow-md">
-          {formData.fullname ? formData.fullname[0] : "V"}
+        {/* Top Section: Logo and Navigation */}
+        <div>
+          <div className="flex items-center justify-between px-4 py-4 border-b">
+            <h1 className="text-xl font-bold text-[#AE2108]">Vendor Panel</h1>
+            <button onClick={toggleSidebar} className="md:hidden text-gray-600">
+              <X size={24} />
+            </button>
+          </div>
+          <nav className="mt-4 space-y-1 px-4">
+            {menuItems.map(({ name, icon: Icon, path }) => (
+              <Link
+                key={name}
+                href={path}
+                className="flex items-center gap-3 text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md"
+              >
+                <Icon size={18} />
+                <span>{name}</span>
+              </Link>
+            ))}
+          </nav>
         </div>
-      </div>
 
-      {/* User Name & Email */}
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
-          {formData.fullname || "Vendor Name"}
-        </h2>
-        <p className="text-gray-500">{formData.email || "email@example.com"}</p>
-      </div>
-
-      {/* Profile Details or Edit Form */}
-      {!editMode ? (
-        <div className="space-y-4 text-gray-700">
-          <div>
-            <strong>Business Name:</strong> {formData.businessName || "-"}
-          </div>
-          <div>
-            <strong>Phone Number:</strong> {formData.phoneNumber || "-"}
-          </div>
-          <div>
-            <strong>Location:</strong> {formData.location || "-"}
-          </div>
-          <div>
-            <strong>Address:</strong> {formData.address || "-"}
-          </div>
-
+        {/* Bottom Section: Logout */}
+        <div className="px-4 mb-4">
           <button
-            onClick={handleEditClick}
-            className="mt-6 w-full py-3 bg-[#AE2108] text-white font-semibold rounded-md hover:bg-[#941B06] transition"
+            onClick={() => signOut({ callbackUrl: "/Login" })}
+            className="flex items-center gap-3 text-red-500 hover:bg-red-100 px-3 py-2 rounded-md w-full"
           >
-            Edit Profile
+            <LogOut size={18} />
+            <span>Logout</span>
           </button>
         </div>
-      ) : (
-        <form onSubmit={handleSaveClick} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Business Name
-            </label>
-            <input
-              type="text"
-              name="businessName"
-              value={tempData.businessName}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#AE2108] focus:border-[#AE2108]"
-            />
-          </div>
+      </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={tempData.phoneNumber}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#AE2108] focus:border-[#AE2108]"
-            />
-          </div>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col ml-0 h-screen overflow-hidden">
+        {/* Header */}
+        <header className="sticky top-0 z-10 h-16 bg-white shadow-md px-4 py-3 flex items-center justify-between">
+          <button onClick={toggleSidebar} className="md:hidden text-gray-700">
+            <Menu size={24} />
+          </button>
+          <h2 className="text-lg font-semibold text-gray-800">
+            Vendor Profile
+          </h2>
+        </header>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Location
-            </label>
-            <input
-              type="text"
-              name="location"
-              value={tempData.location}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#AE2108] focus:border-[#AE2108]"
-            />
-          </div>
+        {/* Scrollable Main Section */}
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-100">
+          <div className="bg-white rounded-xl shadow-md p-6 max-w-3xl mx-auto">
+            {/* Avatar */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 rounded-full bg-[#AE2108] flex items-center justify-center text-white text-3xl font-bold">
+                {formData.fullname ? formData.fullname[0] : "V"}
+              </div>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Address
-            </label>
-            <textarea
-              name="address"
-              value={tempData.address}
-              onChange={handleChange}
-              rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#AE2108] focus:border-[#AE2108]"
-            />
-          </div>
+            {/* User Info */}
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {session?.user.fullname}
+              </h2>
+              <p className="text-gray-500"> {session?.user.email}</p>
+            </div>
 
-          <div className="flex gap-4 mt-6">
-            <button
-              type="submit"
-              className="flex-1 py-3 bg-[#AE2108] text-white font-semibold rounded-md hover:bg-[#941B06] transition"
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              onClick={handleCancelClick}
-              className="flex-1 py-3 border border-gray-400 text-gray-700 rounded-md hover:bg-gray-100 transition"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
+            {/* Form or Profile */}
+            {!editMode ? (
+              <div className="space-y-4 text-gray-700">
+                <p>
+                  <strong>Business Name:</strong>
+                  {session?.user?.businessName}
+                </p>
+                <p>
+                  <strong>Phone Number:</strong> {session?.user?.contact}
+                </p>
+                <p>
+                  <strong>Location:</strong> {session?.user?.location}
+                </p>
+                <p>
+                  <strong>Address:</strong> {session?.user?.address}
+                </p>
 
-      {/* Logout */}
-      <button
-        onClick={() => signOut({ callbackUrl: "/Login" })}
-        className="mt-8 w-full py-3 text-[#AE2108] border border-[#AE2108] font-semibold rounded-md hover:bg-[#AE2108] hover:text-white transition"
-      >
-        Log Out
-      </button>
+                <button
+                  onClick={handleEditClick}
+                  className="w-full py-3 bg-[#AE2108] text-white font-semibold rounded-md hover:bg-[#941B06] transition"
+                >
+                  Edit Profile
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSaveClick} className="space-y-4">
+                <input
+                  name="businessName"
+                  value={tempData.businessName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded"
+                  placeholder="Business Name"
+                />
+                <input
+                  name="phoneNumber"
+                  value={tempData.phoneNumber}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded"
+                  placeholder="Phone Number"
+                />
+                <input
+                  name="location"
+                  value={tempData.location}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded"
+                  placeholder="Location"
+                />
+                <textarea
+                  name="address"
+                  value={tempData.address}
+                  onChange={handleChange}
+                  rows={3}
+                  className="w-full px-4 py-2 border rounded"
+                  placeholder="Address"
+                />
+                <div className="flex gap-4">
+                  <button
+                    type="submit"
+                    className="flex-1 bg-[#AE2108] text-white py-2 rounded-md"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelClick}
+                    className="flex-1 border border-gray-400 text-gray-700 py-2 rounded-md"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Password Section */}
+            <div className="mt-10 space-y-2">
+              <p className="text-gray-700">
+                <strong>Current Password:</strong> {currentPassword}
+              </p>
+              <input
+                type="password"
+                placeholder="New Password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-2 border rounded"
+              />
+              <button
+                onClick={handlePasswordUpdate}
+                className="mt-2 bg-[#AE2108] text-white px-4 py-2 rounded-md hover:bg-[#941B06] transition"
+              >
+                Update Password
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

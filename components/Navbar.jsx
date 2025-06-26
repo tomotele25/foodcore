@@ -40,13 +40,13 @@ const Navbar = () => {
         {/* Auth Links - Desktop */}
         <div className="hidden md:flex items-center gap-4">
           <Link
-            href="/login"
+            href="/Login"
             className="text-sm font-medium text-[#AE2108] hover:underline"
           >
             Sign In
           </Link>
           <Link
-            href="/signup"
+            href="/Signup"
             className="bg-[#AE2108] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#941B06]"
           >
             Sign Up
@@ -87,7 +87,7 @@ const Navbar = () => {
             </Link>
             <hr className="border-gray-200" />
             <Link
-              href="/login"
+              href="/Login"
               className="text-sm font-medium text-[#AE2108] hover:underline"
               onClick={() => setIsOpen(false)}
             >

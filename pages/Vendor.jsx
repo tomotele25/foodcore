@@ -1,50 +1,48 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-const vendors = [
-  {
-    id: 1,
-    name: "Mama Ope Kitchen",
-    image: "/logo.jpg",
-    category: "African Dishes",
-    location: "Lagos",
-    rating: 4.8,
-  },
-  {
-    id: 2,
-    name: "ChopLife Express",
-    image: "/logo.jpg",
-    category: "Fast Food",
-    location: "Abuja",
-    rating: 4.5,
-  },
-  {
-    id: 3,
-    name: "Royal Taste",
-    image: "/logo.jpg",
-    category: "Local & Continental",
-    location: "Lagos",
-    rating: 4.7,
-  },
-  {
-    id: 4,
-    name: "Tummy Treats",
-    image: "/logo.jpg",
-    category: "Desserts",
-    location: "Ibadan",
-    rating: 4.6,
-  },
-];
+import axios from "axios";
 
 const Vendor = () => {
+  const [vendors, setVendors] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const vendorsPerPage = 8;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchVendors = async () => {
+      try {
+        const res = await axios.get(
+          "http://localhost:2006/api/vendor/getVendors"
+        );
+        if (isMounted) {
+          setVendors(res.data.vendors || []);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Failed to fetch vendors:", error);
+      }
+    };
+
+    fetchVendors();
+    const interval = setInterval(fetchVendors, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const filteredVendors = vendors.filter((vendor) => {
     const matchesSearch =
-      vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.category.toLowerCase().includes(searchTerm.toLowerCase());
+      vendor.fullname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vendor.category?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesLocation =
       selectedLocation === "All" || vendor.location === selectedLocation;
@@ -52,8 +50,22 @@ const Vendor = () => {
     return matchesSearch && matchesLocation;
   });
 
+  const totalPages = Math.ceil(filteredVendors.length / vendorsPerPage);
+  const paginatedVendors = filteredVendors.slice(
+    (currentPage - 1) * vendorsPerPage,
+    currentPage * vendorsPerPage
+  );
+
+  const goToNext = () => {
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+  };
+
+  const goToPrevious = () => {
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+  };
+
   return (
-    <section id="vendors" className="bg-gray-50 px-6 py-16">
+    <section id="vendors" className="bg-gray-50 px-6 py-16 min-h-screen">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-3xl font-bold text-center text-gray-900 mb-6">
           Top Vendors Near You
@@ -61,7 +73,6 @@ const Vendor = () => {
 
         {/* Filters */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10">
-          {/* Search */}
           <input
             type="text"
             placeholder="Search by name or category..."
@@ -69,8 +80,6 @@ const Vendor = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-
-          {/* Location Filter */}
           <select
             className="w-full md:w-1/4 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AE2108]"
             value={selectedLocation}
@@ -84,35 +93,98 @@ const Vendor = () => {
         </div>
 
         {/* Vendor Cards */}
-        {filteredVendors.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {filteredVendors.map((vendor) => (
-              <Link href="/Menu">
-                <div className="bg-white rounded-xl shadow hover:shadow-md transition duration-300 overflow-hidden cursor-pointer">
-                  <div key={vendor.id} className="w-full h-48 relative">
-                    <Image
-                      src={vendor.image}
-                      alt={vendor.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="p-4 text-left">
-                    <h3 className="font-semibold text-lg text-gray-800">
-                      {vendor.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">{vendor.category}</p>
-                    <p className="text-sm text-gray-500">{vendor.location}</p>
-                    <p className="text-sm text-yellow-500 mt-1">
-                      ⭐ {vendor.rating}
-                    </p>
-                  </div>
+        {loading ? (
+          <p className="text-center text-gray-500 mt-10">Loading vendors...</p>
+        ) : paginatedVendors.length > 0 ? (
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 transition-opacity duration-300 ease-in-out"
+            key={currentPage}
+          >
+            {paginatedVendors.map((vendor) => (
+              <div
+                key={vendor._id}
+                className="relative bg-white rounded-xl shadow hover:shadow-lg transform hover:scale-[1.03] transition duration-300 overflow-hidden group"
+              >
+                <div className="w-full h-48 relative">
+                  <Image
+                    src={vendor.logo || "/logo.jpg"}
+                    alt={vendor.businessName}
+                    fill
+                    className="object-cover"
+                  />
+                  {vendor.status === "closed" && (
+                    <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10">
+                      <span className="text-white text-lg font-semibold">
+                        Closed
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </Link>
+                <div className="p-4 text-left">
+                  <h3 className="font-semibold text-lg text-gray-800 truncate group-hover:text-[#AE2108] transition-colors">
+                    {vendor.businessName}
+                  </h3>
+                  <p className="text-sm text-gray-500">{vendor.category}</p>
+                  <p className="text-sm text-gray-500">{vendor.location}</p>
+                  <div className="text-sm text-yellow-500 mt-1">
+                    {"⭐".repeat(4)}
+                    <span className="text-gray-300">⭐</span>
+                  </div>
+
+                  <p
+                    className={`mt-2 text-xs font-medium inline-block px-2 py-1 rounded-full ${
+                      vendor.status === "opened"
+                        ? "bg-green-100 text-green-600"
+                        : "bg-red-100 text-red-600"
+                    }`}
+                  >
+                    {vendor.status}
+                  </p>
+
+                  {vendor.status === "opened" ? (
+                    <Link
+                      href={`/vendors/menu/${vendor.slug}`}
+                      className="inline-block mt-3 text-sm text-white bg-[#AE2108] px-4 py-2 rounded-lg hover:bg-[#941B06] transition"
+                    >
+                      View Menu
+                    </Link>
+                  ) : (
+                    <button
+                      disabled
+                      className="inline-block mt-3 text-sm text-white bg-gray-400 px-4 py-2 rounded-lg cursor-not-allowed"
+                    >
+                      View Menu
+                    </button>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
         ) : (
           <p className="text-center text-gray-500 mt-10">No vendors found.</p>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-10 flex items-center justify-center gap-6">
+            <button
+              onClick={goToPrevious}
+              disabled={currentPage === 1}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="text-sm">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={goToNext}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
         )}
       </div>
     </section>

@@ -16,6 +16,7 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
+import axios from "axios";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/vendor/dashboard" },
@@ -33,31 +34,70 @@ export default function VendorDashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  const [storeStatus, setStoreStatus] = useState("opened");
+  const [loadingStatus, setLoadingStatus] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/Login");
     }
   }, [status, router]);
 
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (!session?.user?.vendorId) return;
+
+      try {
+        const res = await axios.get(
+          `http://localhost:2006/api/getAllOrders?vendorId=${session.user.vendorId}`
+        );
+        setOrders(res.data.orders || []); // ✅ Fix: extract actual array
+      } catch (err) {
+        console.error("Failed to fetch orders:", err);
+      } finally {
+        setLoadingOrders(false);
+      }
+    };
+
+    if (status === "authenticated") {
+      fetchOrders();
+    }
+  }, [session, status]);
+
+  const toggleStatus = async () => {
+    const vendorId = session?.user.vendorId;
+    if (!vendorId) return;
+
+    const newStatus = storeStatus === "opened" ? "closed" : "opened";
+    setLoadingStatus(true);
+    try {
+      const res = await axios.put(
+        "http://localhost:2006/api/vendor/toggleStatus",
+        { vendorId, status: newStatus }
+      );
+      setStoreStatus(res.data.vendor.status);
+      toast.success(`Store is now ${res.data.vendor.status}`);
+    } catch (error) {
+      console.error("Toggle error:", error);
+      toast.error("Failed to update store status");
+    } finally {
+      setLoadingStatus(false);
+    }
+  };
+
   const logout = async (e) => {
     e.preventDefault();
-
-    const toastId = toast.loading(
-      <div className="flex items-center gap-2">
-        <div className="w-4 h-4 border-2 border-t-2 border-white border-t-transparent rounded-full animate-spin"></div>
-        <span>Logging out...</span>
-      </div>,
-      { position: "top-right", duration: Infinity }
-    );
-
+    const toastId = toast.loading("Logging out...");
     try {
       await signOut({ redirect: false });
       toast.dismiss(toastId);
-      toast.success("Logged out successfully", { position: "top-right" });
-      router.push("/"); // redirect after logout
+      toast.success("Logged out successfully");
+      router.push("/");
     } catch (error) {
       toast.dismiss(toastId);
-      toast.error("Failed to logout", { position: "top-right" });
+      toast.error("Failed to logout");
     }
   };
 
@@ -66,23 +106,18 @@ export default function VendorDashboard() {
       <Toaster position="top-right" />
       <div className="min-h-screen flex bg-gray-100">
         {/* Sidebar */}
-        <div
-          className={`fixed z-30 inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between ${
+        <aside
+          className={`fixed z-30 inset-y-0 left-0 w-64 bg-white shadow-md transform transition-transform duration-200 ease-in-out flex flex-col justify-between md:relative md:translate-x-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
           <div>
             <div className="flex items-center justify-between px-4 py-4 border-b">
               <h1 className="text-xl font-bold text-[#AE2108]">Vendor Panel</h1>
-              <button
-                className="md:hidden text-gray-600"
-                onClick={toggleSidebar}
-                aria-label="Close sidebar"
-              >
+              <button onClick={toggleSidebar} className="md:hidden">
                 <X size={24} />
               </button>
             </div>
-
             <nav className="mt-4 space-y-1 px-4">
               {menuItems.map(({ name, icon: Icon, path }) => (
                 <Link
@@ -96,8 +131,6 @@ export default function VendorDashboard() {
               ))}
             </nav>
           </div>
-
-          {/* Logout Button */}
           <div className="px-4 mb-4">
             <button
               onClick={logout}
@@ -107,80 +140,139 @@ export default function VendorDashboard() {
               <span>Logout</span>
             </button>
           </div>
-        </div>
+        </aside>
 
-        {/* Main Content */}
+        {/* Main */}
         <div className="flex-1 flex flex-col">
-          {/* Header */}
           <header className="flex items-center justify-between px-4 py-3 bg-white shadow-md sticky top-0 z-10">
-            <button
-              className="md:hidden text-gray-700"
-              onClick={toggleSidebar}
-              aria-label="Open sidebar"
-            >
+            <button className="md:hidden" onClick={toggleSidebar}>
               <Menu size={24} />
             </button>
             <h2 className="text-lg font-semibold text-gray-800">Dashboard</h2>
           </header>
 
-          {/* Content */}
-          <main className="flex-1 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-2xl shadow-sm">
-                <h3 className="text-lg font-medium text-gray-700">Orders</h3>
-                <p className="text-2xl font-bold text-[#AE2108] mt-2">120</p>
-              </div>
-              <div className="bg-white p-6 rounded-2xl shadow-sm">
-                <h3 className="text-lg font-medium text-gray-700">Revenue</h3>
+          <main className="flex-1 p-4 md:p-6">
+            {/* Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+              <div className="bg-white p-5 rounded-xl shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-600">Orders</h3>
                 <p className="text-2xl font-bold text-[#AE2108] mt-2">
-                  $12,500
+                  {loadingOrders ? "..." : orders.length}
                 </p>
               </div>
-              <div className="bg-white p-6 rounded-2xl shadow-sm">
-                <h3 className="text-lg font-medium text-gray-700">Ratings</h3>
+              <div className="bg-white p-5 rounded-xl shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-600">Revenue</h3>
+                <p className="text-2xl font-bold text-[#AE2108] mt-2">
+                  ₦
+                  {loadingOrders
+                    ? "..."
+                    : Array.isArray(orders)
+                    ? orders
+                        .reduce(
+                          (acc, order) => acc + (order.totalAmount || 0),
+                          0
+                        )
+                        .toLocaleString()
+                    : "0"}
+                </p>
+              </div>
+              <div className="bg-white p-5 rounded-xl shadow-sm">
+                <h3 className="text-sm font-semibold text-gray-600">Ratings</h3>
                 <p className="text-2xl font-bold text-[#AE2108] mt-2">4.8</p>
               </div>
             </div>
 
+            {/* Store Status */}
+            <div className="mt-10">
+              <h3 className="text-xl font-semibold mb-4 text-gray-800">
+                Store Availability
+              </h3>
+              <div className="bg-white p-5 rounded-xl shadow flex items-center justify-between">
+                <p className="text-gray-700">
+                  Your store is currently{" "}
+                  <span className="font-bold capitalize text-[#AE2108]">
+                    {storeStatus}
+                  </span>
+                </p>
+                <button
+                  onClick={toggleStatus}
+                  disabled={loadingStatus}
+                  className={`px-4 py-2 rounded-lg font-medium text-white transition ${
+                    storeStatus === "opened"
+                      ? "bg-red-500 hover:bg-red-600"
+                      : "bg-green-600 hover:bg-green-700"
+                  }`}
+                >
+                  {loadingStatus
+                    ? "Updating..."
+                    : storeStatus === "opened"
+                    ? "Set to Closed"
+                    : "Set to Opened"}
+                </button>
+              </div>
+            </div>
+
+            {/* Orders Table */}
             <div className="mt-10">
               <h3 className="text-xl font-semibold mb-4 text-gray-800">
                 Recent Orders
               </h3>
-              <div className="overflow-x-auto">
-                <table className="w-full bg-white rounded-xl overflow-hidden text-sm">
-                  <thead className="bg-gray-100">
+              <div className="overflow-x-auto rounded-xl shadow">
+                <table className="min-w-full bg-white text-sm">
+                  <thead className="bg-gray-100 text-left">
                     <tr>
-                      <th className="text-left px-4 py-3">Order ID</th>
-                      <th className="text-left px-4 py-3">Customer</th>
-                      <th className="text-left px-4 py-3">Total</th>
-                      <th className="text-left px-4 py-3">Status</th>
+                      <th className="px-4 py-3 font-semibold">Order ID</th>
+                      <th className="px-4 py-3 font-semibold">Customer</th>
+                      <th className="px-4 py-3 font-semibold">Total</th>
+                      <th className="px-4 py-3 font-semibold">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-t">
-                      <td className="px-4 py-3">#ORD12345</td>
-                      <td className="px-4 py-3">Jane Doe</td>
-                      <td className="px-4 py-3">$45.00</td>
-                      <td className="px-4 py-3 text-green-500 font-medium">
-                        Delivered
-                      </td>
-                    </tr>
-                    <tr className="border-t">
-                      <td className="px-4 py-3">#ORD12346</td>
-                      <td className="px-4 py-3">John Smith</td>
-                      <td className="px-4 py-3">$30.00</td>
-                      <td className="px-4 py-3 text-yellow-500 font-medium">
-                        Pending
-                      </td>
-                    </tr>
-                    <tr className="border-t">
-                      <td className="px-4 py-3">#ORD12347</td>
-                      <td className="px-4 py-3">Sarah Lee</td>
-                      <td className="px-4 py-3">$80.00</td>
-                      <td className="px-4 py-3 text-red-500 font-medium">
-                        Cancelled
-                      </td>
-                    </tr>
+                    {loadingOrders ? (
+                      <tr>
+                        <td colSpan="4" className="text-center px-4 py-6">
+                          Loading...
+                        </td>
+                      </tr>
+                    ) : orders.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan="4"
+                          className="text-center px-4 py-6 text-gray-500"
+                        >
+                          No recent orders
+                        </td>
+                      </tr>
+                    ) : (
+                      orders.slice(0, 5).map((order) => {
+                        const status = (
+                          order.status || "Pending"
+                        ).toLowerCase();
+                        const colorClass =
+                          status === "completed"
+                            ? "text-green-600"
+                            : status === "cancelled"
+                            ? "text-red-600"
+                            : "text-yellow-600";
+
+                        return (
+                          <tr key={order._id} className="border-t">
+                            <td className="px-4 py-3">
+                              #{order._id.slice(-6).toUpperCase()}
+                            </td>
+                            <td className="px-4 py-3">
+                              {order.guestInfo?.name || "Guest"}
+                            </td>
+                            <td className="px-4 py-3">₦{order.totalAmount}</td>
+                            <td
+                              className={`px-4 py-3 font-medium ${colorClass}`}
+                            >
+                              {status.charAt(0).toUpperCase() + status.slice(1)}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
                   </tbody>
                 </table>
               </div>

@@ -4,14 +4,12 @@ import React, { useState } from "react";
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 
 const Login = () => {
-  const [activeTab, setActiveTab] = useState("vendor");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -29,19 +27,24 @@ const Login = () => {
     const response = await signIn("credentials", {
       email: formData.email,
       password: formData.password,
-      role: activeTab, // send "customer", "vendor", or "manager"
       redirect: false,
     });
 
     if (response?.ok) {
       toast.success("Login successful");
-      // Redirect based on role
-      if (activeTab === "vendor") {
+
+      // Wait for session to update
+      const updatedSession = await getSession();
+      const role = updatedSession?.user?.role;
+
+      if (role === "admin") {
+        router.push("/admin/AdminDashboard");
+      } else if (role === "vendor") {
         router.push("/vendors/Dashboard");
-      } else if (activeTab === "manager") {
-        router.push("vendors/ManagerDashboard");
+      } else if (role === "manager") {
+        router.push("/vendors/ManagerDashboard");
       } else {
-        router.push("/customer/dashboard"); // <-- your customer dashboard
+        router.push("/Vendor");
       }
     } else {
       toast.error("Invalid email or password");
@@ -68,28 +71,9 @@ const Login = () => {
       <div className="md:w-1/2 flex items-center justify-center px-6 py-12 bg-gray-50">
         <div className="w-full max-w-md">
           <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
-            Welcome Back
+            Login as Customer
           </h2>
 
-          {/* Tabs */}
-          <div className="flex mb-6 border-b">
-            {["customer", "vendor", "manager"].map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`w-1/3 py-2 text-sm font-semibold ${
-                  activeTab === tab
-                    ? "text-[#AE2108] border-b-2 border-[#AE2108]"
-                    : "text-gray-500"
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </div>
-
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm text-gray-700">Email</label>
@@ -138,7 +122,7 @@ const Login = () => {
 
           <p className="text-sm text-gray-600 mt-4 text-center">
             Don’t have an account?{" "}
-            <a href="/signup" className="text-[#AE2108] hover:underline">
+            <a href="/Signup" className="text-[#AE2108] hover:underline">
               Sign Up
             </a>
           </p>

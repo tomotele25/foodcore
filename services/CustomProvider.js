@@ -7,32 +7,38 @@ export const customProvider = CredentialsProvider({
     email: { label: "Email", type: "email", placeholder: "you@example.com" },
     password: { label: "Password", type: "password" },
   },
+
   async authorize(credentials) {
     try {
       const res = await axios.post(
-        "http://localhost:2005/api/auth/vendor/login",
+        "http://localhost:2005/api/auth/user/login",
         {
           email: credentials.email,
           password: credentials.password,
         }
       );
 
-      const vendor = res.data.vendor;
+      const user = res.data.user;
       const accessToken = res.data.accessToken;
 
-      if (res.data.success && vendor) {
+      if (res.data.success && user) {
         return {
-          id: vendor.id,
-          email: vendor.email,
+          id: user.id,
+          vendorId: user.vendorId,
+          email: user.email,
+          fullname: user.fullname,
+          role: user.role,
           accessToken,
-          businessName: vendor.businessName,
-          location: vendor.location,
-          fullname: vendor.fullname,
+          businessName: user.businessName,
+          location: user.location,
+          contact: user.contact,
+          address: user.address,
         };
       }
-
+      console.log(user);
       return null;
     } catch (error) {
+      console.error("Auth error:", error.response?.data || error.message);
       return null;
     }
   },
