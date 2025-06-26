@@ -34,7 +34,7 @@ export default function ManageProducts() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("${BACKENDURL}/api/product/my-products", {
+        const res = await axios.get(`${BACKENDURL}/api/product/my-products`, {
           headers: {
             Authorization: `Bearer ${session?.user?.accessToken}`,
           },
@@ -62,7 +62,7 @@ export default function ManageProducts() {
 
     try {
       const res = await axios.post(
-        "${BACKENDURL}/api/product/createProduct",
+        `${BACKENDURL}/api/product/createProduct`,
         {
           productName: formData.name,
           price: formData.price,
