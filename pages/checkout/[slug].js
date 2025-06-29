@@ -10,7 +10,8 @@ import Script from "next/script";
 const Checkout = () => {
   const router = useRouter();
   const { slug } = router.query;
-  const BACKENDURL = "http://localhost:2006"; // or your backend URL
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006"; // or your backend URL
 
   const { cart, addToCart, removeFromCart } = useCart();
   const cartItems = Object.values(cart);

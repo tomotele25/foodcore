@@ -18,7 +18,8 @@ import Link from "next/link";
 export default function ManageProducts() {
   const router = useRouter();
   const { data: session } = useSession();
-  const BACKENDURL = "http://localhost:2006";
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
