@@ -2,7 +2,11 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["via.placeholder.com", "localhost"],
+    domains: [
+      "via.placeholder.com",
+      "localhost",
+      "chowspace-backend.vercel.app",
+    ],
   },
 };
 

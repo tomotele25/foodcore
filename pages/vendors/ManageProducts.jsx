@@ -18,17 +18,20 @@ import Link from "next/link";
 export default function ManageProducts() {
   const router = useRouter();
   const { data: session } = useSession();
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+  const BACKENDURL = "http://localhost:2006";
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+
   const [formData, setFormData] = useState({
     name: "",
     price: "",
     category: "",
     description: "",
     available: true,
+    image: null,
+    imagePreview: null,
   });
 
   useEffect(() => {
@@ -56,23 +59,38 @@ export default function ManageProducts() {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        image: file,
+        imagePreview: URL.createObjectURL(file),
+      }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      const form = new FormData();
+      form.append("productName", formData.name);
+      form.append("price", formData.price);
+      form.append("category", formData.category);
+      form.append("available", formData.available);
+      if (formData.image) {
+        form.append("image", formData.image);
+      }
+
       const res = await axios.post(
         `${BACKENDURL}/api/product/createProduct`,
-        {
-          productName: formData.name,
-          price: formData.price,
-          category: formData.category,
-          image: "placeholder.png",
-          available: formData.available,
-        },
+        form,
         {
           headers: {
             Authorization: `Bearer ${session?.user?.accessToken}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -85,6 +103,8 @@ export default function ManageProducts() {
         category: "",
         description: "",
         available: true,
+        image: null,
+        imagePreview: null,
       });
       setShowModal(false);
     } catch (error) {
@@ -283,6 +303,37 @@ export default function ManageProducts() {
                   onChange={handleChange}
                 />
                 <label className="text-sm text-gray-700">Available</label>
+              </div>
+
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Product Image
+                </label>
+
+                <label
+                  htmlFor="imageUpload"
+                  className="flex items-center justify-center px-4 py-2 border border-dashed border-gray-400 rounded-lg text-gray-600 cursor-pointer hover:border-[#AE2108] hover:text-[#AE2108]"
+                >
+                  {formData.image ? "Change Image" : "Click to select an image"}
+                </label>
+
+                <input
+                  id="imageUpload"
+                  type="file"
+                  accept="image/*"
+                  name="image"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+
+                {formData.imagePreview && (
+                  <img
+                    src={formData.imagePreview}
+                    alt="Preview"
+                    className="mt-2 w-full h-40 object-cover rounded-md"
+                  />
+                )}
               </div>
 
               <button

@@ -5,12 +5,13 @@ import Image from "next/image";
 import axios from "axios";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/router";
+import Script from "next/script";
 
 const Checkout = () => {
   const router = useRouter();
   const { slug } = router.query;
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+  const BACKENDURL = "http://localhost:2006"; // or your backend URL
+
   const { cart, addToCart, removeFromCart } = useCart();
   const cartItems = Object.values(cart);
 
@@ -20,7 +21,6 @@ const Checkout = () => {
     { name: "Ikeja", fee: 1500 },
     { name: "Ajah", fee: 2000 },
   ]);
-
   const [deliveryDetails, setDeliveryDetails] = useState({
     name: "",
     phone: "",
@@ -35,7 +35,6 @@ const Checkout = () => {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-
   const charges = Math.round(cartTotal * 0.05);
   const finalTotal = cartTotal + charges + deliveryFee + packFee;
 
@@ -76,39 +75,64 @@ const Checkout = () => {
       return;
     }
 
-    const orderPayload = {
-      vendorId: vendor._id,
-      items: cartItems.map((item) => ({
-        menuItemId: item._id,
-        name: item.productName,
-        quantity: item.quantity,
-        price: item.price,
-      })),
-      guestInfo: { name, phone, address },
-      deliveryMethod: "delivery",
-      note: "",
-      totalAmount: finalTotal,
-    };
+    const paystackRef = "" + Math.floor(Math.random() * 1000000000 + 1);
 
-    try {
-      const response = await axios.post(
-        "${BACKENDURL}/api/orders",
-        orderPayload
-      );
-      alert("Order placed successfully!");
-      console.log("Order:", response.data);
-    } catch (error) {
-      console.error("Order error:", error);
-      alert(error?.response?.data?.message || "Order failed.");
+    const handler =
+      window.PaystackPop &&
+      window.PaystackPop.setup({
+        key: "pk_test_e40ab8d970beb438e82bbce2e01930496b023593",
+        email: `${phone}@chowspace.test`,
+        amount: finalTotal * 100,
+        currency: "NGN",
+        ref: paystackRef,
+        callback: async function (response) {
+          try {
+            const orderPayload = {
+              vendorId: vendor._id,
+              items: cartItems.map((item) => ({
+                menuItemId: item._id,
+                name: item.productName,
+                quantity: item.quantity,
+                price: item.price,
+              })),
+              guestInfo: { name, phone, address },
+              deliveryMethod: "delivery",
+              note: "",
+              totalAmount: finalTotal,
+              paymentStatus: "paid",
+              paymentRef: response.reference,
+            };
+
+            await axios.post(`${BACKENDURL}/api/orders`, orderPayload);
+            alert("Payment & Order successful!");
+            router.push("/success");
+          } catch (err) {
+            console.error("Order creation failed:", err);
+            alert("Payment succeeded but order failed.");
+          }
+        },
+        onClose: function () {
+          alert("Payment window closed.");
+        },
+      });
+
+    if (handler) {
+      handler.openIframe();
+    } else {
+      alert("Paystack not loaded yet. Try again.");
     }
   };
 
-  if (!vendor) {
+  if (!vendor)
     return <p className="text-center py-20">Loading vendor info...</p>;
-  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
+      <Script
+        src="https://js.paystack.co/v1/inline.js"
+        strategy="beforeInteractive"
+      />
+
       <h1 className="text-2xl font-bold mb-6 text-gray-800">
         Checkout from {vendor.businessName}
       </h1>
@@ -170,47 +194,21 @@ const Checkout = () => {
         </h2>
 
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Full Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={deliveryDetails.name}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm text-sm"
-              placeholder="Enter your full name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              value={deliveryDetails.phone}
-              onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm text-sm"
-              placeholder="e.g. 08123456789"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Delivery Address
-            </label>
-            <textarea
-              name="address"
-              value={deliveryDetails.address}
-              onChange={handleChange}
-              rows={3}
-              className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm text-sm"
-              placeholder="Enter delivery address"
-            />
-          </div>
+          {["name", "phone", "address"].map((field) => (
+            <div key={field}>
+              <label className="block text-sm font-medium text-gray-700 capitalize">
+                {field.replace(/^\w/, (c) => c.toUpperCase())}
+              </label>
+              <input
+                type={field === "phone" ? "tel" : "text"}
+                name={field}
+                value={deliveryDetails[field]}
+                onChange={handleChange}
+                className="mt-1 block w-full px-3 py-2 border rounded-md shadow-sm text-sm"
+                placeholder={`Enter your ${field}`}
+              />
+            </div>
+          ))}
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
