@@ -100,12 +100,8 @@ const VendorMenuPage = () => {
                 >
                   <div className="w-full h-28 relative">
                     <Image
-                      src={
-                        product.image?.startsWith("http")
-                          ? product.image
-                          : `${BACKENDURL}/uploads/${product.image}`
-                      }
-                      alt={product.productName}
+                      src={product.image || "https://placehold.co/150x150"}
+                      alt="Product"
                       fill
                       className="object-cover"
                     />
