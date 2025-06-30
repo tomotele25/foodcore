@@ -7,14 +7,18 @@ import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/router";
 import Script from "next/script";
 
+const formatCurrency = (amount) =>
+  typeof amount === "number" ? amount.toLocaleString() : "0";
+
 const Checkout = () => {
   const router = useRouter();
   const { slug } = router.query;
   const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006"; // or your backend URL
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
-  const { cart, addToCart, removeFromCart } = useCart();
-  const cartItems = Object.values(cart);
+  const { cart, currentPackIndex, addToCart, removeFromCart } = useCart();
+
+  const cartItems = cart[currentPackIndex] || [];
 
   const [vendor, setVendor] = useState(null);
   const [locations] = useState([
@@ -33,7 +37,7 @@ const Checkout = () => {
   const packFee = 300;
 
   const cartTotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
     0
   );
   const charges = Math.round(cartTotal * 0.05);
@@ -164,7 +168,7 @@ const Checkout = () => {
                   {item.productName}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  ₦{item.price.toLocaleString()}
+                  ₦{formatCurrency(item.price)}
                 </p>
               </div>
             </div>
@@ -224,7 +228,7 @@ const Checkout = () => {
               <option value="">Select location</option>
               {locations.map((loc) => (
                 <option key={loc.name} value={loc.name}>
-                  {loc.name} - ₦{loc.fee}
+                  {loc.name} - ₦{formatCurrency(loc.fee)}
                 </option>
               ))}
             </select>
@@ -236,24 +240,24 @@ const Checkout = () => {
       <div className="mt-8 border-t pt-4 space-y-2 text-gray-700 text-sm">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>₦{cartTotal.toLocaleString()}</span>
+          <span>₦{formatCurrency(cartTotal)}</span>
         </div>
         <div className="flex justify-between">
           <span>Packing Fee</span>
-          <span>₦{packFee.toLocaleString()}</span>
+          <span>₦{formatCurrency(packFee)}</span>
         </div>
         <div className="flex justify-between">
           <span>Delivery Fee</span>
-          <span>₦{deliveryFee.toLocaleString()}</span>
+          <span>₦{formatCurrency(deliveryFee)}</span>
         </div>
         <div className="flex justify-between">
           <span>Charges (5%)</span>
-          <span>₦{charges.toLocaleString()}</span>
+          <span>₦{formatCurrency(charges)}</span>
         </div>
 
         <div className="flex justify-between text-base font-semibold pt-2 border-t mt-3">
           <span>Total:</span>
-          <span>₦{finalTotal.toLocaleString()}</span>
+          <span>₦{formatCurrency(finalTotal)}</span>
         </div>
 
         <button

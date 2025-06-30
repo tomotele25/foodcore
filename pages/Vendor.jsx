@@ -12,6 +12,8 @@ const Vendor = () => {
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const vendorsPerPage = 8;
+
+  // ✅ Automatically uses correct backend based on environment
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
@@ -27,15 +29,14 @@ const Vendor = () => {
         }
       } catch (error) {
         console.error("Failed to fetch vendors:", error);
+        setLoading(false);
       }
     };
 
     fetchVendors();
-    const interval = setInterval(fetchVendors, 20000);
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
     };
   }, []);
 

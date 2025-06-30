@@ -1,12 +1,27 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([[]]); // array of packs
   const [currentPackIndex, setCurrentPackIndex] = useState(0);
+
+  // Load from localStorage
+  useEffect(() => {
+    const storedCart = localStorage.getItem("chowspace-cart");
+    const storedIndex = localStorage.getItem("chowspace-pack-index");
+
+    if (storedCart) setCart(JSON.parse(storedCart));
+    if (storedIndex) setCurrentPackIndex(parseInt(storedIndex));
+  }, []);
+
+  // Sync to localStorage
+  useEffect(() => {
+    localStorage.setItem("chowspace-cart", JSON.stringify(cart));
+    localStorage.setItem("chowspace-pack-index", currentPackIndex);
+  }, [cart, currentPackIndex]);
 
   const addToCart = (product) => {
     setCart((prev) => {
