@@ -10,8 +10,11 @@ import {
   LogOut,
   Menu,
   X,
+  Camera,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import axios from "axios";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/vendor/dashboard" },
@@ -21,7 +24,6 @@ const menuItems = [
 
 const Profile = () => {
   const { data: session, status } = useSession();
-
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -29,20 +31,21 @@ const Profile = () => {
     fullname: "",
     email: "",
     businessName: "",
-    phoneNumber: "",
+    contact: "",
     location: "",
     address: "",
   });
   const [editMode, setEditMode] = useState(false);
   const [tempData, setTempData] = useState({ ...formData });
-
-  const [currentPassword, setCurrentPassword] = useState("vendor123"); // Just placeholder for now
+  const [logo, setLogo] = useState(null);
+  const [logoPreview, setLogoPreview] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("vendor123");
   const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const BACKENDURL = "http://localhost:2006";
 
   useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push("/Login");
-    }
+    if (status === "unauthenticated") router.push("/Login");
   }, [status]);
 
   useEffect(() => {
@@ -52,48 +55,84 @@ const Profile = () => {
         fullname: vendor.fullname || "",
         email: vendor.email || "",
         businessName: vendor.businessName || "",
-        phoneNumber: vendor.phoneNumber || "",
+        contact: vendor.phoneNumber || "",
         location: vendor.location || "",
         address: vendor.address || "",
       };
       setFormData(userData);
       setTempData(userData);
+      setLogoPreview(vendor.logo || "");
     }
   }, [session]);
 
   const handleEditClick = () => setEditMode(true);
+
   const handleCancelClick = () => {
     setTempData(formData);
+    setLogoPreview(session?.vendor?.logo || "");
+    setNewPassword("");
     setEditMode(false);
   };
 
   const handleChange = (e) =>
     setTempData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleSaveClick = (e) => {
-    e.preventDefault();
-    setFormData(tempData);
-    setEditMode(false);
-    alert("Profile saved! (Implement backend call)");
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setLogo(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
   };
 
-  const handlePasswordUpdate = () => {
-    alert(`Password updated to: ${newPassword}`);
-    setNewPassword("");
+  const handleSaveClick = async (e) => {
+    e.preventDefault();
+    const form = new FormData();
+
+    form.append("businessName", tempData.businessName);
+    form.append("contact", tempData.contact);
+    form.append("location", tempData.location);
+    form.append("address", tempData.address);
+
+    if (logo) {
+      form.append("logo", logo);
+    }
+
+    if (newPassword) {
+      form.append("password", newPassword);
+    }
+
+    try {
+      await axios.put(`${BACKENDURL}/api/vendor/profile/update`, form, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${session?.user?.accessToken}`,
+        },
+      });
+      alert("Profile updated successfully");
+      setFormData(tempData);
+      setNewPassword("");
+      setEditMode(false);
+    } catch (error) {
+      alert("Failed to update profile");
+    }
   };
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    router.push("/Login");
+  };
+
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
       {/* Sidebar */}
       <div
         className={`fixed z-30 inset-y-0 left-0 w-64 bg-white shadow-md transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 flex flex-col justify-between ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Top Section: Logo and Navigation */}
         <div>
           <div className="flex items-center justify-between px-4 py-4 border-b">
             <h1 className="text-xl font-bold text-[#AE2108]">Vendor Panel</h1>
@@ -114,11 +153,9 @@ const Profile = () => {
             ))}
           </nav>
         </div>
-
-        {/* Bottom Section: Logout */}
         <div className="px-4 mb-4">
           <button
-            onClick={() => signOut({ callbackUrl: "/Login" })}
+            onClick={handleLogout}
             className="flex items-center gap-3 text-red-500 hover:bg-red-100 px-3 py-2 rounded-md w-full"
           >
             <LogOut size={18} />
@@ -129,7 +166,6 @@ const Profile = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col ml-0 h-screen overflow-hidden">
-        {/* Header */}
         <header className="sticky top-0 z-10 h-16 bg-white shadow-md px-4 py-3 flex items-center justify-between">
           <button onClick={toggleSidebar} className="md:hidden text-gray-700">
             <Menu size={24} />
@@ -139,14 +175,44 @@ const Profile = () => {
           </h2>
         </header>
 
-        {/* Scrollable Main Section */}
         <main className="flex-1 overflow-y-auto p-6 bg-gray-100">
           <div className="bg-white rounded-xl shadow-md p-6 max-w-3xl mx-auto">
-            {/* Avatar */}
-            <div className="flex justify-center mb-6">
-              <div className="w-20 h-20 rounded-full bg-[#AE2108] flex items-center justify-center text-white text-3xl font-bold">
-                {formData.fullname ? formData.fullname[0] : "V"}
+            {/* Logo Upload */}
+            <div className="flex flex-col items-center mb-6 relative">
+              <div
+                onClick={() =>
+                  editMode && document.getElementById("logoInput").click()
+                }
+                className="w-20 h-20 rounded-full overflow-hidden relative group cursor-pointer"
+              >
+                {logoPreview ? (
+                  <Image
+                    src={logoPreview}
+                    alt="Logo"
+                    width={80}
+                    height={80}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold bg-[#AE2108]">
+                    {formData.fullname ? formData.fullname[0] : "V"}
+                  </div>
+                )}
+                {editMode && (
+                  <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center group-hover:bg-opacity-50 transition">
+                    <Camera className="text-white w-6 h-6" />
+                  </div>
+                )}
               </div>
+              {editMode && (
+                <input
+                  type="file"
+                  id="logoInput"
+                  accept="image/*"
+                  onChange={handleLogoChange}
+                  className="hidden"
+                />
+              )}
             </div>
 
             {/* User Info */}
@@ -154,15 +220,13 @@ const Profile = () => {
               <h2 className="text-2xl font-bold text-gray-900">
                 {session?.user.fullname}
               </h2>
-              <p className="text-gray-500"> {session?.user.email}</p>
+              <p className="text-gray-500">{session?.user.email}</p>
             </div>
 
-            {/* Form or Profile */}
             {!editMode ? (
               <div className="space-y-4 text-gray-700">
                 <p>
-                  <strong>Business Name:</strong>
-                  {session?.user?.businessName}
+                  <strong>Business Name:</strong> {session?.user?.businessName}
                 </p>
                 <p>
                   <strong>Phone Number:</strong> {session?.user?.contact}
@@ -173,7 +237,6 @@ const Profile = () => {
                 <p>
                   <strong>Address:</strong> {session?.user?.address}
                 </p>
-
                 <button
                   onClick={handleEditClick}
                   className="w-full py-3 bg-[#AE2108] text-white font-semibold rounded-md hover:bg-[#941B06] transition"
@@ -191,8 +254,8 @@ const Profile = () => {
                   placeholder="Business Name"
                 />
                 <input
-                  name="phoneNumber"
-                  value={tempData.phoneNumber}
+                  name="contact"
+                  value={tempData.contact}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border rounded"
                   placeholder="Phone Number"
@@ -212,6 +275,33 @@ const Profile = () => {
                   className="w-full px-4 py-2 border rounded"
                   placeholder="Address"
                 />
+                <div>
+                  <p className="text-gray-700">
+                    <strong>Current Password:</strong>
+                  </p>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={currentPassword}
+                      readOnly
+                      className="w-full px-4 py-2 border rounded pr-16"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-600"
+                    >
+                      {showPassword ? "Hide" : "Show"}
+                    </button>
+                  </div>
+                  <input
+                    type="password"
+                    placeholder="New Password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full mt-2 px-4 py-2 border rounded"
+                  />
+                </div>
                 <div className="flex gap-4">
                   <button
                     type="submit"
@@ -229,26 +319,6 @@ const Profile = () => {
                 </div>
               </form>
             )}
-
-            {/* Password Section */}
-            <div className="mt-10 space-y-2">
-              <p className="text-gray-700">
-                <strong>Current Password:</strong> {currentPassword}
-              </p>
-              <input
-                type="password"
-                placeholder="New Password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full px-4 py-2 border rounded"
-              />
-              <button
-                onClick={handlePasswordUpdate}
-                className="mt-2 bg-[#AE2108] text-white px-4 py-2 rounded-md hover:bg-[#941B06] transition"
-              >
-                Update Password
-              </button>
-            </div>
           </div>
         </main>
       </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router"; // ✅ Correct import for Pages Router
 import {
   LayoutDashboard,
   Users,
@@ -23,6 +23,9 @@ const menuItems = [
 
 const locations = ["Lagos", "Abuja", "Kano", "Port Harcourt", "Ibadan"];
 
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+
 const ManageVendor = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -39,10 +42,10 @@ const ManageVendor = () => {
   });
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (status !== "loading" && !session) {
       router.push("/Login");
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -56,20 +59,30 @@ const ManageVendor = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${BACKENDURL}/api/vendor/create`, {
-        fullname: form.fullname,
-        email: form.email,
-        password: "vendor123",
-        businessName: form.businessName,
-        contact: form.phoneNumber,
-        password: "vendor123",
-        location: form.location,
-        address: "Default Address",
-        logo: "https://via.placeholder.com/150",
-        category: "general",
-      });
+      const formData = new FormData();
+      formData.append("fullname", form.fullname);
+      formData.append("email", form.email);
+      formData.append("password", "vendor123");
+      formData.append("businessName", form.businessName);
+      formData.append("contact", form.phoneNumber);
+      formData.append("location", form.location);
+      formData.append("address", "Default Address");
+      formData.append("category", "general");
+      if (logo) {
+        formData.append("logo", logo);
+      }
 
-      if (res.status === 200) {
+      const res = await axios.post(
+        `${BACKENDURL}/api/vendor/create`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (res.status === 200 || res.status === 201) {
         toast.success("Vendor created successfully!");
         setForm({
           fullname: "",
@@ -118,13 +131,13 @@ const ManageVendor = () => {
             ))}
           </nav>
         </div>
-        <div className="px-4 mb-4">
+        <div className="p-4 border-t">
           <button
             onClick={() => signOut({ callbackUrl: "/Login" })}
-            className="flex items-center gap-3 text-red-500 hover:bg-red-100 px-3 py-2 rounded-md w-full"
+            className="flex items-center gap-2 text-red-600 hover:bg-red-100 px-3 py-2 rounded w-full"
           >
             <LogOut size={18} />
-            <span>Logout</span>
+            Logout
           </button>
         </div>
       </div>

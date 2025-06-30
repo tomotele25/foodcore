@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
@@ -10,23 +11,24 @@ import {
   X,
   UtensilsCrossed,
 } from "lucide-react";
-import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 export default function ManagerDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [orders, setOrders] = useState([]);
   const [vendorStatus, setVendorStatus] = useState("");
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   useEffect(() => {
-    if (!session?.user?.accessToken) return;
+    if (status !== "authenticated") return;
 
     const fetchOrders = async () => {
       try {
@@ -53,7 +55,7 @@ export default function ManagerDashboard() {
 
     fetchOrders();
     fetchVendorStatus();
-  }, [session]);
+  }, [session, status]);
 
   const toggleStoreStatus = async () => {
     const newStatus = vendorStatus === "opened" ? "closed" : "opened";
@@ -72,6 +74,15 @@ export default function ManagerDashboard() {
       toast.success(`Store is now ${res.data.vendor?.status}`);
     } catch {
       toast.error("Could not toggle store status");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut({ redirect: false });
+      router.push("/Login");
+    } catch {
+      toast.error("Logout failed");
     }
   };
 
@@ -128,7 +139,7 @@ export default function ManagerDashboard() {
 
         <div className="pt-6 border-t border-gray-200">
           <button
-            onClick={() => signOut({ callbackUrl: "/Login" })}
+            onClick={handleLogout}
             className="flex items-center gap-2 text-red-600 hover:bg-red-100 px-3 py-2 rounded-md w-full"
           >
             <LogOut size={18} />

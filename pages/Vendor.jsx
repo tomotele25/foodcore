@@ -12,11 +12,15 @@ const Vendor = () => {
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const vendorsPerPage = 8;
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+  const BACKENDURL = "http://localhost:2006";
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedLocation]);
 
   useEffect(() => {
     let isMounted = true;
+    let interval;
 
     const fetchVendors = async () => {
       try {
@@ -24,14 +28,23 @@ const Vendor = () => {
         if (isMounted) {
           setVendors(res.data.vendors || []);
           setLoading(false);
+          console.log("Fetched vendors:", res.data.vendors);
         }
       } catch (error) {
         console.error("Failed to fetch vendors:", error);
       }
     };
 
-    fetchVendors();
-    const interval = setInterval(fetchVendors, 5000);
+    const startPolling = () => {
+      fetchVendors();
+      interval = setInterval(() => {
+        if (!document.hidden) {
+          fetchVendors();
+        }
+      }, 30000); // 30 seconds interval
+    };
+
+    startPolling();
 
     return () => {
       isMounted = false;
