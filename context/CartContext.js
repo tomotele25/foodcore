@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 
 const CartContext = createContext();
 
@@ -8,44 +8,29 @@ export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([[]]); // array of packs
   const [currentPackIndex, setCurrentPackIndex] = useState(0);
 
-  // Load from localStorage
-  useEffect(() => {
-    const storedCart = localStorage.getItem("chowspace-cart");
-    const storedIndex = localStorage.getItem("chowspace-pack-index");
-
-    if (storedCart) setCart(JSON.parse(storedCart));
-    if (storedIndex) setCurrentPackIndex(parseInt(storedIndex));
-  }, []);
-
-  // Sync to localStorage
-  useEffect(() => {
-    localStorage.setItem("chowspace-cart", JSON.stringify(cart));
-    localStorage.setItem("chowspace-pack-index", currentPackIndex);
-  }, [cart, currentPackIndex]);
-
-  const addToCart = (product) => {
+  const addToCart = (product, packIndex = currentPackIndex) => {
     setCart((prev) => {
       const updated = [...prev];
-      const pack = updated[currentPackIndex];
+      const pack = updated[packIndex];
       const existing = pack.find((p) => p._id === product._id);
 
       if (existing) {
         const updatedPack = pack.map((p) =>
           p._id === product._id ? { ...p, quantity: p.quantity + 1 } : p
         );
-        updated[currentPackIndex] = updatedPack;
+        updated[packIndex] = updatedPack;
       } else {
-        updated[currentPackIndex] = [...pack, { ...product, quantity: 1 }];
+        updated[packIndex] = [...pack, { ...product, quantity: 1 }];
       }
 
       return updated;
     });
   };
 
-  const removeFromCart = (productId) => {
+  const removeFromCart = (productId, packIndex = currentPackIndex) => {
     setCart((prev) => {
       const updated = [...prev];
-      const pack = updated[currentPackIndex]
+      const pack = updated[packIndex]
         .map((item) =>
           item._id === productId
             ? { ...item, quantity: item.quantity - 1 }
@@ -53,18 +38,18 @@ export const CartProvider = ({ children }) => {
         )
         .filter((item) => item.quantity > 0);
 
-      updated[currentPackIndex] = pack;
+      updated[packIndex] = pack;
       return updated;
     });
   };
 
-  const incrementItem = (productId) => {
+  const incrementItem = (productId, packIndex = currentPackIndex) => {
     setCart((prev) => {
       const updated = [...prev];
-      const pack = updated[currentPackIndex].map((item) =>
+      const pack = updated[packIndex].map((item) =>
         item._id === productId ? { ...item, quantity: item.quantity + 1 } : item
       );
-      updated[currentPackIndex] = pack;
+      updated[packIndex] = pack;
       return updated;
     });
   };

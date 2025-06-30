@@ -16,9 +16,7 @@ const Checkout = () => {
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
-  const { cart, currentPackIndex, addToCart, removeFromCart } = useCart();
-
-  const cartItems = cart[currentPackIndex] || [];
+  const { cart, addToCart, removeFromCart } = useCart();
 
   const [vendor, setVendor] = useState(null);
   const [locations] = useState([
@@ -36,6 +34,7 @@ const Checkout = () => {
   const [deliveryFee, setDeliveryFee] = useState(0);
   const packFee = 300;
 
+  const cartItems = cart.flat();
   const cartTotal = cartItems.reduce(
     (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
     0
@@ -142,52 +141,57 @@ const Checkout = () => {
         Checkout from {vendor.businessName}
       </h1>
 
-      {cartItems.length === 0 ? (
+      {cart.length === 0 || cart.every((pack) => pack.length === 0) ? (
         <p className="text-center text-gray-500 py-10">Your cart is empty.</p>
       ) : (
-        cartItems.map((item) => (
-          <div
-            key={item._id}
-            className="flex items-center justify-between bg-white shadow rounded-lg p-4 mb-4"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 relative rounded overflow-hidden">
-                <Image
-                  src={
-                    item.image?.startsWith("http")
-                      ? item.image
-                      : `${BACKENDURL}/uploads/${item.image}`
-                  }
-                  alt={item.productName}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div>
-                <h2 className="font-medium text-gray-800">
-                  {item.productName}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  ₦{formatCurrency(item.price)}
-                </p>
-              </div>
-            </div>
+        cart.map((pack, packIndex) => (
+          <div key={packIndex} className="mb-8">
+            <h2 className="font-semibold text-lg mb-3">Pack {packIndex + 1}</h2>
+            {pack.map((item, itemIndex) => (
+              <div
+                key={`${item._id}-${itemIndex}`}
+                className="flex items-center justify-between bg-white shadow rounded-lg p-4 mb-4"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 relative rounded overflow-hidden">
+                    <Image
+                      src={
+                        item.image?.startsWith("http")
+                          ? item.image
+                          : `${BACKENDURL}/uploads/${item.image}`
+                      }
+                      alt={item.productName}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div>
+                    <h2 className="font-medium text-gray-800">
+                      {item.productName}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      ₦{formatCurrency(item.price)}
+                    </p>
+                  </div>
+                </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => removeFromCart(item._id)}
-                className="px-3 py-1 rounded-full bg-gray-200 hover:bg-gray-300"
-              >
-                -
-              </button>
-              <span className="font-medium">{item.quantity}</span>
-              <button
-                onClick={() => addToCart(item)}
-                className="px-3 py-1 rounded-full bg-gray-200 hover:bg-gray-300"
-              >
-                +
-              </button>
-            </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => removeFromCart(item._id, packIndex)}
+                    className="px-3 py-1 rounded-full bg-gray-200 hover:bg-gray-300"
+                  >
+                    -
+                  </button>
+                  <span className="font-medium">{item.quantity}</span>
+                  <button
+                    onClick={() => addToCart(item, packIndex)}
+                    className="px-3 py-1 rounded-full bg-gray-200 hover:bg-gray-300"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         ))
       )}
