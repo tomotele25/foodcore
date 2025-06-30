@@ -16,12 +16,7 @@ const Vendor = () => {
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, selectedLocation]);
-
-  useEffect(() => {
     let isMounted = true;
-    let interval;
 
     const fetchVendors = async () => {
       try {
@@ -29,23 +24,14 @@ const Vendor = () => {
         if (isMounted) {
           setVendors(res.data.vendors || []);
           setLoading(false);
-          console.log("Fetched vendors:", res.data.vendors);
         }
       } catch (error) {
         console.error("Failed to fetch vendors:", error);
       }
     };
 
-    const startPolling = () => {
-      fetchVendors();
-      interval = setInterval(() => {
-        if (!document.hidden) {
-          fetchVendors();
-        }
-      }, 30000); // 30 seconds interval
-    };
-
-    startPolling();
+    fetchVendors();
+    const interval = setInterval(fetchVendors, 5000);
 
     return () => {
       isMounted = false;
