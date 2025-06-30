@@ -12,7 +12,8 @@ const Vendor = () => {
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
   const vendorsPerPage = 8;
-  const BACKENDURL = "http://localhost:2006";
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   useEffect(() => {
     setCurrentPage(1);
