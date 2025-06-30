@@ -31,7 +31,7 @@ const Vendor = () => {
     };
 
     fetchVendors();
-    const interval = setInterval(fetchVendors, 5000);
+    const interval = setInterval(fetchVendors, 20000);
 
     return () => {
       isMounted = false;
