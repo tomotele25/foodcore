@@ -30,7 +30,6 @@ export default function OrdersPage() {
           `${BACKENDURL}/api/getAllOrders?vendorId=${vendorId}`
         );
 
-        // ✅ Correct way to extract orders from response
         setOrders(res.data.orders || []);
       } catch (err) {
         console.error(err);

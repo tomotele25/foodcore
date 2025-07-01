@@ -61,7 +61,7 @@ export default function ManagerOrder() {
 
     try {
       await axios.put(
-        `${BACKENDURL}/api/order/${orderId}`,
+        `${BACKENDURL}/api/orders/${orderId}`,
         { status: newStatus },
         {
           headers: {
@@ -88,7 +88,6 @@ export default function ManagerOrder() {
       ? orders
       : orders.filter((order) => order.status === statusFilter);
 
-  // Helper function for payment status badge classes
   const getPaymentStatusClasses = (paymentStatus) => {
     switch ((paymentStatus || "").toLowerCase()) {
       case "paid":
@@ -200,8 +199,9 @@ export default function ManagerOrder() {
                   <th className="px-4 py-3">Customer</th>
                   <th className="px-4 py-3">Items</th>
                   <th className="px-4 py-3">Total</th>
+                  <th className="px-4 py-3">Delivery Info</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Payment Status</th> {/* NEW */}
+                  <th className="px-4 py-3">Payment Status</th>
                   <th className="px-4 py-3">Toggle</th>
                 </tr>
               </thead>
@@ -218,6 +218,19 @@ export default function ManagerOrder() {
                         .join(", ")}
                     </td>
                     <td className="px-4 py-3">₦{order.totalAmount}</td>
+                    <td className="px-4 py-3 text-xs">
+                      <div>
+                        <strong>Phone:</strong>{" "}
+                        {order.guestInfo?.phone || "N/A"}
+                      </div>
+                      <div>
+                        <strong>Address:</strong>{" "}
+                        {order.guestInfo?.address || "N/A"}
+                      </div>
+                      <div>
+                        <strong>Method:</strong> {order.deliveryMethod || "N/A"}
+                      </div>
+                    </td>
                     <td className="px-4 py-3 capitalize">
                       <span
                         className={`px-2 py-1 text-xs font-semibold rounded-full ${
@@ -231,8 +244,6 @@ export default function ManagerOrder() {
                         {order.status}
                       </span>
                     </td>
-
-                    {/* Payment Status */}
                     <td className="px-4 py-3 capitalize">
                       <span
                         className={`px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusClasses(
@@ -242,7 +253,6 @@ export default function ManagerOrder() {
                         {order.paymentStatus || "pending"}
                       </span>
                     </td>
-
                     <td className="px-4 py-3">
                       <button
                         onClick={() =>
