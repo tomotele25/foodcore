@@ -8,8 +8,8 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="fixed top-0 left-0 w-full z-52">
-      <nav className="bg-white shadow-md px-6 py-4 flex items-center justify-between relative">
+    <div className="fixed top-0 left-0 w-full z-50">
+      <nav className="bg-white/80 backdrop-blur-md shadow-md px-6 py-4 flex items-center justify-between relative">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <Image
@@ -25,7 +25,7 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-6 text-gray-700 text-sm">
+        <div className="hidden md:flex items-center gap-6 text-gray-800 text-sm">
           <Link href="#vendors" className="hover:text-[#AE2108]">
             Vendors
           </Link>
@@ -63,7 +63,7 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="absolute top-full left-0 w-full bg-white shadow-md md:hidden flex flex-col px-6 py-4 gap-4 text-gray-700 text-sm z-50">
+          <div className="absolute top-full left-0 w-full bg-white/90 backdrop-blur-md shadow-md md:hidden flex flex-col px-6 py-4 gap-4 text-gray-800 text-sm z-50">
             <Link
               href="#vendors"
               className="hover:text-[#AE2108]"

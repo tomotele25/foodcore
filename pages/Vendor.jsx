@@ -13,7 +13,6 @@ const Vendor = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const vendorsPerPage = 8;
 
-  // ✅ Automatically uses correct backend based on environment
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
@@ -66,11 +65,21 @@ const Vendor = () => {
   };
 
   return (
-    <section id="vendors" className="bg-gray-50 px-6 py-16 min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-3xl font-bold text-center text-gray-900 mb-6">
+    <section
+      id="vendors"
+      className="relative bg-gradient-to-b from-white via-gray-50 to-white px-6 py-16 min-h-screen overflow-hidden"
+    >
+      {/* Background blobs */}
+      <div className="absolute top-0 left-[-100px] w-[300px] h-[300px] bg-yellow-100 opacity-20 rounded-full blur-3xl z-0" />
+      <div className="absolute bottom-0 right-[-120px] w-[250px] h-[250px] bg-red-100 opacity-20 rounded-full blur-2xl z-0" />
+
+      <div className="max-w-6xl mx-auto relative z-10">
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-2">
           Top Vendors Near You
         </h2>
+        <p className="text-center text-sm text-gray-500 mb-6">
+          Browse restaurants, food vendors, and more
+        </p>
 
         {/* Filters */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10">
@@ -95,7 +104,9 @@ const Vendor = () => {
 
         {/* Vendor Cards */}
         {loading ? (
-          <p className="text-center text-gray-500 mt-10">Loading vendors...</p>
+          <p className="text-center text-gray-500 mt-10 animate-pulse">
+            Loading vendors...
+          </p>
         ) : paginatedVendors.length > 0 ? (
           <div
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 transition-opacity duration-300 ease-in-out"

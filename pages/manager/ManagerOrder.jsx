@@ -88,6 +88,19 @@ export default function ManagerOrder() {
       ? orders
       : orders.filter((order) => order.status === statusFilter);
 
+  // Helper function for payment status badge classes
+  const getPaymentStatusClasses = (paymentStatus) => {
+    switch ((paymentStatus || "").toLowerCase()) {
+      case "paid":
+        return "bg-green-100 text-green-700";
+      case "pending":
+      case "unpaid":
+        return "bg-yellow-100 text-yellow-700";
+      default:
+        return "bg-red-100 text-red-700";
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
@@ -188,6 +201,7 @@ export default function ManagerOrder() {
                   <th className="px-4 py-3">Items</th>
                   <th className="px-4 py-3">Total</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Payment Status</th> {/* NEW */}
                   <th className="px-4 py-3">Toggle</th>
                 </tr>
               </thead>
@@ -217,6 +231,18 @@ export default function ManagerOrder() {
                         {order.status}
                       </span>
                     </td>
+
+                    {/* Payment Status */}
+                    <td className="px-4 py-3 capitalize">
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusClasses(
+                          order.paymentStatus
+                        )}`}
+                      >
+                        {order.paymentStatus || "pending"}
+                      </span>
+                    </td>
+
                     <td className="px-4 py-3">
                       <button
                         onClick={() =>

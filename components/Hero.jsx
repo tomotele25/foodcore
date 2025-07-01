@@ -35,6 +35,12 @@ const Hero = () => {
 
   return (
     <section className="relative h-screen w-full overflow-hidden bg-white mt-20 sm:mt-10">
+      {/* Animated blurred background blobs */}
+      <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-gradient-to-r from-pink-300 via-red-300 to-yellow-200 opacity-30 rounded-full blur-3xl animate-float-slow z-0" />
+      <div className="absolute top-1/3 right-[-150px] w-[500px] h-[500px] bg-gradient-to-br from-green-200 via-blue-300 to-purple-300 opacity-20 rounded-full blur-3xl animate-float-medium z-0" />
+      <div className="absolute bottom-[-100px] left-1/4 w-[300px] h-[300px] bg-gradient-to-br from-yellow-100 via-red-100 to-pink-200 opacity-25 rounded-full blur-2xl animate-float-fast z-0" />
+
+      {/* Slides */}
       {slides.map((slide, index) => (
         <div
           key={slide.id}
@@ -42,7 +48,7 @@ const Hero = () => {
             index === current ? "opacity-100 z-10" : "opacity-0 z-0"
           }`}
         >
-          <div className="max-w-6xl mx-auto h-full px-4 md:px-6 flex flex-col-reverse md:flex-row items-center justify-center gap-6 md:gap-4">
+          <div className="max-w-6xl mx-auto h-full px-4 md:px-6 flex flex-col-reverse md:flex-row items-center justify-center gap-6 md:gap-4 relative z-10">
             {/* Text */}
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
