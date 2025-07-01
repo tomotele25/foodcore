@@ -91,6 +91,7 @@ const Checkout = () => {
       currency: "NGN",
       payment_options: "card,banktransfer,ussd",
       customer: {
+        email: `${phone}@chowspace.test`, // Fake email generated from phone number
         phonenumber: phone,
         name: name,
       },
