@@ -61,7 +61,7 @@ export default function ManagerOrder() {
 
     try {
       await axios.put(
-        `${BACKENDURL}/api/orders/${orderId}`,
+        `${BACKENDURL}/api/order/${orderId}`,
         { status: newStatus },
         {
           headers: {
