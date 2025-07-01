@@ -15,7 +15,8 @@ const Checkout = () => {
   const router = useRouter();
   const { slug } = router.query;
 
-  const BACKENDURL = "http://localhost:2006";
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
   const FLW_PUBLIC_KEY = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY;
 
   const { cart, addToCart, removeFromCart } = useCart();
