@@ -19,8 +19,8 @@ export default function ManageLocation() {
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [message, setMessage] = useState(null);
-  const BACKENDURL = "http://localhost:2006";
-
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
 

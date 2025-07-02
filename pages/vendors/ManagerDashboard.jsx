@@ -23,6 +23,7 @@ export default function ManagerDashboard() {
   const [vendorStatus, setVendorStatus] = useState("");
   const { data: session, status } = useSession();
   const router = useRouter();
+
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
@@ -79,29 +80,18 @@ export default function ManagerDashboard() {
   };
 
   const handleLogout = async () => {
-    try {
-      await signOut({ redirect: false });
-      router.push("/Login");
-    } catch {
-      toast.error("Logout failed");
-    }
+    await signOut({ redirect: false });
+    router.push("/Login");
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-gray-100">
       {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-md p-4 transform transition-transform duration-300 ease-in-out flex flex-col justify-between ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:static md:inset-0`}
-      >
+      <aside className="fixed left-0 top-0 w-64 h-full bg-white shadow-lg z-40 p-4 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-[#AE2108]">Manager Panel</h2>
-            <button
-              onClick={toggleSidebar}
-              className="text-gray-500 md:hidden focus:outline-none"
-            >
+            <button onClick={toggleSidebar} className="md:hidden">
               <X />
             </button>
           </div>
@@ -109,7 +99,7 @@ export default function ManagerDashboard() {
           <nav className="space-y-4">
             <Link
               href="/vendors/ManagerDashboard"
-              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
+              className="flex items-center gap-2 text-[#AE2108] font-semibold"
             >
               <LayoutDashboard size={18} />
               Dashboard
@@ -145,7 +135,7 @@ export default function ManagerDashboard() {
           </nav>
         </div>
 
-        <div className="pt-6 border-t border-gray-200">
+        <div className="pt-4 border-t border-gray-200">
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 text-red-600 hover:bg-red-100 px-3 py-2 rounded-md w-full"
@@ -154,18 +144,10 @@ export default function ManagerDashboard() {
             Logout
           </button>
         </div>
-      </div>
-
-      {/* Toggle button for mobile */}
-      <button
-        onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-50 md:hidden bg-white p-2 rounded-md shadow-md"
-      >
-        <Menu />
-      </button>
+      </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="flex-1 ml-64 overflow-y-auto p-6">
         <h1 className="text-2xl font-bold text-[#AE2108] mb-4">
           Manager Overview
         </h1>
@@ -196,7 +178,7 @@ export default function ManagerDashboard() {
           </div>
         )}
 
-        {/* Overview cards */}
+        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-5">
             <h3 className="text-gray-600 text-sm mb-2">Total Orders</h3>
@@ -228,19 +210,17 @@ export default function ManagerDashboard() {
                         {order.items.length} items – ₦{order.totalAmount}
                       </p>
                     </div>
-                    <div>
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          order.status === "completed"
-                            ? "bg-green-100 text-green-700"
-                            : order.status === "pending"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-red-100 text-red-600"
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                    </div>
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        order.status === "completed"
+                          ? "bg-green-100 text-green-700"
+                          : order.status === "pending"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : "bg-red-100 text-red-600"
+                      }`}
+                    >
+                      {order.status}
+                    </span>
                   </div>
                 </li>
               ))}

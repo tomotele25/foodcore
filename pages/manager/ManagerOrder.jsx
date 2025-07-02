@@ -9,7 +9,6 @@ import {
   LayoutDashboard,
   PackageOpen,
   LogOut,
-  Menu,
   X,
   UtensilsCrossed,
   Settings,
@@ -23,6 +22,10 @@ export default function ManagerOrder() {
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState(() => {
+    const today = new Date();
+    return today.toISOString().slice(0, 10);
+  });
   const router = useRouter();
 
   const BACKENDURL =
@@ -40,7 +43,14 @@ export default function ManagerOrder() {
           },
         });
 
-        setOrders(res.data.orders || []);
+        const filtered = (res.data.orders || []).filter((order) => {
+          const orderDate = new Date(order.createdAt)
+            .toISOString()
+            .slice(0, 10);
+          return orderDate === dateFilter;
+        });
+
+        setOrders(filtered);
       } catch (err) {
         console.error(err);
         setError("Failed to load orders");
@@ -52,7 +62,7 @@ export default function ManagerOrder() {
     if (status === "authenticated") {
       fetchManagerOrders();
     }
-  }, [status, session]);
+  }, [status, session, dateFilter]);
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
@@ -101,13 +111,9 @@ export default function ManagerOrder() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex h-screen overflow-hidden bg-gray-100">
       {/* Sidebar */}
-      <aside
-        className={`fixed md:static z-30 inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col justify-between ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }`}
-      >
+      <aside className="fixed top-0 left-0 w-64 h-full bg-white shadow-md z-40 flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between px-4 py-4 border-b">
             <h1 className="text-xl font-bold text-[#AE2108]">Manager Panel</h1>
@@ -146,7 +152,6 @@ export default function ManagerOrder() {
             </Link>
           </nav>
         </div>
-
         <div className="p-4 border-t">
           <button
             onClick={() => signOut({ callbackUrl: "/Login" })}
@@ -158,32 +163,59 @@ export default function ManagerOrder() {
         </div>
       </aside>
 
-      {/* Toggle Button (Mobile) */}
-      <button
-        onClick={toggleSidebar}
-        className="fixed top-4 left-4 z-40 md:hidden bg-white p-2 rounded-md shadow"
-      >
-        <Menu />
-      </button>
-
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-6 overflow-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-[#AE2108]">Orders</h1>
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-600">Filter:</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="border border-gray-300 px-3 py-1 rounded text-sm"
-            >
-              <option value="all">All</option>
-              <option value="pending">Pending</option>
-              <option value="completed">Completed</option>
-            </select>
+      <main className="flex-1 ml-64 p-6 overflow-auto bg-gray-50">
+        <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
+          <h1 className="text-2xl font-bold text-[#AE2108]">Manage Orders</h1>
+
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-600">Date:</label>
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="border border-gray-300 px-3 py-1 rounded text-sm"
+              />
+              <button
+                onClick={() => {
+                  const yesterday = new Date();
+                  yesterday.setDate(yesterday.getDate() - 1);
+                  setDateFilter(yesterday.toISOString().slice(0, 10));
+                }}
+                className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded"
+              >
+                Yesterday
+              </button>
+              <button
+                onClick={() => {
+                  const today = new Date();
+                  setDateFilter(today.toISOString().slice(0, 10));
+                }}
+                className="text-xs bg-green-100 hover:bg-green-200 text-green-800 px-2 py-1 rounded"
+              >
+                Today
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-600">
+                Status:
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="border border-gray-300 px-3 py-1 rounded text-sm"
+              >
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
           </div>
         </div>
 
+        {/* Orders Table */}
         {loading ? (
           <p className="text-gray-600">Loading orders...</p>
         ) : error ? (
@@ -201,7 +233,7 @@ export default function ManagerOrder() {
                   <th className="px-4 py-3">Total</th>
                   <th className="px-4 py-3">Delivery Info</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Payment Status</th>
+                  <th className="px-4 py-3">Payment</th>
                   <th className="px-4 py-3">Toggle</th>
                 </tr>
               </thead>

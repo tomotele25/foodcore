@@ -1,3 +1,5 @@
+// Vendor.jsx
+
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -7,6 +9,7 @@ import axios from "axios";
 
 const Vendor = () => {
   const [vendors, setVendors] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("All");
@@ -15,7 +18,6 @@ const Vendor = () => {
 
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
-
   useEffect(() => {
     let isMounted = true;
 
@@ -24,15 +26,28 @@ const Vendor = () => {
         const res = await axios.get(`${BACKENDURL}/api/vendor/getVendors`);
         if (isMounted) {
           setVendors(res.data.vendors || []);
-          setLoading(false);
         }
       } catch (error) {
         console.error("Failed to fetch vendors:", error);
+      } finally {
         setLoading(false);
       }
     };
 
+    const fetchLocations = async () => {
+      try {
+        const res = await axios.get(`${BACKENDURL}/api/getLocations`);
+        if (isMounted) {
+          const locs = res.data.locations;
+          setLocations(locs);
+        }
+      } catch (err) {
+        console.error("Failed to fetch locations:", err);
+      }
+    };
+
     fetchVendors();
+    fetchLocations();
 
     return () => {
       isMounted = false;
@@ -91,13 +106,18 @@ const Vendor = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <select
-            className="w-full md:w-1/4 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AE2108]"
+            className="w-full md:w-1/4 text-black px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AE2108]"
             value={selectedLocation}
             onChange={(e) => setSelectedLocation(e.target.value)}
           >
-            <option value="All">All Locations</option>
-            <option value="Lagos">Lagos</option>
-            <option value="Abuja">Abeokuta</option>
+            <option value="All" className="text-black">
+              All Locations
+            </option>
+            {locations.map((loc, idx) => (
+              <option className="text-black" key={idx} value={loc}>
+                {loc}
+              </option>
+            ))}
           </select>
         </div>
 
