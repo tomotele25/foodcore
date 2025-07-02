@@ -27,7 +27,7 @@ export default function ManagerDashboard() {
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -61,7 +61,6 @@ export default function ManagerDashboard() {
 
   const toggleStoreStatus = async () => {
     const newStatus = vendorStatus === "opened" ? "closed" : "opened";
-
     try {
       const res = await axios.put(
         `${BACKENDURL}/api/vendor/toggleStatus`,
@@ -85,18 +84,29 @@ export default function ManagerDashboard() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100">
+    <div className="relative flex h-screen bg-gray-100 overflow-hidden">
+      {/* Mobile Sidebar Toggle */}
+      <div className="md:hidden fixed top-4 left-4 z-50">
+        <button onClick={toggleSidebar} className="p-2 bg-white rounded shadow">
+          <Menu />
+        </button>
+      </div>
+
       {/* Sidebar */}
-      <aside className="fixed left-0 top-0 w-64 h-full bg-white shadow-lg z-40 p-4 flex flex-col justify-between">
+      <aside
+        className={`fixed top-0 left-0 z-40 h-full w-64 bg-white shadow-lg flex flex-col justify-between transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
+      >
         <div>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-xl font-bold text-[#AE2108]">Manager Panel</h2>
             <button onClick={toggleSidebar} className="md:hidden">
               <X />
             </button>
           </div>
 
-          <nav className="space-y-4">
+          <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
             <Link
               href="/vendors/ManagerDashboard"
               className="flex items-center gap-2 text-[#AE2108] font-semibold"
@@ -135,7 +145,8 @@ export default function ManagerDashboard() {
           </nav>
         </div>
 
-        <div className="pt-4 border-t border-gray-200">
+        {/* Logout Button Fixed Bottom */}
+        <div className="p-4 border-t">
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 text-red-600 hover:bg-red-100 px-3 py-2 rounded-md w-full"
@@ -147,14 +158,13 @@ export default function ManagerDashboard() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-64 overflow-y-auto p-6">
+      <main className="flex-1 md:ml-64 overflow-y-auto p-6 mt-16 md:mt-0">
         <h1 className="text-2xl font-bold text-[#AE2108] mb-4">
           Manager Overview
         </h1>
 
-        {/* Vendor status */}
         {vendorStatus && (
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
             <p className="text-sm text-gray-600">
               Store status:{" "}
               <span
@@ -178,7 +188,7 @@ export default function ManagerDashboard() {
           </div>
         )}
 
-        {/* Stats */}
+        {/* Dashboard Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-5">
             <h3 className="text-gray-600 text-sm mb-2">Total Orders</h3>

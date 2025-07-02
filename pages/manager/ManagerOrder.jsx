@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   PackageOpen,
   LogOut,
+  Menu,
   X,
   UtensilsCrossed,
   Settings,
@@ -26,10 +27,9 @@ export default function ManagerOrder() {
     const today = new Date();
     return today.toISOString().slice(0, 10);
   });
-  const router = useRouter();
 
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+  const router = useRouter();
+  const BACKENDURL = "https://chowspace-backend.vercel.app";
 
   useEffect(() => {
     const fetchManagerOrders = async () => {
@@ -64,7 +64,7 @@ export default function ManagerOrder() {
     }
   }, [status, session, dateFilter]);
 
-  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   const handleToggleStatus = async (orderId, currentStatus) => {
     const newStatus = currentStatus === "pending" ? "completed" : "pending";
@@ -111,15 +111,25 @@ export default function ManagerOrder() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100">
+    <div className="flex h-screen bg-gray-100 relative">
+      {/* Mobile Topbar */}
+      <div className="md:hidden flex justify-between items-center px-4 py-3 bg-white shadow z-30 w-full fixed top-0">
+        <h1 className="text-xl font-bold text-[#AE2108]">Manager Panel</h1>
+        <button onClick={toggleSidebar}>
+          {sidebarOpen ? <X /> : <Menu />}
+        </button>
+      </div>
+
       {/* Sidebar */}
-      <aside className="fixed top-0 left-0 w-64 h-full bg-white shadow-md z-40 flex flex-col justify-between">
+      <aside
+        className={`fixed z-40 top-0 left-0 h-full w-64 bg-white shadow transform transition-transform duration-300 ease-in-out flex flex-col justify-between
+        ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
+      >
         <div>
-          <div className="flex items-center justify-between px-4 py-4 border-b">
+          <div className="hidden md:flex items-center justify-center py-4 border-b">
             <h1 className="text-xl font-bold text-[#AE2108]">Manager Panel</h1>
-            <button onClick={toggleSidebar} className="md:hidden">
-              <X />
-            </button>
           </div>
           <nav className="mt-4 space-y-2 px-4">
             <Link
@@ -164,10 +174,10 @@ export default function ManagerOrder() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-64 p-6 overflow-auto bg-gray-50">
+      <main className="flex-1 pt-16 md:pt-0 md:ml-64 p-6 overflow-auto">
+        {/* Filters */}
         <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
           <h1 className="text-2xl font-bold text-[#AE2108]">Manage Orders</h1>
-
           <div className="flex flex-wrap gap-4 items-center">
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-gray-600">Date:</label>
@@ -177,27 +187,7 @@ export default function ManagerOrder() {
                 onChange={(e) => setDateFilter(e.target.value)}
                 className="border border-gray-300 px-3 py-1 rounded text-sm"
               />
-              <button
-                onClick={() => {
-                  const yesterday = new Date();
-                  yesterday.setDate(yesterday.getDate() - 1);
-                  setDateFilter(yesterday.toISOString().slice(0, 10));
-                }}
-                className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded"
-              >
-                Yesterday
-              </button>
-              <button
-                onClick={() => {
-                  const today = new Date();
-                  setDateFilter(today.toISOString().slice(0, 10));
-                }}
-                className="text-xs bg-green-100 hover:bg-green-200 text-green-800 px-2 py-1 rounded"
-              >
-                Today
-              </button>
             </div>
-
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-gray-600">
                 Status:
