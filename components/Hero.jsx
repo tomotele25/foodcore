@@ -1,6 +1,8 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const slides = [
   {
@@ -35,12 +37,11 @@ const Hero = () => {
 
   return (
     <section className="relative h-screen w-full overflow-hidden bg-white mt-20 sm:mt-10">
-      {/* Animated blurred background blobs */}
+      {/* Background blobs */}
       <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-gradient-to-r from-pink-300 via-red-300 to-yellow-200 opacity-30 rounded-full blur-3xl animate-float-slow z-0" />
       <div className="absolute top-1/3 right-[-150px] w-[500px] h-[500px] bg-gradient-to-br from-green-200 via-blue-300 to-purple-300 opacity-20 rounded-full blur-3xl animate-float-medium z-0" />
       <div className="absolute bottom-[-100px] left-1/4 w-[300px] h-[300px] bg-gradient-to-br from-yellow-100 via-red-100 to-pink-200 opacity-25 rounded-full blur-2xl animate-float-fast z-0" />
 
-      {/* Slides */}
       {slides.map((slide, index) => (
         <div
           key={slide.id}
@@ -65,32 +66,31 @@ const Hero = () => {
               </Link>
             </div>
 
-            {/* Blob Image */}
-            <div className="flex-1 flex justify-center items-center">
-              <svg
-                viewBox="0 0 200 200"
-                className="w-[400px] sm:w-[400px] md:w-[520px] lg:w-[500px] h-auto"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <mask id={`blob-mask-${slide.id}`}>
-                  <path
-                    fill="white"
-                    d="M45.3,-71.5C58.9,-61.6,70.6,-49.6,75.7,-35.6C80.8,-21.6,79.2,-5.6,74.2,8.5C69.1,22.7,60.7,34.9,50.1,46.2C39.5,57.5,26.8,68,11.3,72.4C-4.2,76.8,-22.6,75.2,-36.6,67.5C-50.6,59.8,-60.1,45.9,-66.4,31.3C-72.7,16.7,-75.9,1.4,-73.5,-13.3C-71.2,-28,-63.2,-42.1,-51.6,-52.5C-40,-62.9,-25,-69.5,-9.3,-71.6C6.5,-73.7,13,-71.4,45.3,-71.5Z"
-                    transform="translate(100 100)"
-                  />
-                </mask>
-                <image
-                  href={slide.image}
-                  width="200"
-                  height="200"
-                  mask={`url(#blob-mask-${slide.id})`}
-                  className="object-contain"
+            {/* Blob-masked Image using next/image */}
+            <div className="flex-1 flex justify-center items-center relative w-[300px] h-[300px] sm:w-[360px] sm:h-[360px] md:w-[420px] md:h-[420px]">
+              <div className="w-full h-full relative rounded-full overflow-hidden mask-blob">
+                <Image
+                  src={slide.image}
+                  alt={slide.title}
+                  fill
+                  className="object-cover"
+                  priority
                 />
-              </svg>
+              </div>
             </div>
           </div>
         </div>
       ))}
+
+      <style jsx>{`
+        .mask-blob {
+          mask-image: url("/blob-mask.svg");
+          -webkit-mask-image: url("/blob-mask.svg");
+          mask-size: cover;
+          mask-repeat: no-repeat;
+          mask-position: center;
+        }
+      `}</style>
     </section>
   );
 };

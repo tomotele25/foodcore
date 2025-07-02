@@ -33,7 +33,6 @@ const Login = () => {
     if (response?.ok) {
       toast.success("Login successful");
 
-      // Wait for session to update
       const updatedSession = await getSession();
       const role = updatedSession?.user?.role;
 
@@ -58,12 +57,13 @@ const Login = () => {
       <Toaster position="top-right" />
 
       {/* Left Image */}
-      <div className="md:w-1/2 h-64 md:h-screen relative">
+      <div className="relative w-full md:w-1/2 h-64 md:h-screen">
         <Image
           src="/logo.jpg"
           alt="Login Visual"
           fill
           className="object-cover"
+          priority
         />
       </div>
 

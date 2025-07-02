@@ -72,6 +72,7 @@ const Signup = () => {
           alt="Signup Visual"
           fill
           className="object-cover"
+          priority
         />
       </div>
 
