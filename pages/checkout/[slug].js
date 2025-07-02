@@ -15,18 +15,13 @@ const Checkout = () => {
   const router = useRouter();
   const { slug } = router.query;
 
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+  const BACKENDURL = "http://localhost:2006";
   const FLW_PUBLIC_KEY = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY;
 
   const { cart, addToCart, removeFromCart } = useCart();
 
   const [vendor, setVendor] = useState(null);
-  const [locations] = useState([
-    { name: "Lekki", fee: 0 },
-    { name: "Ikeja", fee: 1500 },
-    { name: "Ajah", fee: 2000 },
-  ]);
+  const [locations, setLocations] = useState([]);
   const [deliveryDetails, setDeliveryDetails] = useState({
     name: "",
     phone: "",
@@ -47,16 +42,28 @@ const Checkout = () => {
 
   useEffect(() => {
     if (!slug) return;
-    const fetchVendor = async () => {
+
+    const fetchVendorAndLocations = async () => {
       try {
-        const res = await axios.get(`${BACKENDURL}/api/vendor/${slug}`);
-        setVendor(res.data.vendor);
+        const vendorRes = await axios.get(`${BACKENDURL}/api/vendor/${slug}`);
+        const vendorData = vendorRes.data.vendor;
+        setVendor(vendorData);
+        console.log("Vendor data", vendorRes);
+        const locRes = await axios.get(
+          `${BACKENDURL}/api/locations/${vendorData._id}`
+        );
+        const formatted = locRes.data.map((loc) => ({
+          name: loc.location,
+          fee: loc.price,
+        }));
+        setLocations(formatted);
       } catch (err) {
-        console.error("Vendor fetch failed:", err);
-        toast.error("Failed to load vendor.");
+        console.error("Error fetching vendor or locations:", err);
+        toast.error("Failed to load vendor or delivery locations.");
       }
     };
-    fetchVendor();
+
+    fetchVendorAndLocations();
   }, [slug]);
 
   const handleChange = (e) => {
@@ -91,7 +98,7 @@ const Checkout = () => {
       currency: "NGN",
       payment_options: "card,banktransfer,ussd",
       customer: {
-        email: `${phone}@chowspace.test`, // Fake email generated from phone number
+        email: `${phone}@chowspace.test`,
         phonenumber: phone,
         name: name,
       },
@@ -126,7 +133,7 @@ const Checkout = () => {
 
           if (verifyRes.data.success) {
             toast.success("Payment & Order successful!");
-            router.push("/success");
+            router.push("/Payment-Redirect");
           } else {
             toast.error("Payment verified but order failed.");
           }
@@ -150,9 +157,7 @@ const Checkout = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
-      {/* React Hot Toast container */}
       <Toaster position="top-right" reverseOrder={false} />
-
       <Script
         src="https://checkout.flutterwave.com/v3.js"
         strategy="afterInteractive"
@@ -163,7 +168,6 @@ const Checkout = () => {
         <span className="text-[#AE2108]">{vendor.businessName}</span>
       </h1>
 
-      {/* Cart */}
       {cart.length === 0 || cart.every((pack) => pack.length === 0) ? (
         <p className="text-center text-gray-500 py-10 text-lg">
           Your cart is empty.
@@ -232,7 +236,6 @@ const Checkout = () => {
         ))
       )}
 
-      {/* Delivery Details */}
       <section className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
           Delivery Details
@@ -290,7 +293,6 @@ const Checkout = () => {
             </select>
           </div>
 
-          {/* Cost Summary */}
           <div className="mt-8 border-t pt-6 space-y-3 text-gray-700 text-sm">
             <div className="flex justify-between">
               <span>Subtotal</span>

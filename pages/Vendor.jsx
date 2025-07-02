@@ -97,8 +97,7 @@ const Vendor = () => {
           >
             <option value="All">All Locations</option>
             <option value="Lagos">Lagos</option>
-            <option value="Abuja">Abuja</option>
-            <option value="Ibadan">Ibadan</option>
+            <option value="Abuja">Abeokuta</option>
           </select>
         </div>
 

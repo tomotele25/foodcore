@@ -4,6 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
+  LocationEditIcon,
   PackageOpen,
   Settings,
   LogOut,
@@ -112,6 +113,13 @@ export default function ManagerDashboard() {
             >
               <LayoutDashboard size={18} />
               Dashboard
+            </Link>
+            <Link
+              href="/vendors/ManageLocation"
+              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
+            >
+              <LocationEditIcon size={18} />
+              Locations
             </Link>
             <Link
               href="/manager/ManagerOrder"

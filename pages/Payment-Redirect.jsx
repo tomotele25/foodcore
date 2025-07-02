@@ -1,89 +1,97 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import axios from "axios";
+import {
+  CheckCircle,
+  Truck,
+  Home,
+  ReceiptText,
+  ShoppingBag,
+  MapPin,
+} from "lucide-react";
+import Image from "next/image";
 
-const BACKENDURL = "http://localhost:2006";
-
-export default function PaymentRedirect() {
+export default function OrderConfirmed() {
   const router = useRouter();
-  const { reference, transaction_id } = router.query;
-
-  const [status, setStatus] = useState("loading");
-  const [message, setMessage] = useState("");
+  const [timer, setTimer] = useState(30);
+  const [order, setOrder] = useState(null);
 
   useEffect(() => {
-    if (!reference && !transaction_id) return;
+    const countdown = setInterval(() => {
+      setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(countdown);
+  }, []);
 
-    const verifyPayment = async () => {
-      try {
-        const ref = reference || transaction_id;
-
-        const res = await axios.post(`${BACKENDURL}/api/verify-payment`, {
-          reference: ref,
-        });
-
-        if (res.data.success) {
-          setStatus("success");
-          setMessage("Payment verified successfully! Your order is confirmed.");
-        } else {
-          setStatus("failed");
-          setMessage("Payment verification failed. Please contact support.");
-        }
-      } catch (error) {
-        setStatus("failed");
-        setMessage("An error occurred while verifying payment.");
-      }
-    };
-
-    verifyPayment();
-  }, [reference, transaction_id]);
+  useEffect(() => {
+    const storedOrder = localStorage.getItem("latestOrder");
+    if (storedOrder) setOrder(JSON.parse(storedOrder));
+  }, []);
 
   const handleGoHome = () => router.push("/");
-  const handleViewOrders = () => router.push("/orders");
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
-      {status === "loading" && (
-        <p className="text-lg text-gray-700">Verifying payment...</p>
-      )}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">
+      <div className="bg-white shadow-2xl rounded-xl p-8 max-w-2xl w-full text-center relative overflow-hidden">
+        <CheckCircle size={50} className="text-green-600 mx-auto mb-4" />
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          Order Confirmed!
+        </h1>
+        <p className="text-gray-600 mb-4">
+          Your payment was successful. Your delicious order is on its way 🚚
+        </p>
 
-      {status === "success" && (
-        <>
-          <h1 className="text-3xl font-bold text-green-600 mb-4">
-            Payment Successful 🎉
-          </h1>
-          <p className="mb-6 text-gray-700 text-center max-w-md">{message}</p>
-          <div className="flex gap-4">
-            <button
-              onClick={handleViewOrders}
-              className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              View Orders
-            </button>
-            <button
-              onClick={handleGoHome}
-              className="px-6 py-2 border border-green-600 text-green-600 rounded hover:bg-green-50"
-            >
-              Go Home
-            </button>
+        {order && (
+          <div className="bg-gray-100 rounded-lg p-4 text-left mt-6 mb-6">
+            <h2 className="text-lg font-semibold text-[#AE2108] mb-3">
+              Order Summary
+            </h2>
+            <div className="space-y-3">
+              {order.items.map((item, index) => (
+                <div key={index} className="flex items-center gap-4">
+                  <div className="w-12 h-12 relative rounded overflow-hidden border">
+                    <Image
+                      src={item.image || "/placeholder.jpg"}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-800">{item.name}</p>
+                    <p className="text-sm text-gray-600">
+                      Qty: {item.quantity} × ₦{item.price}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              <div className="text-sm text-gray-700 flex items-center gap-2 mt-3">
+                <MapPin size={16} /> <span>{order.guestInfo?.address}</span>
+              </div>
+            </div>
           </div>
-        </>
-      )}
+        )}
 
-      {status === "failed" && (
-        <>
-          <h1 className="text-3xl font-bold text-red-600 mb-4">
-            Payment Failed ❌
-          </h1>
-          <p className="mb-6 text-gray-700 text-center max-w-md">{message}</p>
+        <div className="flex items-center justify-center gap-2 mb-6 text-[#AE2108] font-medium">
+          <Truck size={20} />
+          <span>Estimated delivery in {timer}s...</span>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={handleGoHome}
-            className="px-6 py-2 border border-red-600 text-red-600 rounded hover:bg-red-50"
+            className="flex items-center justify-center gap-2 px-5 py-2 border border-[#AE2108] text-[#AE2108] rounded-md hover:bg-red-50 transition"
           >
-            Go Home
+            <Home size={18} /> Go Home
           </button>
-        </>
-      )}
+        </div>
+
+        <ShoppingBag
+          size={120}
+          className="absolute right-[-20px] bottom-[-20px] text-[#fcd8d4] rotate-12 opacity-10"
+        />
+      </div>
     </div>
   );
 }
