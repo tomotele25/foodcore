@@ -1,5 +1,3 @@
-// Vendor.jsx
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -18,36 +16,29 @@ const Vendor = () => {
 
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+
   useEffect(() => {
     let isMounted = true;
 
-    const fetchVendors = async () => {
+    const fetchData = async () => {
       try {
-        const res = await axios.get(`${BACKENDURL}/api/vendor/getVendors`);
+        const [vendorsRes, locationsRes] = await Promise.all([
+          axios.get(`${BACKENDURL}/api/vendor/getVendors`),
+          axios.get(`${BACKENDURL}/api/getLocations`),
+        ]);
+
         if (isMounted) {
-          setVendors(res.data.vendors || []);
+          setVendors(vendorsRes.data.vendors || []);
+          setLocations(locationsRes.data.locations || []);
         }
       } catch (error) {
-        console.error("Failed to fetch vendors:", error);
+        console.error("Error fetching vendors or locations:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    const fetchLocations = async () => {
-      try {
-        const res = await axios.get(`${BACKENDURL}/api/getLocations`);
-        if (isMounted) {
-          const locs = res.data.locations;
-          setLocations(locs);
-        }
-      } catch (err) {
-        console.error("Failed to fetch locations:", err);
-      }
-    };
-
-    fetchVendors();
-    fetchLocations();
+    fetchData();
 
     return () => {
       isMounted = false;
@@ -110,11 +101,9 @@ const Vendor = () => {
             value={selectedLocation}
             onChange={(e) => setSelectedLocation(e.target.value)}
           >
-            <option value="All" className="text-black">
-              All Locations
-            </option>
+            <option value="All">All Locations</option>
             {locations.map((loc, idx) => (
-              <option className="text-black" key={idx} value={loc}>
+              <option key={idx} value={loc}>
                 {loc}
               </option>
             ))}
