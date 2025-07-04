@@ -17,6 +17,7 @@ const Navbar = () => {
             alt="ChowSpace Logo"
             width={60}
             height={40}
+            className="  "
             priority
           />
           <span className="text-xl font-semibold text-[#AE2108]">

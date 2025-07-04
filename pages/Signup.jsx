@@ -71,13 +71,13 @@ const Signup = () => {
           src="/logo.jpg"
           alt="Signup Visual"
           fill
-          className="object-cover"
+          className="sm:object-cover"
           priority
         />
       </div>
 
       {/* Right Form */}
-      <div className="md:w-1/2 flex items-center justify-center px-6 py-12 bg-gray-50">
+      <div className="md:w-1/2 flex items-center justify-center px-6 py-12 bg-white">
         <div className="w-full max-w-md">
           <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
             Create Customer Account

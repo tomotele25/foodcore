@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import axios from "axios";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
@@ -25,7 +26,9 @@ const AdminDashboard = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const [totalVendors, setTotalVendors] = useState(0);
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/Login");
@@ -37,6 +40,16 @@ const AdminDashboard = () => {
   const logout = async () => {
     await signOut({ callbackUrl: "/Login" });
   };
+
+  useEffect(() => {
+    const fetchTotalVendor = async () => {
+      const res = await axios.get(`${BACKENDURL}/api/vendor/vendorTotalCount`);
+      if (res) {
+        setTotalVendors(res.data.totalVendor);
+      }
+    };
+    fetchTotalVendor();
+  }, []);
 
   return (
     <div className="min-h-screen flex bg-gray-100">
@@ -94,7 +107,9 @@ const AdminDashboard = () => {
               <h3 className="text-sm font-semibold text-gray-600">
                 Total Vendors
               </h3>
-              <p className="text-2xl font-bold text-[#AE2108] mt-2">15</p>
+              <p className="text-2xl font-bold text-[#AE2108] mt-2">
+                {totalVendors}
+              </p>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-sm">
               <h3 className="text-sm font-semibold text-gray-600">

@@ -54,7 +54,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="min-h-screen flex flex-col  md:flex-row">
       <Toaster position="top-right" />
 
       {/* Left Image */}
@@ -63,12 +63,12 @@ const Login = () => {
           src="/logo.jpg"
           alt="Login Visual"
           fill
-          className="object-cover"
+          className="sm:object-cover"
         />
       </div>
 
       {/* Right Form */}
-      <div className="md:w-1/2 flex items-center justify-center px-6 py-12 bg-gray-50">
+      <div className="md:w-1/2 flex items-center justify-center px-6 py-12 bg-white">
         <div className="w-full max-w-md">
           <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
             Login as Customer
