@@ -12,6 +12,7 @@ import {
   Users,
   User,
   UtensilsCrossed,
+  Wallet,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -22,12 +23,15 @@ const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/vendor/dashboard" },
   { name: "Orders", icon: PackageOpen, path: "/vendors/Orders" },
   { name: "Products", icon: UtensilsCrossed, path: "/vendors/ManageProducts" },
+  { name: "Wallet", icon: Wallet, path: "/vendors/Wallet" },
   { name: "Profile", icon: User, path: "/vendors/Profile" },
   { name: "Manage Team", icon: Users, path: "/vendors/ManageTeam" },
   { name: "Settings", icon: Settings, path: "/vendor/settings" },
 ];
+
 const BACKENDURL =
   "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+
 export default function VendorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [storeStatus, setStoreStatus] = useState("");
@@ -87,14 +91,14 @@ export default function VendorDashboard() {
   return (
     <>
       <Toaster position="top-right" />
-      <div className="min-h-screen flex bg-gray-100">
+      <div className="h-screen flex overflow-hidden">
         {/* Sidebar */}
         <aside
-          className={`fixed z-30 inset-y-0 left-0 w-64 bg-white shadow-md transform transition-transform duration-200 ease-in-out flex flex-col justify-between md:relative md:translate-x-0 ${
+          className={`fixed z-30 inset-y-0 left-0 w-64 bg-white shadow-md flex flex-col justify-between transform transition-transform duration-200 ease-in-out ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          } md:relative md:translate-x-0`}
         >
-          <div>
+          <div className="flex flex-col flex-grow">
             <div className="flex items-center justify-between px-4 py-4 border-b">
               <h1 className="text-xl font-bold text-[#AE2108]">Vendor Panel</h1>
               <button
@@ -104,7 +108,7 @@ export default function VendorDashboard() {
                 <X size={24} />
               </button>
             </div>
-            <nav className="mt-4 space-y-1 px-4">
+            <nav className="mt-4 space-y-1 px-4 flex-1 overflow-auto">
               {menuItems.map(({ name, icon: Icon, path }) => (
                 <Link
                   key={name}
@@ -117,7 +121,7 @@ export default function VendorDashboard() {
               ))}
             </nav>
           </div>
-          <div className="px-4 mb-4">
+          <div className="px-4 py-4 border-t">
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 text-red-500 hover:bg-red-100 px-3 py-2 rounded-md w-full"
@@ -128,8 +132,8 @@ export default function VendorDashboard() {
           </div>
         </aside>
 
-        {/* Main */}
-        <main className="flex-1 p-4 md:p-6">
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto  p-4 bg-gray-100">
           <header className="flex items-center justify-between mb-6">
             <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu size={24} />
@@ -137,7 +141,7 @@ export default function VendorDashboard() {
             <h2 className="text-lg font-semibold text-gray-800">Dashboard</h2>
           </header>
 
-          {/* Store Status Display Only */}
+          {/* Store Status */}
           <div className="mb-8">
             <div className="flex items-center justify-between bg-white p-5 rounded-lg shadow">
               <div className="text-gray-700">

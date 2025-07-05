@@ -70,7 +70,7 @@ const Profile = () => {
 
   const handleCancelClick = () => {
     setTempData(formData);
-    setLogoPreview(session?.vendor?.logo || "");
+    setLogoPreview(session?.vendor?.logo);
     setNewPassword("");
     setEditMode(false);
   };

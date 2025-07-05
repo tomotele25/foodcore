@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { useRouter } from "next/router"; // ✅ Correct import for Pages Router
+import { useRouter } from "next/router";
 import {
   LayoutDashboard,
   Users,
@@ -23,15 +23,13 @@ const menuItems = [
 
 const locations = ["Lagos", "Abuja", "Kano", "Port Harcourt", "Ibadan"];
 
-const BACKENDURL =
-  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+const BACKENDURL = "http://localhost:2006";
 
 const ManageVendor = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [logo, setLogo] = useState(null);
 
   const [form, setForm] = useState({
     fullname: "",
@@ -50,8 +48,6 @@ const ManageVendor = () => {
   const handleChange = (e) =>
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const handleFileChange = (e) => setLogo(e.target.files[0]);
-
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   const handleSubmit = async (e) => {
@@ -59,28 +55,20 @@ const ManageVendor = () => {
     setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("fullname", form.fullname);
-      formData.append("email", form.email);
-      formData.append("password", "vendor123");
-      formData.append("businessName", form.businessName);
-      formData.append("contact", form.phoneNumber);
-      formData.append("location", form.location);
-      formData.append("address", "Default Address");
-      formData.append("category", "general");
-      if (logo) {
-        formData.append("logo", logo);
-      }
+      const payload = {
+        fullname: form.fullname,
+        email: form.email,
+        password: "vendor123",
+        businessName: form.businessName,
+        contact: form.phoneNumber,
+        location: form.location,
+        address: "Default Address",
+        category: "general",
+      };
 
-      const res = await axios.post(
-        `${BACKENDURL}/api/vendor/create`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const res = await axios.post(`${BACKENDURL}/api/vendor/create`, {
+        payload,
+      });
 
       if (res.status === 200 || res.status === 201) {
         toast.success("Vendor created successfully!");
@@ -91,7 +79,6 @@ const ManageVendor = () => {
           phoneNumber: "",
           location: "",
         });
-        setLogo(null);
       }
     } catch (error) {
       console.error(error);
@@ -237,17 +224,6 @@ const ManageVendor = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">
-                  Upload Logo
-                </label>
-                <input
-                  type="file"
-                  onChange={handleFileChange}
-                  className="w-full border border-gray-300 rounded-md p-2"
-                />
               </div>
 
               <div className="md:col-span-2">
