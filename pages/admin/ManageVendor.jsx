@@ -23,7 +23,8 @@ const menuItems = [
 
 const locations = ["Lagos", "Abuja", "Kano", "Port Harcourt", "Ibadan"];
 
-const BACKENDURL = "http://localhost:2006";
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
 const ManageVendor = () => {
   const { data: session, status } = useSession();
