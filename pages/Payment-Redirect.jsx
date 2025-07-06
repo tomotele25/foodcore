@@ -2,14 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import {
-  CheckCircle,
-  Truck,
-  Home,
-  ReceiptText,
-  ShoppingBag,
-  MapPin,
-} from "lucide-react";
+import { CheckCircle, Truck, Home, ShoppingBag, MapPin } from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
 
@@ -18,12 +11,19 @@ export default function OrderConfirmed() {
   const [timer, setTimer] = useState(30);
   const [order, setOrder] = useState(null);
   const [verifying, setVerifying] = useState(true);
+  const [verificationError, setVerificationError] = useState(false);
+
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   useEffect(() => {
     const countdown = setInterval(() => {
-      setTimer((prev) => (prev > 0 ? prev - 1 : 0));
+      setTimer((prev) => {
+        if (prev === 1) {
+          router.push("/");
+        }
+        return prev > 0 ? prev - 1 : 0;
+      });
     }, 1000);
     return () => clearInterval(countdown);
   }, []);
@@ -36,17 +36,20 @@ export default function OrderConfirmed() {
       if (!transaction_id || !storedOrder) return;
 
       try {
-        const response = await axios.post(`${BACKENDURL}}/api/verify-payment`, {
+        const response = await axios.post(`${BACKENDURL}/api/verify-payment`, {
           reference: transaction_id,
         });
 
         if (response.data.success) {
           setOrder(response.data.order);
+          setVerificationError(false);
         } else {
           console.error("Payment verification failed", response.data.message);
+          setVerificationError(true);
         }
       } catch (error) {
         console.error("Error verifying payment:", error.message);
+        setVerificationError(true);
       } finally {
         setVerifying(false);
       }
@@ -54,6 +57,12 @@ export default function OrderConfirmed() {
 
     verifyPayment();
   }, [router.query]);
+
+  const handleRetry = () => {
+    setVerifying(true);
+    setVerificationError(false);
+    router.replace(router.asPath); // Triggers re-run
+  };
 
   const handleGoHome = () => router.push("/");
 
@@ -69,6 +78,18 @@ export default function OrderConfirmed() {
             ? "Please wait while we verify your payment..."
             : "Your payment was successful. Your delicious order is on its way 🚚"}
         </p>
+
+        {verificationError && (
+          <div className="mt-4 text-red-600 text-sm">
+            Payment verification failed.{" "}
+            <button
+              onClick={handleRetry}
+              className="underline text-[#AE2108] font-medium"
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {order && (
           <div className="bg-gray-100 rounded-lg p-4 text-left mt-6 mb-6">
@@ -101,7 +122,7 @@ export default function OrderConfirmed() {
           </div>
         )}
 
-        {!verifying && (
+        {!verifying && !verificationError && (
           <div className="flex items-center justify-center gap-2 mb-6 text-[#AE2108] font-medium">
             <Truck size={20} />
             <span>Estimated delivery in {timer}s...</span>
