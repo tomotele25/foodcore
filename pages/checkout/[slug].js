@@ -5,7 +5,6 @@ import Image from "next/image";
 import axios from "axios";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/router";
-import Script from "next/script";
 import toast, { Toaster } from "react-hot-toast";
 
 const formatCurrency = (amount) =>
@@ -17,7 +16,6 @@ const Checkout = () => {
 
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
-  const FLW_PUBLIC_KEY = process.env.NEXT_PUBLIC_FLW_PUBLIC_KEY;
 
   const { cart, addToCart, removeFromCart } = useCart();
 
@@ -49,7 +47,7 @@ const Checkout = () => {
         const vendorRes = await axios.get(`${BACKENDURL}/api/vendor/${slug}`);
         const vendorData = vendorRes.data.vendor;
         setVendor(vendorData);
-        console.log("Vendor data", vendorRes);
+
         const locRes = await axios.get(
           `${BACKENDURL}/api/locations/${vendorData._id}`
         );
@@ -59,8 +57,8 @@ const Checkout = () => {
         }));
         setLocations(formatted);
       } catch (err) {
-        console.error("Error fetching vendor or locations:", err);
-        toast.error("Failed to load vendor or delivery locations.");
+        console.error("Fetch error:", err);
+        toast.error("Could not load vendor or locations");
       }
     };
 
@@ -81,7 +79,7 @@ const Checkout = () => {
     const { name, phone, address, location } = deliveryDetails;
 
     if (!name || !phone || !address || !location) {
-      toast.error("Please complete all delivery details.");
+      toast.error("Fill in all delivery details");
       return;
     }
 
@@ -92,61 +90,41 @@ const Checkout = () => {
 
     const txRef = `chowspace-${Date.now()}`;
 
-    window.FlutterwaveCheckout({
-      public_key: FLW_PUBLIC_KEY,
-      tx_ref: txRef,
-      amount: finalTotal,
-      currency: "NGN",
-      payment_options: "card,banktransfer,ussd",
-      customer: {
-        email: `${phone}@chowspace.test`,
-        phonenumber: phone,
-        name: name,
-      },
-      customizations: {
-        title: "Chowspace",
-        description: "Order payment",
-        logo: "/logo.png",
-      },
-      callback: async function (response) {
-        try {
-          const verifyRes = await axios.post(
-            `${BACKENDURL}/api/verify-payment`,
-            {
-              reference: response.transaction_id,
-              orderPayload: {
-                vendorId: vendor._id,
-                items: cartItems.map((item) => ({
-                  menuItemId: item._id,
-                  name: item.productName,
-                  quantity: item.quantity,
-                  price: item.price,
-                })),
-                guestInfo: { name, phone, address },
-                deliveryMethod: "delivery",
-                note: "",
-                totalAmount: finalTotal,
-                paymentStatus: "paid",
-                paymentRef: response.transaction_id,
-              },
-            }
-          );
+    const orderPayload = {
+      vendorId: vendor._id,
+      items: cartItems.map((item) => ({
+        menuItemId: item._id,
+        name: item.productName,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      guestInfo: { name, phone, address },
+      deliveryMethod: "delivery",
+      note: "",
+      totalAmount: finalTotal,
+      paymentStatus: "paid",
+      paymentRef: txRef,
+    };
 
-          if (verifyRes.data.success) {
-            toast.success("Payment & Order successful!");
-            router.push("/Payment-Redirect");
-          } else {
-            toast.error("Payment verified but order failed.");
-          }
-        } catch (err) {
-          console.error("Verification or order failed:", err);
-          toast.error("Payment verified but something went wrong.");
-        }
-      },
-      onclose: function () {
-        toast("Payment cancelled.");
-      },
-    });
+    try {
+      const res = await axios.post(`${BACKENDURL}/api/init-payment`, {
+        amount: finalTotal,
+        email: `guest${Date.now()}@chowspace.com`,
+        vendorId: vendor._id,
+        tx_ref: txRef,
+        orderPayload,
+      });
+
+      if (res.data.success && res.data.paymentLink) {
+        localStorage.setItem("latestOrder", JSON.stringify(orderPayload));
+        window.location.href = res.data.paymentLink;
+      } else {
+        toast.error("Payment initialization failed");
+      }
+    } catch (error) {
+      console.error("Payment init error", error);
+      toast.error("Could not start payment");
+    }
   };
 
   if (!vendor)
@@ -159,10 +137,6 @@ const Checkout = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
       <Toaster position="top-right" reverseOrder={false} />
-      <Script
-        src="https://checkout.flutterwave.com/v3.js"
-        strategy="afterInteractive"
-      />
 
       <h1 className="text-3xl font-extrabold mb-8 text-gray-900 text-center sm:text-left">
         Checkout from{" "}

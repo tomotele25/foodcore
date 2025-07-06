@@ -22,6 +22,23 @@ const menuItems = [
   { name: "Settings", icon: Settings, path: "/vendor/settings" },
 ];
 
+const BANK_OPTIONS = [
+  { name: "Access Bank", code: "044" },
+  { name: "EcoBank", code: "050" },
+  { name: "Fidelity Bank", code: "070" },
+  { name: "First Bank", code: "011" },
+  { name: "Guaranty Trust Bank", code: "058" },
+  { name: "Kuda Microfinance Bank", code: "50211" },
+  { name: "Moniepoint MFB", code: "50515" },
+  { name: "Opay", code: "999991" },
+  { name: "Paycom", code: "999991" },
+  { name: "Palmpay", code: "999992" },
+  { name: "Stanbic IBTC Bank", code: "221" },
+  { name: "UBA", code: "033" },
+  { name: "Union Bank", code: "032" },
+  { name: "Zenith Bank", code: "057" },
+];
+
 const Profile = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -34,16 +51,16 @@ const Profile = () => {
     contact: "",
     location: "",
     address: "",
+    accountNumber: "",
+    bankName: "",
   });
+
   const [editMode, setEditMode] = useState(false);
   const [tempData, setTempData] = useState({ ...formData });
   const [logo, setLogo] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("vendor123");
   const [newPassword, setNewPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+  const BACKENDURL = "http://localhost:2006"; // Or your production URL
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/Login");
@@ -59,6 +76,8 @@ const Profile = () => {
         contact: vendor.phoneNumber || "",
         location: vendor.location || "",
         address: vendor.address || "",
+        accountNumber: vendor.accountNumber || "",
+        bankName: vendor.bankName || "",
       };
       setFormData(userData);
       setTempData(userData);
@@ -95,13 +114,17 @@ const Profile = () => {
     form.append("location", tempData.location);
     form.append("address", tempData.address);
 
-    if (logo) {
-      form.append("logo", logo);
+    if (
+      !formData.accountNumber &&
+      tempData.accountNumber &&
+      tempData.bankName
+    ) {
+      form.append("accountNumber", tempData.accountNumber);
+      form.append("bankName", tempData.bankName);
     }
 
-    if (newPassword) {
-      form.append("password", newPassword);
-    }
+    if (logo) form.append("logo", logo);
+    if (newPassword) form.append("password", newPassword);
 
     try {
       await axios.put(`${BACKENDURL}/api/vendor/profile/update`, form, {
@@ -115,6 +138,7 @@ const Profile = () => {
       setNewPassword("");
       setEditMode(false);
     } catch (error) {
+      console.error(error);
       alert("Failed to update profile");
     }
   };
@@ -216,27 +240,27 @@ const Profile = () => {
               )}
             </div>
 
-            {/* User Info */}
-            <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
-                {session?.user.fullname}
-              </h2>
-              <p className="text-gray-500">{session?.user.email}</p>
-            </div>
-
+            {/* Vendor Info */}
             {!editMode ? (
               <div className="space-y-4 text-gray-700">
                 <p>
-                  <strong>Business Name:</strong> {session?.user?.businessName}
+                  <strong>Business Name:</strong> {formData.businessName}
                 </p>
                 <p>
-                  <strong>Phone Number:</strong> {session?.user?.contact}
+                  <strong>Phone Number:</strong> {formData.contact}
                 </p>
                 <p>
-                  <strong>Location:</strong> {session?.user?.location}
+                  <strong>Location:</strong> {formData.location}
                 </p>
                 <p>
-                  <strong>Address:</strong> {session?.user?.address}
+                  <strong>Address:</strong> {formData.address}
+                </p>
+                <p>
+                  <strong>Account Number:</strong>{" "}
+                  {formData.accountNumber || "Not set"}
+                </p>
+                <p>
+                  <strong>Bank Name:</strong> {formData.bankName || "Not set"}
                 </p>
                 <button
                   onClick={handleEditClick}
@@ -276,33 +300,41 @@ const Profile = () => {
                   className="w-full px-4 py-2 border rounded"
                   placeholder="Address"
                 />
-                <div>
-                  <p className="text-gray-700">
-                    <strong>Current Password:</strong>
-                  </p>
-                  <div className="relative">
+
+                {/* Bank Info */}
+                {!formData.accountNumber && (
+                  <>
                     <input
-                      type={showPassword ? "text" : "password"}
-                      value={currentPassword}
-                      readOnly
-                      className="w-full px-4 py-2 border rounded pr-16"
+                      name="accountNumber"
+                      value={tempData.accountNumber}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border rounded"
+                      placeholder="Account Number"
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 text-sm text-gray-600"
+                    <select
+                      name="bankName"
+                      value={tempData.bankName}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border rounded bg-white"
                     >
-                      {showPassword ? "Hide" : "Show"}
-                    </button>
-                  </div>
-                  <input
-                    type="password"
-                    placeholder="New Password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full mt-2 px-4 py-2 border rounded"
-                  />
-                </div>
+                      <option value="">Select Bank</option>
+                      {BANK_OPTIONS.map((bank) => (
+                        <option key={bank.code} value={bank.name}>
+                          {bank.name}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
+
+                <input
+                  type="password"
+                  placeholder="New Password (optional)"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-2 border rounded"
+                />
+
                 <div className="flex gap-4">
                   <button
                     type="submit"

@@ -25,7 +25,8 @@ const VendorMenuPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const BACKENDURL = "https://chowspace-backend.vercel.app";
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   const {
     cart,
