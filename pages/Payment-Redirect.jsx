@@ -26,11 +26,13 @@ export default function OrderConfirmed() {
       });
     }, 1000);
     return () => clearInterval(countdown);
-  }, []);
+  }, [router]);
 
-  // Payment Verification
+  // ✅ Payment Verification
   useEffect(() => {
     const verifyPayment = async () => {
+      if (!router.isReady) return;
+
       const { transaction_id } = router.query;
       const storedOrder = localStorage.getItem("latestOrder");
       if (!transaction_id || !storedOrder) return;
@@ -56,12 +58,12 @@ export default function OrderConfirmed() {
     };
 
     verifyPayment();
-  }, [router.query]);
+  }, [router.isReady, router.query]);
 
   const handleRetry = () => {
     setVerifying(true);
     setVerificationError(false);
-    router.replace(router.asPath); // Triggers re-run
+    router.replace(router.asPath);
   };
 
   const handleGoHome = () => router.push("/");
