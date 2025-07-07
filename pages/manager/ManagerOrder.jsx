@@ -29,7 +29,8 @@ export default function ManagerOrder() {
   });
 
   const router = useRouter();
-  const BACKENDURL = "https://chowspace-backend.vercel.app";
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   useEffect(() => {
     const fetchManagerOrders = async () => {
@@ -90,6 +91,25 @@ export default function ManagerOrder() {
     } catch (err) {
       console.error("Status update failed", err);
       toast.error("Failed to update order status");
+    }
+  };
+
+  const handleCleanup = async () => {
+    try {
+      const token = session?.user?.accessToken;
+      if (!token) return toast.error("Unauthorized");
+
+      await axios.delete(`${BACKENDURL}/api/cleanupPendingOrders`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      toast.success("Pending unpaid orders cleaned up");
+      router.reload();
+    } catch (err) {
+      console.error("Cleanup failed", err);
+      toast.error("Failed to cleanup pending orders");
     }
   };
 
@@ -202,6 +222,12 @@ export default function ManagerOrder() {
                 <option value="completed">Completed</option>
               </select>
             </div>
+            <button
+              onClick={handleCleanup}
+              className="bg-[#AE2108] hover:bg-red-700 text-white px-4 py-1 text-sm rounded"
+            >
+              Cleanup Pending Orders
+            </button>
           </div>
         </div>
 
