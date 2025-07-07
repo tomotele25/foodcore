@@ -76,7 +76,20 @@ const Checkout = () => {
   };
 
   const handlePay = async () => {
+    const { name, phone, address, location } = deliveryDetails;
+
+    if (!name || !phone || !address || !location) {
+      toast.error("Fill in all delivery details");
+      return;
+    }
+
+    if (!vendor?._id) {
+      toast.error("Vendor not loaded.");
+      return;
+    }
+
     const txRef = `chowspace-${Date.now()}`;
+
     const orderPayload = {
       vendorId: vendor._id,
       items: cartItems.map((item) => ({
@@ -89,6 +102,8 @@ const Checkout = () => {
       deliveryMethod: "delivery",
       note: "",
       totalAmount: finalTotal,
+      paymentStatus: "paid",
+      paymentRef: txRef,
     };
 
     try {
@@ -97,14 +112,18 @@ const Checkout = () => {
         email: `guest${Date.now()}@chowspace.com`,
         vendorId: vendor._id,
         tx_ref: txRef,
+        orderPayload,
       });
 
       if (res.data.success && res.data.paymentLink) {
         localStorage.setItem("latestOrder", JSON.stringify(orderPayload));
         window.location.href = res.data.paymentLink;
+      } else {
+        toast.error("Payment initialization failed");
       }
-    } catch (err) {
-      console.error("Payment init error:", err.message);
+    } catch (error) {
+      console.error("Payment init error", error);
+      toast.error("Could not start payment");
     }
   };
 
