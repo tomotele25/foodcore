@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+import axios from "axios";
 import {
+  Menu,
+  X,
   LayoutDashboard,
   PackageOpen,
   UtensilsCrossed,
@@ -11,24 +15,68 @@ import {
   Users,
   Settings,
   LogOut,
-  Menu,
-  X,
   ArrowDown,
-  ArrowUp,
 } from "lucide-react";
+import Link from "next/link";
+import { signOut } from "next-auth/react";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/vendor/dashboard" },
   { name: "Orders", icon: PackageOpen, path: "/vendors/Orders" },
   { name: "Products", icon: UtensilsCrossed, path: "/vendors/ManageProducts" },
-  { name: "Wallet", icon: Wallet, path: "/vendor/wallet" },
+  { name: "Wallet", icon: Wallet, path: "/vendors/Wallet" },
   { name: "Profile", icon: User, path: "/vendors/Profile" },
   { name: "Manage Team", icon: Users, path: "/vendors/ManageTeam" },
   { name: "Settings", icon: Settings, path: "/vendor/settings" },
 ];
 
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+
 export default function VendorWalletPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/Login");
+    }
+  }, [status]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await axios.get(
+          `${BACKENDURL}/api/getAllOrders?vendorId=${session?.user?.vendorId}`
+        );
+        setOrders(res.data.orders || []);
+      } catch (err) {
+        console.error("Failed to fetch orders:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (status === "authenticated") {
+      fetchOrders();
+    }
+  }, [session, status]);
+
+  const paidOrders = orders.filter((o) => o.paymentStatus === "paid");
+  const totalRevenue = paidOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+
+  const recentTransactions = paidOrders.slice(0, 5).map((order) => ({
+    id: order._id,
+    amount: order.totalAmount,
+    customer: order.guestInfo?.name || "Unknown customer",
+    description: `Payment from ${order.guestInfo?.name || "someone"} for ${
+      order.items?.length || 0
+    } item${order.items?.length > 1 ? "s" : ""}`,
+    date: new Date(order.createdAt).toLocaleDateString(),
+  }));
 
   return (
     <div className="h-screen flex overflow-hidden">
@@ -59,7 +107,10 @@ export default function VendorWalletPage() {
           </nav>
         </div>
         <div className="px-4 py-4 border-t">
-          <button className="flex items-center gap-3 text-red-500 hover:bg-red-100 px-3 py-2 rounded-md w-full">
+          <button
+            onClick={() => signOut({ callbackUrl: "/Login" })}
+            className="flex items-center gap-3 text-red-500 hover:bg-red-100 px-3 py-2 rounded-md w-full"
+          >
             <LogOut size={18} />
             Logout
           </button>
@@ -67,7 +118,7 @@ export default function VendorWalletPage() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto ml-0 bg-gray-100 p-6">
+      <main className="flex-1 overflow-y-auto bg-gray-100 p-6">
         <header className="flex items-center justify-between mb-6">
           <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu size={24} />
@@ -78,7 +129,9 @@ export default function VendorWalletPage() {
         {/* Wallet Summary */}
         <div className="bg-white rounded-xl shadow-md p-6 mb-8">
           <p className="text-gray-500">Available Balance</p>
-          <h3 className="text-4xl font-bold text-[#AE2108] mt-1">₦54,200</h3>
+          <h3 className="text-4xl font-bold text-[#AE2108] mt-1">
+            ₦{totalRevenue.toLocaleString()}
+          </h3>
           <div className="mt-4 flex gap-4">
             <button className="px-4 py-2 bg-[#AE2108] text-white rounded-md hover:bg-[#951a06] transition">
               Withdraw
@@ -94,30 +147,30 @@ export default function VendorWalletPage() {
           <h4 className="text-lg font-semibold mb-4 text-gray-800">
             Recent Transactions
           </h4>
-          <ul className="divide-y">
-            <li className="py-4 flex justify-between items-center">
-              <div>
-                <p className="font-medium text-gray-800">
-                  Payment from customer
-                </p>
-                <p className="text-sm text-gray-500">2025-07-05</p>
-              </div>
-              <div className="text-lg font-bold text-green-600 flex items-center gap-1">
-                <ArrowDown size={18} />
-                ₦20,000
-              </div>
-            </li>
-            <li className="py-4 flex justify-between items-center">
-              <div>
-                <p className="font-medium text-gray-800">Withdrawal</p>
-                <p className="text-sm text-gray-500">2025-07-03</p>
-              </div>
-              <div className="text-lg font-bold text-red-600 flex items-center gap-1">
-                <ArrowUp size={18} />
-                ₦5,000
-              </div>
-            </li>
-          </ul>
+          {loading ? (
+            <p className="text-gray-500">Loading transactions...</p>
+          ) : recentTransactions.length === 0 ? (
+            <p className="text-gray-500">No transactions yet.</p>
+          ) : (
+            <ul className="divide-y">
+              {recentTransactions.map((txn) => (
+                <li
+                  key={txn.id}
+                  className="py-4 flex justify-between items-center"
+                >
+                  <div>
+                    <p className="font-medium text-gray-800">
+                      {txn.description}
+                    </p>
+                    <p className="text-sm text-gray-500">{txn.date}</p>
+                  </div>
+                  <div className="text-lg font-bold text-green-600 flex items-center gap-1">
+                    <ArrowDown size={18} />₦{txn.amount.toLocaleString()}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </main>
     </div>
