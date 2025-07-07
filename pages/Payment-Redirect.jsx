@@ -28,37 +28,30 @@ export default function OrderConfirmed() {
     return () => clearInterval(countdown);
   }, [router]);
 
-  // ✅ Payment Verification
   useEffect(() => {
     const verifyPayment = async () => {
-      if (!router.isReady) return;
-
       const { transaction_id } = router.query;
       const storedOrder = localStorage.getItem("latestOrder");
+
       if (!transaction_id || !storedOrder) return;
 
       try {
         const response = await axios.post(`${BACKENDURL}/api/verify-payment`, {
           reference: transaction_id,
+          orderData: JSON.parse(storedOrder),
         });
 
         if (response.data.success) {
           setOrder(response.data.order);
-          setVerificationError(false);
-        } else {
-          console.error("Payment verification failed", response.data.message);
-          setVerificationError(true);
+          localStorage.removeItem("latestOrder");
         }
-      } catch (error) {
-        console.error("Error verifying payment:", error.message);
-        setVerificationError(true);
-      } finally {
-        setVerifying(false);
+      } catch (err) {
+        console.error("Verification failed", err.message);
       }
     };
 
     verifyPayment();
-  }, [router.isReady, router.query]);
+  }, [router.isReady]);
 
   const handleRetry = () => {
     setVerifying(true);
