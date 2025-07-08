@@ -45,12 +45,15 @@ export default function ManagerDashboard() {
 
     const fetchVendorStatus = async () => {
       try {
-        const res = await axios.get(`${BACKENDURL}/api/getManagerWithStatus`, {
-          headers: { Authorization: `Bearer ${session.user.accessToken}` },
+        const res = await axios.get(`${BACKENDURL}/api/getVendorStatus`, {
+          headers: {
+            Authorization: `Bearer ${session?.user?.accessToken}`,
+          },
         });
-        const status = res.data?.managers?.[0]?.vendorStatus;
+        const status = res.data.status;
         if (status) setVendorStatus(status);
-      } catch {
+      } catch (err) {
+        console.error(err);
         toast.error("Failed to load store status");
       }
     };
