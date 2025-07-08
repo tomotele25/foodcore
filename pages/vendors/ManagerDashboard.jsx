@@ -60,7 +60,7 @@ export default function ManagerDashboard() {
   }, [session, status]);
 
   const toggleStoreStatus = async () => {
-    const newStatus = vendorStatus === "opened" ? "closed" : "opened";
+    const newStatus = vendorStatus === "closed" ? "opened" : "closed";
     try {
       const res = await axios.put(
         `${BACKENDURL}/api/vendor/toggleStatus`,
