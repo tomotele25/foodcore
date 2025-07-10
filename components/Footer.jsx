@@ -71,7 +71,7 @@ const Footer = () => {
         <div>
           <h4 className="font-semibold mb-3">Support</h4>
           <p className="text-sm text-gray-600">hello@chowspace.com</p>
-          <p className="text-sm text-gray-600 mt-1">+234 800 000 0000</p>
+          <p className="text-sm text-gray-600 mt-1">+234 915 258 0773</p>
         </div>
       </div>
 

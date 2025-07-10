@@ -29,8 +29,7 @@ const menuItems = [
   { name: "Settings", icon: Settings, path: "/vendor/settings" },
 ];
 
-const BACKENDURL =
-  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+const BACKENDURL = "http://localhost:2006";
 
 export default function VendorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -45,20 +44,29 @@ export default function VendorDashboard() {
   }, [status]);
 
   const fetchStoreStatus = async () => {
+    if (!session?.user?.vendorId) return;
+
     try {
       const res = await axios.get(
-        `${BACKENDURL}/api/getVendorStatus/${session?.user?.vendorId}`
+        `${BACKENDURL}/api/getVendorStatus/${session.user.vendorId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${session?.user?.accessToken}`,
+          },
+        }
       );
-      setStoreStatus(res.data.status);
+      setStoreStatus(res.data.status || "unknown");
     } catch (error) {
       console.error("Error fetching status:", error);
     }
   };
 
   const fetchOrders = async () => {
+    if (!session?.user?.vendorId) return;
+
     try {
       const res = await axios.get(
-        `${BACKENDURL}/api/getAllOrders?vendorId=${session?.user?.vendorId}`
+        `${BACKENDURL}/api/getAllOrders?vendorId=${session.user.vendorId}`
       );
       setOrders(res.data.orders || []);
     } catch (err) {
@@ -69,11 +77,11 @@ export default function VendorDashboard() {
   };
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (status === "authenticated" && session?.user?.vendorId) {
       fetchStoreStatus();
       fetchOrders();
     }
-  }, [session, status]);
+  }, [status, session?.user?.vendorId]);
 
   const handleLogout = async () => {
     const toastId = toast.loading("Logging out...");
@@ -133,7 +141,7 @@ export default function VendorDashboard() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto  p-4 bg-gray-100">
+        <main className="flex-1 overflow-y-auto p-4 bg-gray-100">
           <header className="flex items-center justify-between mb-6">
             <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu size={24} />
@@ -147,7 +155,7 @@ export default function VendorDashboard() {
               <div className="text-gray-700">
                 Store is currently{" "}
                 <span className="font-bold text-[#AE2108] capitalize">
-                  {storeStatus}
+                  {storeStatus || "loading..."}
                 </span>
               </div>
             </div>

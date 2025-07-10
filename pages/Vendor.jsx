@@ -4,6 +4,22 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
+import { Heart } from "lucide-react";
+import { useRouter } from "next/router";
+
+const setCookie = (name, value, days = 30) => {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(
+    value
+  )}; expires=${expires}; path=/`;
+};
+
+const getCookie = (name) => {
+  return document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(name + "="))
+    ?.split("=")[1];
+};
 
 const Vendor = () => {
   const [vendors, setVendors] = useState([]);
@@ -12,10 +28,10 @@ const Vendor = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const vendorsPerPage = 8;
 
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+  const vendorsPerPage = 8;
+  const router = useRouter();
+  const BACKENDURL = "https://chowspace-backend.vercel.app";
 
   useEffect(() => {
     let isMounted = true;
@@ -30,6 +46,12 @@ const Vendor = () => {
         if (isMounted) {
           setVendors(vendorsRes.data.vendors || []);
           setLocations(locationsRes.data.locations || []);
+
+          // Check for saved location from cookies
+          const savedLocation = getCookie("location");
+          if (savedLocation) {
+            setSelectedLocation(savedLocation);
+          }
         }
       } catch (error) {
         console.error("Error fetching vendors or locations:", error);
@@ -70,6 +92,10 @@ const Vendor = () => {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
+  const openModal = () => {
+    router.push("/Login");
+  };
+
   return (
     <section
       id="vendors"
@@ -99,7 +125,11 @@ const Vendor = () => {
           <select
             className="w-full md:w-1/4 text-black px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AE2108]"
             value={selectedLocation}
-            onChange={(e) => setSelectedLocation(e.target.value)}
+            onChange={(e) => {
+              const newLoc = e.target.value;
+              setSelectedLocation(newLoc);
+              setCookie("location", newLoc);
+            }}
           >
             <option value="All">All Locations</option>
             {locations.map((loc, idx) => (
@@ -125,6 +155,12 @@ const Vendor = () => {
                 key={vendor._id}
                 className="relative bg-white rounded-xl shadow hover:shadow-lg transform hover:scale-[1.03] transition duration-300 overflow-hidden group"
               >
+                <div
+                  onClick={openModal}
+                  className="z-50 absolute top-3 left-3 cursor-pointer"
+                >
+                  <Heart color="#AE2108" />
+                </div>
                 <div className="w-full h-48 relative">
                   <Image
                     src={vendor.logo || "/logo.jpg"}

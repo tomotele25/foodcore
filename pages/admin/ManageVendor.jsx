@@ -67,9 +67,7 @@ const ManageVendor = () => {
         category: "general",
       };
 
-      const res = await axios.post(`${BACKENDURL}/api/vendor/create`, {
-        payload,
-      });
+      const res = await axios.post(`${BACKENDURL}/api/vendor/create`, payload);
 
       if (res.status === 200 || res.status === 201) {
         toast.success("Vendor created successfully!");
