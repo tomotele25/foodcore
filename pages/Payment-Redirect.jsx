@@ -15,26 +15,24 @@ export default function OrderConfirmed() {
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
-  // ✅ Payment Verification
   useEffect(() => {
     const verifyPayment = async () => {
-      if (!router.isReady) return;
+      const { reference } = router.query;
 
-      const { transaction_id } = router.query;
+      if (!router.isReady || !reference) return;
+
       const storedOrder = localStorage.getItem("latestOrder");
-      if (!transaction_id || !storedOrder) return;
+      if (!storedOrder) return;
 
       try {
         const response = await axios.post(`${BACKENDURL}/api/verifyPayment`, {
-          reference: transaction_id,
+          reference,
         });
 
         if (response.data.success) {
           setOrder(response.data.order);
+          localStorage.removeItem("latestOrder");
           setVerificationError(false);
-        } else {
-          console.error("Payment verification failed", response.data.message);
-          setVerificationError(true);
         }
       } catch (error) {
         console.error("Error verifying payment:", error.message);
@@ -45,7 +43,7 @@ export default function OrderConfirmed() {
     };
 
     verifyPayment();
-  }, [router.isReady, router.query]);
+  }, [router.isReady, router.query.reference]);
 
   const handleRetry = () => {
     setVerifying(true);
