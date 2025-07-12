@@ -13,7 +13,8 @@ export default function OrderConfirmed() {
   const [error, setError] = useState("");
   const [verificationError, setVerificationError] = useState(false);
 
-  const BACKENDURL = "http://localhost:2005";
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
   useEffect(() => {
     const verify = async () => {
