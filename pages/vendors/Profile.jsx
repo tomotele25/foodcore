@@ -62,8 +62,7 @@ const Profile = () => {
   const [logo, setLogo] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
+  const BACKENDURL = "http://localhost:2005";
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/Login");
