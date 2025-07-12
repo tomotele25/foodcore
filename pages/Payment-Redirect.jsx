@@ -8,25 +8,12 @@ import axios from "axios";
 
 export default function OrderConfirmed() {
   const router = useRouter();
-  const [timer, setTimer] = useState(30);
   const [order, setOrder] = useState(null);
   const [verifying, setVerifying] = useState(true);
   const [verificationError, setVerificationError] = useState(false);
 
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
-
-  useEffect(() => {
-    const countdown = setInterval(() => {
-      setTimer((prev) => {
-        if (prev === 1) {
-          router.push("/");
-        }
-        return prev > 0 ? prev - 1 : 0;
-      });
-    }, 1000);
-    return () => clearInterval(countdown);
-  }, [router]);
 
   // ✅ Payment Verification
   useEffect(() => {
@@ -121,13 +108,6 @@ export default function OrderConfirmed() {
                 <MapPin size={16} /> <span>{order.guestInfo?.address}</span>
               </div>
             </div>
-          </div>
-        )}
-
-        {!verifying && !verificationError && (
-          <div className="flex items-center justify-center gap-2 mb-6 text-[#AE2108] font-medium">
-            <Truck size={20} />
-            <span>Estimated delivery in {timer}s...</span>
           </div>
         )}
 
