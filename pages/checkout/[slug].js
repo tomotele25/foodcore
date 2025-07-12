@@ -6,7 +6,6 @@ import axios from "axios";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
-import PaystackPop from "@paystack/inline-js";
 
 const formatCurrency = (amount) =>
   typeof amount === "number" ? amount.toLocaleString() : "0";
@@ -16,7 +15,7 @@ const Checkout = () => {
   const { slug } = router.query;
 
   const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   const { cart, addToCart, removeFromCart } = useCart();
 
@@ -89,50 +88,43 @@ const Checkout = () => {
       return;
     }
 
-    const txRef = `chow-${Date.now()}`;
+    const txRef = `chowspace-${Date.now()}`;
 
-    const paystack = new PaystackPop();
+    const orderPayload = {
+      vendorId: vendor._id,
+      items: cartItems.map((item) => ({
+        menuItemId: item._id,
+        name: item.productName,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      guestInfo: { name, phone, address },
+      deliveryMethod: "delivery",
+      note: "",
+      totalAmount: finalTotal,
+      paymentStatus: "paid",
+      paymentRef: txRef,
+    };
 
-    paystack.newTransaction({
-      key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-      email: `guest${Date.now()}@chowspace.com`,
-      amount: finalTotal * 100,
-      currency: "NGN",
-      reference: txRef,
-      metadata: {
+    try {
+      const res = await axios.post(`${BACKENDURL}/api/init-payment`, {
+        amount: finalTotal,
+        email: `guest${Date.now()}@chowspace.com`,
         vendorId: vendor._id,
-        guestInfo: { name, phone, address, location },
-        items: cartItems.map((item) => ({
-          menuItemId: item._id,
-          name: item.productName,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        deliveryMethod: "delivery",
-        note: "",
-        totalAmount: finalTotal,
-      },
-      onSuccess: async (response) => {
-        try {
-          const verify = await axios.post(`${BACKENDURL}/api/verifyPayment`, {
-            reference: response.reference,
-          });
+        tx_ref: txRef,
+        orderPayload,
+      });
 
-          if (verify.data.success) {
-            toast.success("Payment successful!");
-            router.push("/Payment-Redirect");
-          } else {
-            toast.error("Payment was made but order failed");
-          }
-        } catch (err) {
-          console.error("Verify error:", err);
-          toast.error("Failed to verify payment");
-        }
-      },
-      onCancel: () => {
-        toast("Transaction cancelled");
-      },
-    });
+      if (res.data.success && res.data.paymentLink) {
+        localStorage.setItem("latestOrder", JSON.stringify(orderPayload));
+        window.location.href = res.data.paymentLink;
+      } else {
+        toast.error("Payment initialization failed");
+      }
+    } catch (error) {
+      console.error("Payment init error", error);
+      toast.error("Could not start payment");
+    }
   };
 
   if (!vendor)

@@ -8,36 +8,57 @@ import axios from "axios";
 
 export default function OrderConfirmed() {
   const router = useRouter();
+  const [timer, setTimer] = useState(30);
   const [order, setOrder] = useState(null);
   const [verifying, setVerifying] = useState(true);
-  const [error, setError] = useState("");
   const [verificationError, setVerificationError] = useState(false);
 
   const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   useEffect(() => {
-    const verify = async () => {
-      const ref = router.query.reference;
-      if (!ref) return;
+    const countdown = setInterval(() => {
+      setTimer((prev) => {
+        if (prev === 1) {
+          router.push("/");
+        }
+        return prev > 0 ? prev - 1 : 0;
+      });
+    }, 1000);
+    return () => clearInterval(countdown);
+  }, [router]);
+
+  // ✅ Payment Verification
+  useEffect(() => {
+    const verifyPayment = async () => {
+      if (!router.isReady) return;
+
+      const { transaction_id } = router.query;
+      const storedOrder = localStorage.getItem("latestOrder");
+      if (!transaction_id || !storedOrder) return;
 
       try {
-        const res = await axios.post(`${BACKENDURL}/api/verifyPayment`, {
-          reference: ref,
+        const response = await axios.post(`${BACKENDURL}/api/verify-payment`, {
+          reference: transaction_id,
         });
 
-        if (res.data.success) {
-          setOrder(res.data.order);
+        if (response.data.success) {
+          setOrder(response.data.order);
+          setVerificationError(false);
         } else {
-          setError("Verification failed: " + res.data.message);
+          console.error("Payment verification failed", response.data.message);
+          setVerificationError(true);
         }
-      } catch (err) {
-        setError("Error verifying payment.");
+      } catch (error) {
+        console.error("Error verifying payment:", error.message);
+        setVerificationError(true);
+      } finally {
+        setVerifying(false);
       }
     };
 
-    if (router.isReady) verify();
-  }, [router.isReady, router.query.reference]);
+    verifyPayment();
+  }, [router.isReady, router.query]);
 
   const handleRetry = () => {
     setVerifying(true);
@@ -52,17 +73,11 @@ export default function OrderConfirmed() {
       <div className="bg-white shadow-2xl rounded-xl p-8 max-w-2xl w-full text-center relative overflow-hidden">
         <CheckCircle size={50} className="text-green-600 mx-auto mb-4" />
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          {verifying
-            ? "Verifying payment..."
-            : verificationError
-            ? "Verification Failed"
-            : "Order Confirmed!"}
+          {verifying ? "Verifying payment..." : "Order Confirmed!"}
         </h1>
         <p className="text-gray-600 mb-4">
           {verifying
             ? "Please wait while we verify your payment..."
-            : verificationError
-            ? "Your payment couldn't be verified. Try again."
             : "Your payment was successful. Your delicious order is on its way 🚚"}
         </p>
 
@@ -112,7 +127,7 @@ export default function OrderConfirmed() {
         {!verifying && !verificationError && (
           <div className="flex items-center justify-center gap-2 mb-6 text-[#AE2108] font-medium">
             <Truck size={20} />
-            <span>Your order is being prepared...</span>
+            <span>Estimated delivery in {timer}s...</span>
           </div>
         )}
 
