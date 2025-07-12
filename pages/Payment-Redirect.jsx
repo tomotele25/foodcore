@@ -25,7 +25,7 @@ export default function OrderConfirmed() {
       if (!transaction_id || !storedOrder) return;
 
       try {
-        const response = await axios.post(`${BACKENDURL}/api/verify-payment`, {
+        const response = await axios.post(`${BACKENDURL}/api/verifyPayment`, {
           reference: transaction_id,
         });
 
