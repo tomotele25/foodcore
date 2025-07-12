@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/vendor/dashboard" },
@@ -43,6 +44,7 @@ const Profile = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     fullname: "",
@@ -61,7 +63,7 @@ const Profile = () => {
   const [logoPreview, setLogoPreview] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006"; // Or your production URL
+    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/Login");
@@ -108,6 +110,9 @@ const Profile = () => {
 
   const handleSaveClick = async (e) => {
     e.preventDefault();
+    if (isLoading) return;
+
+    setIsLoading(true);
     const form = new FormData();
 
     form.append("businessName", tempData.businessName);
@@ -127,6 +132,7 @@ const Profile = () => {
     if (logo) form.append("logo", logo);
     if (newPassword) form.append("password", newPassword);
 
+    const toastId = toast.loading("Updating profile...");
     try {
       await axios.put(`${BACKENDURL}/api/vendor/profile/update`, form, {
         headers: {
@@ -134,13 +140,17 @@ const Profile = () => {
           Authorization: `Bearer ${session?.user?.accessToken}`,
         },
       });
-      alert("Profile updated successfully");
+      toast.success("Profile updated successfully", { id: toastId });
       setFormData(tempData);
       setNewPassword("");
       setEditMode(false);
     } catch (error) {
-      console.error(error);
-      alert("Failed to update profile");
+      toast.error(
+        error?.response?.data?.message || "Failed to update profile",
+        { id: toastId }
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -301,8 +311,6 @@ const Profile = () => {
                   className="w-full px-4 py-2 border rounded"
                   placeholder="Address"
                 />
-
-                {/* Bank Info */}
                 {!formData.accountNumber && (
                   <>
                     <input
@@ -327,7 +335,6 @@ const Profile = () => {
                     </select>
                   </>
                 )}
-
                 <input
                   type="password"
                   placeholder="New Password (optional)"
@@ -335,13 +342,17 @@ const Profile = () => {
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="w-full px-4 py-2 border rounded"
                 />
-
                 <div className="flex gap-4">
                   <button
                     type="submit"
-                    className="flex-1 bg-[#AE2108] text-white py-2 rounded-md"
+                    className={`flex-1 py-2 rounded-md text-white ${
+                      isLoading
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-[#AE2108]"
+                    }`}
+                    disabled={isLoading}
                   >
-                    Save
+                    {isLoading ? "Saving..." : "Save"}
                   </button>
                   <button
                     type="button"
