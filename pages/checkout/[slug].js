@@ -109,6 +109,7 @@ const Checkout = () => {
     try {
       const res = await axios.post(`${BACKENDURL}/api/init-payment`, {
         amount: finalTotal,
+        totalAmount: finalTotal,
         email: `guest${Date.now()}@chowspace.com`,
         vendorId: vendor._id,
         tx_ref: txRef,
