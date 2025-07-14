@@ -31,7 +31,7 @@ const BANK_OPTIONS = [
   { name: "Guaranty Trust Bank", code: "058" },
   { name: "Kuda Microfinance Bank", code: "50211" },
   { name: "Moniepoint MFB", code: "50515" },
-  { name: "Opay Digital Services Limited", code: "999991" },
+  { name: "Opay Digital Services Limited (OPay)", code: "999991" },
   { name: "Paycom", code: "999991" },
   { name: "Palmpay", code: "999992" },
   { name: "Stanbic IBTC Bank", code: "221" },

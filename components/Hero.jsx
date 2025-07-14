@@ -1,96 +1,106 @@
-"use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const slides = [
   {
-    id: 1,
     title: "Discover Delicious Meals",
     subtitle: "From Top Vendors Around You",
-    image: "/chowspace_hero.png",
+    description:
+      "Browse hundreds of curated vendors and enjoy a variety of cuisines — delivered hot and fast, just the way you like it.",
   },
   {
-    id: 2,
     title: "Order With Ease",
-    subtitle: "Fast, Trusted, Affordable",
-    image: "/chowspace_hero.png",
+    subtitle: "Fast. Trusted. Affordable.",
+    description:
+      "From breakfast to dinner, ChowSpace gives you a seamless way to find, order, and enjoy meals without hassle.",
   },
   {
-    id: 3,
     title: "Satisfy Your Cravings",
     subtitle: "All your favorite meals, one tap away",
-    image: "/chowspace_hero.png",
+    description:
+      "No matter the time or place, get your favorite dishes from local food heroes near you. Eat better, live better.",
   },
 ];
 
 const Hero = () => {
   const [current, setCurrent] = useState(0);
+  const [fade, setFade] = useState(true);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % slides.length);
-    }, 5000);
+      setFade(false);
+      setTimeout(() => {
+        setCurrent((prev) => (prev + 1) % slides.length);
+        setFade(true);
+      }, 500); // fade out before switching
+    }, 6000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-white mt-20 sm:mt-10">
-      {/* Animated blurred background blobs */}
-      <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-gradient-to-r from-pink-300 via-red-300 to-yellow-200 opacity-30 rounded-full blur-3xl animate-float-slow z-0" />
-      <div className="absolute top-1/3 right-[-150px] w-[500px] h-[500px] bg-gradient-to-br from-green-200 via-blue-300 to-purple-300 opacity-20 rounded-full blur-3xl animate-float-medium z-0" />
-      <div className="absolute bottom-[-100px] left-1/4 w-[300px] h-[300px] bg-gradient-to-br from-yellow-100 via-red-100 to-pink-200 opacity-25 rounded-full blur-2xl animate-float-fast z-0" />
+    <section className="relative h-screen w-full bg-white pt-40 sm:pt-20 overflow-hidden flex items-center justify-center">
+      {/* Background Gradient Blob */}
+      <div
+        className="absolute bottom-[-120px] right-[-120px] w-[500px] h-[500px] bg-gradient-to-br from-pink-200 via-red-200 to-yellow-300 opacity-30 rounded-full blur-3xl z-0"
+        style={{ animation: "float 10s ease-in-out infinite" }}
+      />
 
-      {/* Slides */}
-      {slides.map((slide, index) => (
-        <div
-          key={slide.id}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-            index === current ? "opacity-100 z-10" : "opacity-0 z-0"
-          }`}
-        >
-          <div className="max-w-6xl mx-auto h-full px-4 md:px-6 flex flex-col-reverse md:flex-row items-center justify-center gap-6 md:gap-4 relative z-10">
-            {/* Text */}
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
-                {slide.title}
-              </h1>
-              <p className="text-gray-600 mt-3 text-base sm:text-lg md:text-xl">
-                {slide.subtitle}
-              </p>
-              <Link
-                href="#vendors"
-                className="inline-block mt-6 bg-[#AE2108] text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-[#941B06]"
-              >
-                Explore Vendors
-              </Link>
-            </div>
+      {/* Keyframe animations in-page */}
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20px); }
+        }
 
-            {/* Blob Image */}
-            <div className="flex-1 flex justify-center items-center">
-              <svg
-                viewBox="0 0 200 200"
-                className="w-[400px] sm:w-[400px] md:w-[520px] lg:w-[500px] h-auto"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <mask id={`blob-mask-${slide.id}`}>
-                  <path
-                    fill="white"
-                    d="M45.3,-71.5C58.9,-61.6,70.6,-49.6,75.7,-35.6C80.8,-21.6,79.2,-5.6,74.2,8.5C69.1,22.7,60.7,34.9,50.1,46.2C39.5,57.5,26.8,68,11.3,72.4C-4.2,76.8,-22.6,75.2,-36.6,67.5C-50.6,59.8,-60.1,45.9,-66.4,31.3C-72.7,16.7,-75.9,1.4,-73.5,-13.3C-71.2,-28,-63.2,-42.1,-51.6,-52.5C-40,-62.9,-25,-69.5,-9.3,-71.6C6.5,-73.7,13,-71.4,45.3,-71.5Z"
-                    transform="translate(100 100)"
-                  />
-                </mask>
-                <image
-                  href={slide.image}
-                  width="200"
-                  height="200"
-                  mask={`url(#blob-mask-${slide.id})`}
-                  className="object-contain"
-                />
-              </svg>
-            </div>
+        .fade-in {
+          opacity: 1;
+          transition: opacity 0.8s ease-in;
+        }
+
+        .fade-out {
+          opacity: 0;
+          transition: opacity 0.5s ease-out;
+        }
+      `}</style>
+
+      {/* Hero Content */}
+      <div className="relative z-10 max-w-6xl w-full px-6 flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-left">
+        {/* Text */}
+        <div className="flex-1 transition-all duration-700">
+          <div className={fade ? "fade-in" : "fade-out"}>
+            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+              {slides[current].title}
+            </h1>
+            <h2 className="text-lg sm:text-xl text-[#AE2108] font-semibold mb-2">
+              {slides[current].subtitle}
+            </h2>
+            <p className="text-base sm:text-lg text-gray-600 mb-6 max-w-md mx-auto md:mx-0">
+              {slides[current].description}
+            </p>
+            <Link
+              href="#vendors"
+              className="inline-block bg-[#AE2108] hover:bg-[#941B06] text-white px-6 py-3 rounded-full font-medium text-sm shadow-md"
+            >
+              Explore Vendors
+            </Link>
           </div>
         </div>
-      ))}
+
+        {/* Hero Image */}
+        <div className="flex-1 flex justify-center items-center">
+          <div className="w-[300px] h-[300px] rounded-full overflow-hidden shadow-2xl border-4 border-white">
+            <Image
+              src="/chowspace_hero.png"
+              alt="ChowSpace Hero"
+              width={400}
+              height={400}
+              className="object-cover w-full h-full"
+              priority
+            />
+          </div>
+        </div>
+      </div>
     </section>
   );
 };

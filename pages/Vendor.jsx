@@ -14,12 +14,11 @@ const setCookie = (name, value, days = 30) => {
   )}; expires=${expires}; path=/`;
 };
 
-const getCookie = (name) => {
-  return document.cookie
+const getCookie = (name) =>
+  document.cookie
     .split("; ")
     .find((row) => row.startsWith(name + "="))
     ?.split("=")[1];
-};
 
 const Vendor = () => {
   const [vendors, setVendors] = useState([]);
@@ -28,140 +27,113 @@ const Vendor = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
-
   const vendorsPerPage = 8;
   const router = useRouter();
   const BACKENDURL = "https://chowspace-backend.vercel.app";
 
   useEffect(() => {
-    let isMounted = true;
-
     const fetchData = async () => {
       try {
         const [vendorsRes, locationsRes] = await Promise.all([
           axios.get(`${BACKENDURL}/api/vendor/getVendors`),
           axios.get(`${BACKENDURL}/api/getLocations`),
         ]);
-
-        if (isMounted) {
-          setVendors(vendorsRes.data.vendors || []);
-          setLocations(locationsRes.data.locations || []);
-
-          // Check for saved location from cookies
-          const savedLocation = getCookie("location");
-          if (savedLocation) {
-            setSelectedLocation(savedLocation);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching vendors or locations:", error);
+        setVendors(vendorsRes.data.vendors || []);
+        setLocations(locationsRes.data.locations || []);
+        const savedLocation = getCookie("location");
+        if (savedLocation) setSelectedLocation(savedLocation);
+      } catch (err) {
+        console.error("Error fetching vendors:", err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   const filteredVendors = vendors.filter((vendor) => {
-    const matchesSearch =
+    const matchSearch =
       vendor.fullname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       vendor.category?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesLocation =
+    const matchLocation =
       selectedLocation === "All" || vendor.location === selectedLocation;
 
-    return matchesSearch && matchesLocation;
+    return matchSearch && matchLocation;
   });
 
   const totalPages = Math.ceil(filteredVendors.length / vendorsPerPage);
-  const paginatedVendors = filteredVendors.slice(
+  const paginated = filteredVendors.slice(
     (currentPage - 1) * vendorsPerPage,
     currentPage * vendorsPerPage
   );
 
-  const goToNext = () => {
-    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
-  };
+  const goToNext = () =>
+    currentPage < totalPages && setCurrentPage((p) => p + 1);
+  const goToPrev = () => currentPage > 1 && setCurrentPage((p) => p - 1);
 
-  const goToPrevious = () => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
-  };
-
-  const openModal = () => {
-    router.push("/Login");
-  };
+  const openModal = () => router.push("/Login");
 
   return (
     <section
       id="vendors"
-      className="relative bg-gradient-to-b from-white via-gray-50 to-white px-6 py-16 min-h-screen overflow-hidden"
+      className="relative px-6 py-16 min-h-screen bg-gradient-to-b from-white via-gray-50 to-white overflow-hidden"
     >
-      {/* Background blobs */}
-      <div className="absolute top-0 left-[-100px] w-[300px] h-[300px] bg-yellow-100 opacity-20 rounded-full blur-3xl z-0" />
-      <div className="absolute bottom-0 right-[-120px] w-[250px] h-[250px] bg-red-100 opacity-20 rounded-full blur-2xl z-0" />
+      {/* Background Glow Blobs */}
+      <div className="absolute top-[-100px] left-[-100px] w-[300px] h-[300px] bg-yellow-100 opacity-20 rounded-full blur-3xl z-0" />
+      <div className="absolute bottom-[-80px] right-[-100px] w-[250px] h-[250px] bg-red-100 opacity-20 rounded-full blur-2xl z-0" />
 
       <div className="max-w-6xl mx-auto relative z-10">
         <h2 className="text-3xl font-bold text-center text-gray-900 mb-2">
           Top Vendors Near You
         </h2>
-        <p className="text-center text-sm text-gray-500 mb-6">
-          Browse restaurants, food vendors, and more
+        <p className="text-center text-sm text-gray-500 mb-8">
+          Explore local food vendors and favorite meals around you.
         </p>
 
         {/* Filters */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10">
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-10">
           <input
             type="text"
             placeholder="Search by name or category..."
-            className="w-full md:w-1/2 px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AE2108]"
+            className="w-full md:w-1/2 px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-[#AE2108] outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <select
-            className="w-full md:w-1/4 text-black px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#AE2108]"
             value={selectedLocation}
             onChange={(e) => {
-              const newLoc = e.target.value;
-              setSelectedLocation(newLoc);
-              setCookie("location", newLoc);
+              const newVal = e.target.value;
+              setSelectedLocation(newVal);
+              setCookie("location", newVal);
             }}
+            className="w-full md:w-1/4 px-4 py-2 rounded-lg border border-gray-300 shadow-sm text-black focus:ring-2 focus:ring-[#AE2108] outline-none"
           >
             <option value="All">All Locations</option>
-            {locations.map((loc, idx) => (
-              <option key={idx} value={loc}>
+            {locations.map((loc, i) => (
+              <option key={i} value={loc}>
                 {loc}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Vendor Cards */}
+        {/* Vendors */}
         {loading ? (
-          <p className="text-center text-gray-500 mt-10 animate-pulse">
+          <p className="text-center text-gray-500 animate-pulse">
             Loading vendors...
           </p>
-        ) : paginatedVendors.length > 0 ? (
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 transition-opacity duration-300 ease-in-out"
-            key={currentPage}
-          >
-            {paginatedVendors.map((vendor) => (
+        ) : paginated.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            {paginated.map((vendor) => (
               <div
                 key={vendor._id}
-                className="relative bg-white rounded-xl shadow hover:shadow-lg transform hover:scale-[1.03] transition duration-300 overflow-hidden group"
+                className="relative group bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
               >
-                <div
-                  onClick={openModal}
-                  className="z-50 absolute top-3 left-3 cursor-pointer"
-                >
-                  <Heart color="#AE2108" />
+                <div className="absolute top-3 left-3 cursor-pointer z-10 transition-transform transform hover:scale-110">
+                  <Heart size={20} color="#AE2108" />
                 </div>
-                <div className="w-full h-48 relative">
+                <div className="relative w-full h-44 overflow-hidden rounded-t-xl">
                   <Image
                     src={vendor.logo || "/logo.jpg"}
                     alt={vendor.businessName}
@@ -169,26 +141,24 @@ const Vendor = () => {
                     className="object-cover"
                   />
                   {vendor.status === "closed" && (
-                    <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10">
-                      <span className="text-white text-lg font-semibold">
+                    <div className="absolute inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center z-20">
+                      <span className="text-white text-sm font-semibold">
                         Closed
                       </span>
                     </div>
                   )}
                 </div>
-                <div className="p-4 text-left">
-                  <h3 className="font-semibold text-lg text-gray-800 truncate group-hover:text-[#AE2108] transition-colors">
+                <div className="p-4">
+                  <h3 className="font-semibold text-gray-800 text-lg truncate group-hover:text-[#AE2108] transition-colors">
                     {vendor.businessName}
                   </h3>
                   <p className="text-sm text-gray-500">{vendor.category}</p>
                   <p className="text-sm text-gray-500">{vendor.location}</p>
-                  <div className="text-sm text-yellow-500 mt-1">
-                    {"⭐".repeat(4)}
-                    <span className="text-gray-300">⭐</span>
+                  <div className="text-yellow-500 mt-1 text-sm">
+                    ⭐⭐⭐⭐<span className="text-gray-300">⭐</span>
                   </div>
-
                   <p
-                    className={`mt-2 text-xs font-medium inline-block px-2 py-1 rounded-full ${
+                    className={`inline-block text-xs mt-2 px-2 py-1 rounded-full font-medium ${
                       vendor.status === "opened"
                         ? "bg-green-100 text-green-600"
                         : "bg-red-100 text-red-600"
@@ -196,18 +166,17 @@ const Vendor = () => {
                   >
                     {vendor.status}
                   </p>
-
                   {vendor.status === "opened" ? (
                     <Link
                       href={`/vendors/menu/${vendor.slug}`}
-                      className="inline-block mt-3 text-sm text-white bg-[#AE2108] px-4 py-2 rounded-lg hover:bg-[#941B06] transition"
+                      className="block mt-4 text-sm text-white bg-[#AE2108] hover:bg-[#941B06] px-4 py-2 rounded-lg text-center transition"
                     >
                       View Menu
                     </Link>
                   ) : (
                     <button
                       disabled
-                      className="inline-block mt-3 text-sm text-white bg-gray-400 px-4 py-2 rounded-lg cursor-not-allowed"
+                      className="block mt-4 text-sm text-white bg-gray-400 px-4 py-2 rounded-lg text-center cursor-not-allowed"
                     >
                       View Menu
                     </button>
@@ -217,26 +186,28 @@ const Vendor = () => {
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500 mt-10">No vendors found.</p>
+          <p className="text-center text-gray-500">
+            No vendors match your filters.
+          </p>
         )}
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="mt-10 flex items-center justify-center gap-6">
+          <div className="mt-10 flex justify-center items-center gap-6">
             <button
-              onClick={goToPrevious}
+              onClick={goToPrev}
               disabled={currentPage === 1}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-50"
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-40"
             >
               Previous
             </button>
-            <span className="text-sm">
+            <span className="text-sm text-gray-700">
               Page {currentPage} of {totalPages}
             </span>
             <button
               onClick={goToNext}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-50"
+              className="px-4 py-2 border border-gray-300 rounded-md text-sm hover:bg-gray-100 disabled:opacity-40"
             >
               Next
             </button>
