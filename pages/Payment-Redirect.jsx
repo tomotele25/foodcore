@@ -23,7 +23,8 @@ export default function OrderConfirmed() {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const BACKENDURL = "http://localhost:2005";
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   useEffect(() => {
     const verifyPayment = async () => {
