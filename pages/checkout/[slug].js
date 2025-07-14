@@ -36,6 +36,8 @@ const Checkout = () => {
     (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
     0
   );
+
+  // Combine platform fee (2%) and Paystack fee buffer (1.5%) as one 5% charge
   const charges = Math.round(cartTotal * 0.05);
   const finalTotal = cartTotal + charges + deliveryFee + packFee;
 
