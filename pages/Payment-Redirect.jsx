@@ -22,9 +22,10 @@ export default function OrderConfirmed() {
   const [selectedReasons, setSelectedReasons] = useState([]);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [disputeReasons, setDisputeReasons] = useState([]);
 
   const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
   useEffect(() => {
     const verifyPayment = async () => {
@@ -55,6 +56,19 @@ export default function OrderConfirmed() {
 
     verifyPayment();
   }, [router.isReady, router.query.reference]);
+
+  useEffect(() => {
+    const fetchDisputeReasons = async () => {
+      try {
+        const res = await axios.get(`${BACKENDURL}/api/dispute/reasons`);
+        setDisputeReasons(res.data.reasons || []);
+      } catch (err) {
+        console.error("Failed to fetch dispute reasons", err);
+      }
+    };
+
+    fetchDisputeReasons();
+  }, []);
 
   const handleRetry = () => {
     setVerifying(true);
@@ -204,13 +218,7 @@ export default function OrderConfirmed() {
             </p>
 
             <div className="space-y-2 mb-4">
-              {[
-                "Wrong item delivered",
-                "Order was incomplete",
-                "Food arrived late",
-                "Food was cold or bad",
-                "Other",
-              ].map((issue, idx) => (
+              {disputeReasons.map((issue, idx) => (
                 <label key={idx} className="flex items-center space-x-2">
                   <input
                     type="checkbox"
