@@ -29,8 +29,8 @@ const Vendor = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const vendorsPerPage = 8;
   const router = useRouter();
-  const BACKENDURL = "https://chowspace-backend.vercel.app";
-
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
   useEffect(() => {
     const fetchData = async () => {
       try {
