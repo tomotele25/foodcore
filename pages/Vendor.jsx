@@ -4,21 +4,8 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
-import { Heart } from "lucide-react";
+import { Heart, Clock } from "lucide-react";
 import { useRouter } from "next/router";
-
-const setCookie = (name, value, days = 30) => {
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${encodeURIComponent(
-    value
-  )}; expires=${expires}; path=/`;
-};
-
-const getCookie = (name) =>
-  document.cookie
-    .split("; ")
-    .find((row) => row.startsWith(name + "="))
-    ?.split("=")[1];
 
 const Vendor = () => {
   const [vendors, setVendors] = useState([]);
@@ -40,8 +27,6 @@ const Vendor = () => {
         ]);
         setVendors(vendorsRes.data.vendors || []);
         setLocations(locationsRes.data.locations || []);
-        const savedLocation = getCookie("location");
-        if (savedLocation) setSelectedLocation(savedLocation);
       } catch (err) {
         console.error("Error fetching vendors:", err);
       } finally {
@@ -72,41 +57,30 @@ const Vendor = () => {
     currentPage < totalPages && setCurrentPage((p) => p + 1);
   const goToPrev = () => currentPage > 1 && setCurrentPage((p) => p - 1);
 
-  const openModal = () => router.push("/Login");
-
   return (
-    <section
-      id="vendors"
-      className="relative px-6 py-16 min-h-screen bg-gradient-to-b from-white via-gray-50 to-white overflow-hidden"
-    >
-      {/* Background Glow Blobs */}
-      <div className="absolute top-[-100px] left-[-100px] w-[300px] h-[300px] bg-yellow-100 opacity-20 rounded-full blur-3xl z-0" />
-      <div className="absolute bottom-[-80px] right-[-100px] w-[250px] h-[250px] bg-red-100 opacity-20 rounded-full blur-2xl z-0" />
+    <section className="relative px-5 sm:px-20 py-16 min-h-screen bg-[#fffdfc] overflow-hidden">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-extrabold text-[#AE2108]  mb-2">
+            Discover Top Vendors
+          </h2>
+          <p className="text-gray-500 max-w-md mx-auto">
+            Find the best meals from vendors around you and enjoy swift
+            delivery.
+          </p>
+        </div>
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        <h2 className="text-3xl font-bold text-center text-gray-900 mb-2">
-          Top Vendors Near You
-        </h2>
-        <p className="text-center text-sm text-gray-500 mb-8">
-          Explore local food vendors and favorite meals around you.
-        </p>
-
-        {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-10">
           <input
             type="text"
-            placeholder="Search by name or category..."
+            placeholder="Search vendors or categories..."
             className="w-full md:w-1/2 px-4 py-2 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-[#AE2108] outline-none"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <select
             value={selectedLocation}
-            onChange={(e) => {
-              const newVal = e.target.value;
-              setSelectedLocation(newVal);
-              setCookie("location", newVal);
-            }}
+            onChange={(e) => setSelectedLocation(e.target.value)}
             className="w-full md:w-1/4 px-4 py-2 rounded-lg border border-gray-300 shadow-sm text-black focus:ring-2 focus:ring-[#AE2108] outline-none"
           >
             <option value="All">All Locations</option>
@@ -118,22 +92,18 @@ const Vendor = () => {
           </select>
         </div>
 
-        {/* Vendors */}
         {loading ? (
           <p className="text-center text-gray-500 animate-pulse">
             Loading vendors...
           </p>
         ) : paginated.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {paginated.map((vendor) => (
               <div
                 key={vendor._id}
-                className="relative group bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+                className="relative group bg-white border border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
               >
-                <div className="absolute top-3 left-3 cursor-pointer z-10 transition-transform transform hover:scale-110">
-                  <Heart size={20} color="#AE2108" />
-                </div>
-                <div className="relative w-full h-44 overflow-hidden rounded-t-xl">
+                <div className="relative w-full h-48">
                   <Image
                     src={vendor.logo || "/logo.jpg"}
                     alt={vendor.businessName}
@@ -141,46 +111,55 @@ const Vendor = () => {
                     className="object-cover"
                   />
                   {vendor.status === "closed" && (
-                    <div className="absolute inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center z-20">
-                      <span className="text-white text-sm font-semibold">
+                    <div className="absolute inset-0 backdrop-blur-md bg-black/40 flex items-center justify-center">
+                      <span className="text-white text-sm font-bold">
                         Closed
                       </span>
                     </div>
                   )}
+                  <div className="absolute top-3 left-3 bg-white p-1.5 rounded-full shadow">
+                    <Heart size={18} color="#AE2108" />
+                  </div>
                 </div>
+
                 <div className="p-4">
-                  <h3 className="font-semibold text-gray-800 text-lg truncate group-hover:text-[#AE2108] transition-colors">
+                  <h3 className="text-lg font-semibold text-gray-900 truncate mb-1">
                     {vendor.businessName}
                   </h3>
-                  <p className="text-sm text-gray-500">{vendor.category}</p>
-                  <p className="text-sm text-gray-500">{vendor.location}</p>
-                  <div className="text-yellow-500 mt-1 text-sm">
-                    ⭐⭐⭐⭐<span className="text-gray-300">⭐</span>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-2">
+                    <span>{vendor.category}</span>
+                    <span>{vendor.location}</span>
                   </div>
+
+                  <div className="flex items-center text-sm text-gray-600 mb-3">
+                    <Clock size={16} className="mr-1 text-[#AE2108]" />
+                    {vendor.deliveryDuration} mins delivery
+                  </div>
+
                   <p
-                    className={`inline-block text-xs mt-2 px-2 py-1 rounded-full font-medium ${
+                    className={`inline-block text-xs px-2 py-1 rounded-full font-medium mb-2 ${
                       vendor.status === "opened"
-                        ? "bg-green-100 text-green-600"
-                        : "bg-red-100 text-red-600"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
                     }`}
                   >
                     {vendor.status}
                   </p>
-                  {vendor.status === "opened" ? (
-                    <Link
-                      href={`/vendors/menu/${vendor.slug}`}
-                      className="block mt-4 text-sm text-white bg-[#AE2108] hover:bg-[#941B06] px-4 py-2 rounded-lg text-center transition"
-                    >
-                      View Menu
-                    </Link>
-                  ) : (
-                    <button
-                      disabled
-                      className="block mt-4 text-sm text-white bg-gray-400 px-4 py-2 rounded-lg text-center cursor-not-allowed"
-                    >
-                      View Menu
-                    </button>
-                  )}
+
+                  <Link
+                    href={
+                      vendor.status === "opened"
+                        ? `/vendors/menu/${vendor.slug}`
+                        : "#"
+                    }
+                    className={`block w-full text-center text-sm font-medium px-4 py-2 rounded-md transition-all duration-200 ${
+                      vendor.status === "opened"
+                        ? "bg-[#AE2108] text-white hover:bg-[#941B06]"
+                        : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                    }`}
+                  >
+                    View Menu
+                  </Link>
                 </div>
               </div>
             ))}
@@ -191,7 +170,6 @@ const Vendor = () => {
           </p>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="mt-10 flex justify-center items-center gap-6">
             <button

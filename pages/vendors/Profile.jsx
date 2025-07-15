@@ -55,6 +55,7 @@ const Profile = () => {
     address: "",
     accountNumber: "",
     bankName: "",
+    deliveryDuration: "", // ✅ added
   });
 
   const [editMode, setEditMode] = useState(false);
@@ -62,9 +63,9 @@ const Profile = () => {
   const [logo, setLogo] = useState(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [newPassword, setNewPassword] = useState("");
+
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2005";
-
   useEffect(() => {
     if (status === "unauthenticated") router.push("/Login");
   }, [status]);
@@ -81,6 +82,7 @@ const Profile = () => {
         address: vendor.address || "",
         accountNumber: vendor.accountNumber || "",
         bankName: vendor.bankName || "",
+        deliveryDuration: vendor.deliveryDuration || "", // ✅ added
       };
       setFormData(userData);
       setTempData(userData);
@@ -119,6 +121,7 @@ const Profile = () => {
     form.append("contact", tempData.contact);
     form.append("location", tempData.location);
     form.append("address", tempData.address);
+    form.append("deliveryDuration", tempData.deliveryDuration); // ✅ added
 
     if (
       !formData.accountNumber &&
@@ -273,6 +276,10 @@ const Profile = () => {
                 <p>
                   <strong>Bank Name:</strong> {formData.bankName || "Not set"}
                 </p>
+                <p>
+                  <strong>Delivery Duration:</strong>{" "}
+                  {formData.deliveryDuration || "Not set"} mins
+                </p>
                 <button
                   onClick={handleEditClick}
                   className="w-full py-3 bg-[#AE2108] text-white font-semibold rounded-md hover:bg-[#941B06] transition"
@@ -310,6 +317,15 @@ const Profile = () => {
                   rows={3}
                   className="w-full px-4 py-2 border rounded"
                   placeholder="Address"
+                />
+                <input
+                  name="deliveryDuration"
+                  type="number"
+                  value={tempData.deliveryDuration}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border rounded"
+                  placeholder="Estimated Delivery Time (minutes)"
+                  min={1}
                 />
                 {!formData.accountNumber && (
                   <>

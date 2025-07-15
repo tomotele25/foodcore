@@ -1,11 +1,11 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import axios from "axios";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
+import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import "swiper/css";
 import "swiper/css/navigation";
 
@@ -42,20 +42,20 @@ const Carousel = () => {
   if (loading || vendors.length === 0) return null;
 
   return (
-    <section className="py-12 px-4 sm:px-6 lg:px-20 bg-white relative">
+    <section className="py-16 px-5 sm:px-20 bg-white relative">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8 text-black text-center">
+        <h2 className="text-3xl md:text-4xl font-bold text-center text-[#AE2108] mb-10">
           Handpicked For You
         </h2>
 
         {/* Custom Arrows */}
-        <div className="absolute top-[52%] left-0 z-10 -translate-y-1/2">
-          <div className="swiper-button-prev-custom bg-white border border-gray-300 rounded-full shadow p-2 hover:bg-[#AE2108] hover:text-white cursor-pointer transition">
+        <div className="absolute top-[52%] left-2 z-10 -translate-y-1/2">
+          <div className="swiper-button-prev-custom bg-white border border-gray-300 rounded-full shadow-md p-2 hover:bg-[#AE2108] hover:text-white cursor-pointer transition">
             <ChevronLeft />
           </div>
         </div>
-        <div className="absolute top-[52%] right-0 z-10 -translate-y-1/2">
-          <div className="swiper-button-next-custom bg-white border border-gray-300 rounded-full shadow p-2 hover:bg-[#AE2108] hover:text-white cursor-pointer transition">
+        <div className="absolute top-[52%] right-2 z-10 -translate-y-1/2">
+          <div className="swiper-button-next-custom bg-white border border-gray-300 rounded-full shadow-md p-2 hover:bg-[#AE2108] hover:text-white cursor-pointer transition">
             <ChevronRight />
           </div>
         </div>
@@ -68,7 +68,7 @@ const Carousel = () => {
             768: { slidesPerView: 3 },
             1024: { slidesPerView: 4 },
           }}
-          autoplay={{ delay: 3000 }}
+          autoplay={{ delay: 4000 }}
           loop={true}
           navigation={{
             nextEl: ".swiper-button-next-custom",
@@ -80,24 +80,30 @@ const Carousel = () => {
             <SwiperSlide key={index}>
               {item.status === "opened" ? (
                 <Link href={`/vendors/menu/${item.slug}`} passHref>
-                  <div className="cursor-pointer bg-gray-50 rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition duration-300">
-                    <div className="w-full h-52 bg-gray-100 relative">
+                  <div className="group cursor-pointer bg-white rounded-2xl shadow-md overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1 duration-300">
+                    <div className="w-full h-52 relative">
                       <img
                         src={item.logo || "/logo.jpg"}
                         alt={item.businessName}
-                        className="object-cover w-full h-full"
+                        className="w-full h-full object-cover transition duration-300"
                       />
                     </div>
                     <div className="p-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      <h3 className="text-lg font-bold text-gray-900 truncate">
                         {item.businessName}
                       </h3>
-                      <p className="text-sm text-gray-500 mb-1">
+                      <p className="text-sm text-gray-500 truncate">
                         {item.category || "Uncategorized"}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 truncate">
                         {item.location || "Unknown location"}
                       </p>
+                      {item.deliveryDuration && (
+                        <div className="flex items-center text-xs text-gray-600 mt-2">
+                          <Clock size={14} className="mr-1 text-[#AE2108]" />
+                          {item.deliveryDuration} mins delivery
+                        </div>
+                      )}
                       <span className="inline-block mt-4 text-xs font-medium px-3 py-1 rounded-full bg-green-100 text-green-700">
                         Open Now
                       </span>
@@ -105,22 +111,22 @@ const Carousel = () => {
                   </div>
                 </Link>
               ) : (
-                <div className="cursor-not-allowed bg-gray-50 rounded-2xl shadow-md overflow-hidden opacity-70">
-                  <div className="w-full h-52 bg-gray-100 relative">
+                <div className="bg-white rounded-2xl shadow-md overflow-hidden opacity-70 cursor-not-allowed">
+                  <div className="w-full h-52 relative">
                     <img
-                      src={item.logo}
+                      src={item.logo || "/logo.jpg"}
                       alt={item.businessName}
-                      className="object-cover w-full h-full"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    <h3 className="text-lg font-bold text-gray-900 truncate">
                       {item.businessName}
                     </h3>
-                    <p className="text-sm text-gray-500 mb-1">
+                    <p className="text-sm text-gray-500 truncate">
                       {item.category || "Uncategorized"}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 truncate">
                       {item.location || "Unknown location"}
                     </p>
                     <span className="inline-block mt-4 text-xs font-medium px-3 py-1 rounded-full bg-red-100 text-red-600">
