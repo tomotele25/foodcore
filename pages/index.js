@@ -5,6 +5,7 @@ import Vendor from "./Vendor";
 import Hero from "@/components/Hero";
 import Carousel from "@/components/Carousel";
 import ScrollToTopBtn from "@/components/ScrollToTopBtn";
+import PromoBanner from "@/components/PromoBanner";
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -18,6 +19,7 @@ export default function Home() {
       <main>
         <Navbar />
         <Hero />
+        <PromoBanner />
         <Carousel />
         <Vendor />
         <Footer />

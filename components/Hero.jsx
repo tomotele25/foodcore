@@ -1,6 +1,9 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowRight } from "lucide-react";
 
 const slides = [
   {
@@ -33,74 +36,64 @@ const Hero = () => {
       setTimeout(() => {
         setCurrent((prev) => (prev + 1) % slides.length);
         setFade(true);
-      }, 500); // fade out before switching
+      }, 500);
     }, 6000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <section className="relative h-screen w-full bg-white pt-40 sm:pt-20 overflow-hidden flex items-center justify-center">
-      {/* Background Gradient Blob */}
-      <div
-        className="absolute bottom-[-120px] right-[-120px] w-[500px] h-[500px] bg-gradient-to-br from-pink-200 via-red-200 to-yellow-300 opacity-30 rounded-full blur-3xl z-0"
-        style={{ animation: "float 10s ease-in-out infinite" }}
-      />
+    <section className="relative px-2 sm:px-20 h-screen w-full pt-32 sm:pt-24 bg-gradient-to-br from-orange-50 via-white to-yellow-50 overflow-hidden flex items-center justify-center">
+      {/* Floating gradient blob */}
+      <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-gradient-to-r from-yellow-300 via-pink-200 to-red-300 rounded-full blur-3xl opacity-30 animate-pulse z-0" />
 
-      {/* Keyframe animations in-page */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-20px); }
-        }
-
-        .fade-in {
-          opacity: 1;
-          transition: opacity 0.8s ease-in;
-        }
-
-        .fade-out {
-          opacity: 0;
-          transition: opacity 0.5s ease-out;
-        }
-      `}</style>
-
-      {/* Hero Content */}
-      <div className="relative z-10 max-w-6xl w-full px-6 flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-left">
-        {/* Text */}
-        <div className="flex-1 transition-all duration-700">
+      {/* Hero content container */}
+      <div className="relative z-10 max-w-7xl w-full px-6 flex flex-col md:flex-row items-center justify-between gap-12 text-center md:text-left">
+        {/* Text Content */}
+        <div className="flex-1">
           <div className={fade ? "fade-in" : "fade-out"}>
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
+            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 mb-3">
               {slides[current].title}
             </h1>
-            <h2 className="text-lg sm:text-xl text-[#AE2108] font-semibold mb-2">
+            <h2 className="text-xl sm:text-2xl font-semibold text-[#AE2108] mb-2">
               {slides[current].subtitle}
             </h2>
-            <p className="text-base sm:text-lg text-gray-600 mb-6 max-w-md mx-auto md:mx-0">
+            <p className="text-base sm:text-lg text-gray-600 max-w-md mb-6 mx-auto md:mx-0">
               {slides[current].description}
             </p>
             <Link
               href="#vendors"
-              className="inline-block bg-[#AE2108] hover:bg-[#941B06] text-white px-6 py-3 rounded-full font-medium text-sm shadow-md"
+              className="inline-flex items-center gap-2 bg-[#AE2108] hover:bg-[#941B06] text-white px-6 py-3 rounded-full font-medium text-sm shadow-lg hover:scale-105 transition duration-300"
             >
-              Explore Vendors
+              Explore Vendors <ArrowRight size={16} />
             </Link>
           </div>
         </div>
 
         {/* Hero Image */}
         <div className="flex-1 flex justify-center items-center">
-          <div className="w-[300px] h-[300px] rounded-full overflow-hidden shadow-2xl border-4 border-white">
+          <div className="w-[300px] h-[300px] sm:w-[360px] sm:h-[360px] relative rounded-full overflow-hidden shadow-2xl border-4 border-white group">
             <Image
-              src="/chowspace_hero.png"
+              src="/chowspace_hero.png" // Use open-source image if needed
               alt="ChowSpace Hero"
-              width={400}
-              height={400}
-              className="object-cover w-full h-full"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
               priority
             />
           </div>
         </div>
       </div>
+
+      {/* Animations */}
+      <style>{`
+        .fade-in {
+          opacity: 1;
+          transition: opacity 0.8s ease-in;
+        }
+        .fade-out {
+          opacity: 0;
+          transition: opacity 0.5s ease-out;
+        }
+      `}</style>
     </section>
   );
 };

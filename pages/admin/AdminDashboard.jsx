@@ -20,6 +20,7 @@ const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
   { name: "Manage Vendors", icon: Users, path: "/admin/ManageVendor" },
   { name: "Settings", icon: Settings, path: "/admin/settings" },
+  { name: "Promotion", icon: Settings, path: "/admin/Promotion" },
 ];
 
 const AdminDashboard = () => {
