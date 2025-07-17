@@ -6,6 +6,7 @@ import Link from "next/link";
 import axios from "axios";
 import { Heart, Clock } from "lucide-react";
 import { useRouter } from "next/router";
+import VendorSkeletonCard from "@/components/VendorSkeletonCard";
 
 const Vendor = () => {
   const [vendors, setVendors] = useState([]);
@@ -93,9 +94,11 @@ const Vendor = () => {
         </div>
 
         {loading ? (
-          <p className="text-center text-gray-500 animate-pulse">
-            Loading vendors...
-          </p>
+          <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {[...Array(5)].map((_, i) => (
+              <VendorSkeletonCard key={i} />
+            ))}
+          </div>
         ) : paginated.length > 0 ? (
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {paginated.map((vendor) => (

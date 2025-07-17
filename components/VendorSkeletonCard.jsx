@@ -18,7 +18,7 @@ const VendorSkeletonCard = () => {
         <div className="h-3 bg-gray-200 rounded w-1/3 mb-3" />
 
         {/* Stars */}
-        <div className="h-4 bg-yellow-100 rounded w-24 mb-3" />
+        <div className="h-4 bg-[#AE2108] rounded w-24 mb-3" />
 
         {/* Status pill */}
         <div className="h-5 bg-gray-300 rounded-full w-20 mb-3" />

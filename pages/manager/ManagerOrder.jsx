@@ -20,27 +20,26 @@ export default function ManagerOrder() {
   const { data: session, status } = useSession();
   const [orders, setOrders] = useState([]);
   const [disputes, setDisputes] = useState([]);
-  const [selectedDispute, setSelectedDispute] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState(() =>
-    new Date().toISOString().slice(0, 10)
-  );
+  const [dateFilter, setDateFilter] = useState(() => {
+    const today = new Date();
+    return today.toISOString().slice(0, 10);
+  });
 
   const router = useRouter();
-  const BACKENDURL = "https://chowspace-backend.vercel.app";
-
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchManagerOrders = async () => {
       try {
         const token = session?.user?.accessToken;
         if (!token) return;
 
-        const [ordersRes, disputesRes] = await Promise.all([
+        const [resOrders, resDisputes] = await Promise.all([
           axios.get(`${BACKENDURL}/api/manager/orders`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
@@ -49,45 +48,74 @@ export default function ManagerOrder() {
           }),
         ]);
 
-        const filtered = (ordersRes.data.orders || []).filter(
-          (order) =>
-            new Date(order.createdAt).toISOString().slice(0, 10) === dateFilter
-        );
+        const filtered = (resOrders.data.orders || []).filter((order) => {
+          const orderDate = new Date(order.createdAt)
+            .toISOString()
+            .slice(0, 10);
+          return orderDate === dateFilter;
+        });
 
         setOrders(filtered);
-        setDisputes(disputesRes.data.disputes || []);
+        setDisputes(resDisputes.data.disputes || []);
       } catch (err) {
         console.error(err);
-        setError("Failed to fetch data");
+        setError("Failed to load orders or disputes");
       } finally {
         setLoading(false);
       }
     };
 
     if (status === "authenticated") {
-      fetchData();
+      fetchManagerOrders();
     }
   }, [status, session, dateFilter]);
 
-  const handleResolveDispute = async (disputeId) => {
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  const handleToggleStatus = async (orderId, currentStatus) => {
+    const newStatus = currentStatus === "pending" ? "completed" : "pending";
     try {
-      const token = session?.user?.accessToken;
       await axios.put(
-        `${BACKENDURL}/api/resolve-dispute/${disputeId}`,
-        {},
+        `${BACKENDURL}/api/order/${orderId}`,
+        { status: newStatus },
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${session?.user?.accessToken}`,
           },
         }
       );
-      toast.success("Dispute marked as resolved");
-      setDisputes((prev) => prev.filter((d) => d._id !== disputeId));
-      setSelectedDispute(null);
+      setOrders((prev) =>
+        prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o))
+      );
+      toast.success(`Order marked as ${newStatus}`);
     } catch (err) {
-      toast.error("Failed to resolve dispute");
+      console.error("Status update failed", err);
+      toast.error("Failed to update order status");
     }
   };
+
+  const handleCleanup = async () => {
+    try {
+      const token = session?.user?.accessToken;
+      if (!token) return toast.error("Unauthorized");
+
+      await axios.delete(`${BACKENDURL}/api/cleanupPendingOrders`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      toast.success("Pending unpaid orders cleaned up");
+      router.reload();
+    } catch (err) {
+      console.error("Cleanup failed", err);
+      toast.error("Failed to cleanup pending orders");
+    }
+  };
+
+  const filteredOrders =
+    statusFilter === "all"
+      ? orders
+      : orders.filter((order) => order.status === statusFilter);
 
   const getPaymentStatusClasses = (paymentStatus) => {
     switch ((paymentStatus || "").toLowerCase()) {
@@ -101,15 +129,19 @@ export default function ManagerOrder() {
     }
   };
 
-  const getOrderDispute = (orderId) =>
-    disputes.find((d) => d.order?._id === orderId);
-
   return (
     <div className="flex h-screen bg-gray-100 relative">
+      {/* Mobile Topbar */}
+      <div className="md:hidden flex justify-between items-center px-4 py-3 bg-white shadow z-30 w-full fixed top-0">
+        <h1 className="text-xl font-bold text-[#AE2108]">Manager Panel</h1>
+        <button onClick={toggleSidebar}>
+          {sidebarOpen ? <X /> : <Menu />}
+        </button>
+      </div>
+
       {/* Sidebar */}
       <aside
-        className={`fixed z-40 top-0 left-0 h-full w-64 bg-white shadow transform transition-transform duration-300 ease-in-out flex flex-col justify-between
-        ${
+        className={`fixed z-40 top-0 left-0 h-full w-64 bg-white shadow transform transition-transform duration-300 ease-in-out flex flex-col justify-between ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0`}
       >
@@ -150,7 +182,7 @@ export default function ManagerOrder() {
         </div>
         <div className="p-4 border-t">
           <button
-            onClick={() => signOut({ callbackUrl: "/Login" })}
+            onClick={() => router.push("/")}
             className="flex items-center gap-2 text-red-600 hover:bg-red-100 px-3 py-2 rounded w-full"
           >
             <LogOut size={18} />
@@ -160,14 +192,50 @@ export default function ManagerOrder() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 p-6 overflow-auto">
-        <h1 className="text-2xl font-bold text-[#AE2108] mb-4">
-          Manage Orders
-        </h1>
+      <main className="flex-1 pt-16 md:pt-0 md:ml-64 p-6 overflow-auto">
+        {/* Filters */}
+        <div className="flex flex-col gap-4 mb-6 md:flex-row md:items-center md:justify-between">
+          <h1 className="text-2xl font-bold text-[#AE2108]">Manage Orders</h1>
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-600">Date:</label>
+              <input
+                type="date"
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="border border-gray-300 px-3 py-1 rounded text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-600">
+                Status:
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="border border-gray-300 px-3 py-1 rounded text-sm"
+              >
+                <option value="all">All</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <button
+              onClick={handleCleanup}
+              className="bg-[#AE2108] hover:bg-red-700 text-white px-4 py-1 text-sm rounded"
+            >
+              Cleanup Pending Orders
+            </button>
+          </div>
+        </div>
+
+        {/* Orders Table */}
         {loading ? (
           <p className="text-gray-600">Loading orders...</p>
         ) : error ? (
           <p className="text-red-500">{error}</p>
+        ) : filteredOrders.length === 0 ? (
+          <p className="text-gray-500">No orders found.</p>
         ) : (
           <div className="overflow-x-auto rounded-xl shadow-sm bg-white">
             <table className="min-w-full text-sm">
@@ -176,15 +244,17 @@ export default function ManagerOrder() {
                   <th className="px-4 py-3">Order ID</th>
                   <th className="px-4 py-3">Customer</th>
                   <th className="px-4 py-3">Items</th>
-                  <th className="px-4 py-3">Delivery</th>
-                  <th className="px-4 py-3">Payment</th>
+                  <th className="px-4 py-3">Total</th>
+                  <th className="px-4 py-3">Delivery Info</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Payment</th>
+                  <th className="px-4 py-3">Toggle</th>
                   <th className="px-4 py-3">Dispute</th>
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => {
-                  const dispute = getOrderDispute(order._id);
+                {filteredOrders.map((order) => {
+                  const disp = disputes.find((d) => d.orderId === order._id);
                   return (
                     <tr key={order._id} className="border-t hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium">
@@ -193,16 +263,36 @@ export default function ManagerOrder() {
                       <td className="px-4 py-3">{order.guestInfo?.name}</td>
                       <td className="px-4 py-3">
                         {order.items
-                          .map((i) => `${i.name} x${i.quantity}`)
+                          ?.map((item) => `${item.name} x${item.quantity}`)
                           .join(", ")}
                       </td>
+                      <td className="px-4 py-3">₦{order.totalAmount}</td>
                       <td className="px-4 py-3 text-xs">
                         <div>
-                          <strong>Phone:</strong> {order.guestInfo?.phone}
+                          <strong>Phone:</strong>{" "}
+                          {order.guestInfo?.phone || "N/A"}
                         </div>
                         <div>
-                          <strong>Addr:</strong> {order.guestInfo?.address}
+                          <strong>Address:</strong>{" "}
+                          {order.guestInfo?.address || "N/A"}
                         </div>
+                        <div>
+                          <strong>Method:</strong>{" "}
+                          {order.deliveryMethod || "N/A"}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 capitalize">
+                        <span
+                          className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            order.status === "completed"
+                              ? "bg-green-100 text-green-700"
+                              : order.status === "pending"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-gray-100 text-gray-500"
+                          }`}
+                        >
+                          {order.status}
+                        </span>
                       </td>
                       <td className="px-4 py-3 capitalize">
                         <span
@@ -213,19 +303,18 @@ export default function ManagerOrder() {
                           {order.paymentStatus || "pending"}
                         </span>
                       </td>
-                      <td className="px-4 py-3">{order.status}</td>
                       <td className="px-4 py-3">
-                        {dispute ? (
-                          <button
-                            onClick={() => setSelectedDispute(dispute)}
-                            className="bg-red-100 text-red-700 text-xs px-3 py-1 rounded"
-                          >
-                            View Dispute
-                          </button>
-                        ) : (
-                          <span className="text-xs text-gray-400">None</span>
-                        )}
+                        <button
+                          onClick={() =>
+                            handleToggleStatus(order._id, order.status)
+                          }
+                          className="border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-100 text-xs"
+                        >
+                          Mark{" "}
+                          {order.status === "pending" ? "Completed" : "Pending"}
+                        </button>
                       </td>
+                      <td className="px-4 py-3">{disp?.message || "None"}</td>
                     </tr>
                   );
                 })}
@@ -234,39 +323,6 @@ export default function ManagerOrder() {
           </div>
         )}
       </main>
-
-      {/* Modal */}
-      {selectedDispute && (
-        <div className="fixed inset-0 z-50 bg-white/60 backdrop-blur-sm flex justify-center items-center p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg relative">
-            <button
-              onClick={() => setSelectedDispute(null)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
-            >
-              <X size={18} />
-            </button>
-            <h2 className="text-lg font-bold text-[#AE2108] mb-3">
-              Dispute Details
-            </h2>
-            <p className="mb-1">
-              <strong>Order ID:</strong> #{selectedDispute.order?._id.slice(-6)}
-            </p>
-            <p className="mb-1">
-              <strong>Reason:</strong> {selectedDispute.reason}
-            </p>
-            <p className="mb-4">
-              <strong>Message:</strong>{" "}
-              {selectedDispute.message || "No additional message"}
-            </p>
-            <button
-              onClick={() => handleResolveDispute(selectedDispute._id)}
-              className="mt-4 bg-[#AE2108] hover:bg-red-700 text-white px-4 py-2 rounded w-full"
-            >
-              Mark as Resolved
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -121,7 +121,7 @@ const Profile = () => {
     form.append("contact", tempData.contact);
     form.append("location", tempData.location);
     form.append("address", tempData.address);
-    form.append("deliveryDuration", tempData.deliveryDuration); // ✅ added
+    form.append("deliveryDuration", tempData.deliveryDuration);
 
     if (
       !formData.accountNumber &&
@@ -234,7 +234,9 @@ const Profile = () => {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white text-3xl font-bold bg-[#AE2108]">
-                    {formData.fullname ? formData.fullname[0] : "V"}
+                    {session?.user?.businessName
+                      ? session?.user?.businessName[0]
+                      : ""}
                   </div>
                 )}
                 {editMode && (
@@ -258,16 +260,16 @@ const Profile = () => {
             {!editMode ? (
               <div className="space-y-4 text-gray-700">
                 <p>
-                  <strong>Business Name:</strong> {formData.businessName}
+                  <strong>Business Name:</strong> {session?.user?.businessName}
                 </p>
                 <p>
-                  <strong>Phone Number:</strong> {formData.contact}
+                  <strong>Phone Number:</strong> {session?.user?.contact}
                 </p>
                 <p>
-                  <strong>Location:</strong> {formData.location}
+                  <strong>Location:</strong> {session?.user?.location}
                 </p>
                 <p>
-                  <strong>Address:</strong> {formData.address}
+                  <strong>Address:</strong> {session?.user?.address}
                 </p>
                 <p>
                   <strong>Account Number:</strong>{" "}

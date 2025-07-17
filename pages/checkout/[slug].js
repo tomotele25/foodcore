@@ -21,6 +21,7 @@ const Checkout = () => {
 
   const [vendor, setVendor] = useState(null);
   const [locations, setLocations] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [deliveryDetails, setDeliveryDetails] = useState({
     name: "",
     phone: "",
@@ -78,6 +79,8 @@ const Checkout = () => {
   };
 
   const handlePay = async () => {
+    if (loading) return;
+    setLoading(true);
     const { name, phone, address, location } = deliveryDetails;
 
     if (!name || !phone || !address || !location) {
@@ -296,9 +299,14 @@ const Checkout = () => {
 
           <button
             type="submit"
-            className="mt-8 w-full bg-[#AE2108] hover:bg-[#941B06] transition text-white font-bold py-3 rounded-full shadow-lg text-lg"
+            disabled={loading}
+            className={`mt-8 w-full font-bold py-3 rounded-full shadow-lg text-lg transition ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-[#AE2108] hover:bg-[#941B06] text-white"
+            }`}
           >
-            Pay Now
+            {loading ? "Processing..." : "Pay Now"}
           </button>
         </form>
       </section>

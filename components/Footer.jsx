@@ -48,6 +48,16 @@ const Footer = () => {
                 Contact
               </Link>
             </li>
+            <li>
+              <Link href="/Privacy" className="hover:text-[#AE2108]">
+                Privacy
+              </Link>
+            </li>
+            <li>
+              <Link href="T&C" className="hover:text-[#AE2108]">
+                Terms and conditions
+              </Link>
+            </li>
           </ul>
         </div>
 

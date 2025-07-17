@@ -1,10 +1,10 @@
-// VendorMenuPage.jsx with modern icons and UI
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
 import Image from "next/image";
+
 import {
   ArrowLeftCircle,
   Plus,
@@ -15,6 +15,7 @@ import {
   PackagePlus,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import ReviewSection from "@/components/ReviewSection";
 
 const VendorMenuPage = () => {
   const router = useRouter();
