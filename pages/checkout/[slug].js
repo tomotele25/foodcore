@@ -15,7 +15,7 @@ const Checkout = () => {
   const { slug } = router.query;
 
   const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
   const { cart, addToCart, removeFromCart } = useCart();
 
@@ -27,6 +27,7 @@ const Checkout = () => {
     phone: "",
     address: "",
     location: "",
+    email: "",
   });
 
   const [deliveryFee, setDeliveryFee] = useState(0);
@@ -81,7 +82,7 @@ const Checkout = () => {
   const handlePay = async () => {
     if (loading) return;
     setLoading(true);
-    const { name, phone, address, location } = deliveryDetails;
+    const { name, phone, address, location, email } = deliveryDetails;
 
     if (!name || !phone || !address || !location) {
       toast.error("Fill in all delivery details");
@@ -103,7 +104,7 @@ const Checkout = () => {
         quantity: item.quantity,
         price: item.price,
       })),
-      guestInfo: { name, phone, address },
+      guestInfo: { name, phone, address, email },
       deliveryMethod: "delivery",
       note: "",
       totalAmount: finalTotal,
@@ -114,7 +115,7 @@ const Checkout = () => {
     try {
       const res = await axios.post(`${BACKENDURL}/api/init-payment`, {
         amount: finalTotal,
-        email: `guest${Date.now()}@chowspace.com`,
+        email: email || `guest${Date.now()}@chowspace.com`,
         vendorId: vendor._id,
         tx_ref: txRef,
         orderPayload,
@@ -228,7 +229,7 @@ const Checkout = () => {
           }}
           className="space-y-6"
         >
-          {["name", "phone", "address"].map((field) => (
+          {["name", "phone", "address", "email"].map((field) => (
             <div key={field}>
               <label
                 htmlFor={field}
@@ -238,13 +239,19 @@ const Checkout = () => {
               </label>
               <input
                 id={field}
-                type={field === "phone" ? "tel" : "text"}
+                type={
+                  field === "phone"
+                    ? "tel"
+                    : field === "email"
+                    ? "email"
+                    : "text"
+                }
                 name={field}
                 value={deliveryDetails[field]}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#AE2108] focus:border-[#AE2108] transition"
                 placeholder={`Enter your ${field}`}
-                required
+                required={field !== "email"}
               />
             </div>
           ))}
