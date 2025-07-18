@@ -8,10 +8,13 @@ import {
   Home,
   MapPin,
   MessageCircleWarning,
+  PencilLine,
+  XIcon,
 } from "lucide-react";
 import Image from "next/image";
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
+import ReviewSection from "@/components/ReviewSection";
 
 export default function OrderConfirmed() {
   const router = useRouter();
@@ -19,18 +22,16 @@ export default function OrderConfirmed() {
   const [verifying, setVerifying] = useState(true);
   const [verificationError, setVerificationError] = useState(false);
   const [disputeModal, setDisputeModal] = useState(false);
+  const [reviewModal, setReviewModal] = useState(false);
   const [selectedReasons, setSelectedReasons] = useState([]);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [disputeReasons, setDisputeReasons] = useState([]);
-
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
+  const BACKENDURL = "http://localhost:2005";
 
   useEffect(() => {
     const verifyPayment = async () => {
       const { reference } = router.query;
-
       if (!router.isReady || !reference) return;
 
       const storedOrder = localStorage.getItem("latestOrder");
@@ -77,8 +78,6 @@ export default function OrderConfirmed() {
   };
 
   const handleGoHome = () => router.push("/");
-  const openDisputeModal = () => setDisputeModal(true);
-  const closeDisputeModal = () => setDisputeModal(false);
 
   const toggleReason = (reason) => {
     setSelectedReasons((prev) =>
@@ -104,7 +103,7 @@ export default function OrderConfirmed() {
 
       if (res.data.success) {
         toast.success("Dispute submitted successfully!");
-        closeDisputeModal();
+        setDisputeModal(false);
         setSelectedReasons([]);
         setMessage("");
       } else {
@@ -183,81 +182,105 @@ export default function OrderConfirmed() {
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-          <button
-            onClick={handleGoHome}
-            className="flex items-center justify-center gap-2 px-5 py-2 border border-[#AE2108] text-[#AE2108] rounded-md hover:bg-red-50 transition"
-          >
-            <Home size={18} /> Go Home
-          </button>
-          <button
-            onClick={openDisputeModal}
-            className="flex items-center justify-center gap-2 px-5 py-2 border border-[#AE2108] text-[#AE2108] rounded-md hover:bg-red-50 transition"
-          >
-            <MessageCircleWarning size={18} />
-            Order Dispute
-          </button>
-        </div>
+        {!verifying && order && (
+          <div className="flex flex-col sm:flex-row flex-wrap gap-4 justify-center mt-8">
+            <button
+              onClick={handleGoHome}
+              className="flex items-center justify-center gap-2 px-5 py-2 border border-[#AE2108] text-[#AE2108] rounded-md hover:bg-red-50 transition"
+            >
+              <Home size={18} /> Go Home
+            </button>
+            <button
+              onClick={() => setDisputeModal(true)}
+              className="flex items-center justify-center gap-2 px-5 py-2 border border-[#AE2108] text-[#AE2108] rounded-md hover:bg-red-50 transition"
+            >
+              <MessageCircleWarning size={18} /> Order Dispute
+            </button>
+            <button
+              onClick={() => setReviewModal(true)}
+              className="flex items-center justify-center gap-2 px-5 py-2 border border-[#AE2108] text-[#AE2108] rounded-md hover:bg-red-50 transition"
+            >
+              <PencilLine size={18} /> Leave a Review
+            </button>
+          </div>
+        )}
+
+        {/* Review Modal */}
+        {reviewModal && order && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+            <div className="w-full max-w-xl relative">
+              <div className="absolute top-12 right-2">
+                <button
+                  onClick={() => setReviewModal(false)}
+                  className="bg-white  text-gray-800 rounded-full shadow px-2 py-1 hover:bg-gray-100"
+                >
+                  <XIcon color="black" fontWeight=" bold " />
+                </button>
+              </div>
+              <ReviewSection vendorId={order.vendorId} userId={order.userId} />
+            </div>
+          </div>
+        )}
+
+        {/* Dispute Modal */}
+        {disputeModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+            <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
+              <h2 className="text-lg font-semibold mb-4 text-gray-800">
+                Dispute Order
+              </h2>
+
+              <p className="text-sm text-gray-600 mb-3">
+                What seems to be the issue?
+              </p>
+
+              <div className="space-y-2 mb-4 max-h-52 overflow-y-auto">
+                {disputeReasons.map((issue, idx) => (
+                  <label key={idx} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      className="form-checkbox h-4 w-4 text-red-600"
+                      value={issue}
+                      checked={selectedReasons.includes(issue)}
+                      onChange={() => toggleReason(issue)}
+                    />
+                    <span className="text-sm text-gray-700">{issue}</span>
+                  </label>
+                ))}
+              </div>
+
+              <textarea
+                rows={4}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                placeholder="Additional details (optional)..."
+              />
+
+              <div className="mt-5 flex justify-end gap-3">
+                <button
+                  onClick={() => setDisputeModal(false)}
+                  className="px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitDispute}
+                  disabled={submitting}
+                  className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                >
+                  {submitting ? "Submitting..." : "Submit"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <Truck
           size={120}
           className="absolute -right-12 bottom-[-20px] text-[#fcd8d4] rotate-6 opacity-10"
         />
       </div>
-
-      {/* Dispute Modal */}
-      {disputeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">
-              Dispute Order
-            </h2>
-
-            <p className="text-sm text-gray-600 mb-3">
-              What seems to be the issue?
-            </p>
-
-            <div className="space-y-2 mb-4">
-              {disputeReasons.map((issue, idx) => (
-                <label key={idx} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox h-4 w-4 text-red-600"
-                    value={issue}
-                    checked={selectedReasons.includes(issue)}
-                    onChange={() => toggleReason(issue)}
-                  />
-                  <span className="text-sm text-gray-700">{issue}</span>
-                </label>
-              ))}
-            </div>
-
-            <textarea
-              rows={4}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-              placeholder="Additional details (optional)..."
-            />
-
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                onClick={closeDisputeModal}
-                className="px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmitDispute}
-                disabled={submitting}
-                className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-              >
-                {submitting ? "Submitting..." : "Submit"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
