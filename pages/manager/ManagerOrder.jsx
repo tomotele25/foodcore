@@ -86,7 +86,7 @@ export default function ManagerOrder() {
       } finally {
         setLoading(false);
       }
-    }, 10000); // fetch every 3 seconds
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [status, session, dateFilter, orders]);
