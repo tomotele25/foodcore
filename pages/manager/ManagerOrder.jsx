@@ -15,7 +15,7 @@ import {
   Settings,
 } from "lucide-react";
 import toast from "react-hot-toast";
-
+import { useRef } from "react";
 export default function ManagerOrder() {
   const { data: session, status } = useSession();
   const [orders, setOrders] = useState([]);
@@ -24,6 +24,8 @@ export default function ManagerOrder() {
   const [error, setError] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const [newOrderIds, setNewOrderIds] = useState([]);
+  const audioRef = useRef(null);
   const [dateFilter, setDateFilter] = useState(() => {
     const today = new Date();
     return today.toISOString().slice(0, 10);
@@ -34,7 +36,9 @@ export default function ManagerOrder() {
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
   useEffect(() => {
-    const fetchManagerOrders = async () => {
+    if (status !== "authenticated") return;
+
+    const interval = setInterval(async () => {
       try {
         const token = session?.user?.accessToken;
         if (!token) return;
@@ -55,6 +59,25 @@ export default function ManagerOrder() {
           return orderDate === dateFilter;
         });
 
+        const newOnes = filtered.filter(
+          (order) => !orders.find((o) => o._id === order._id)
+        );
+
+        if (newOnes.length > 0) {
+          setNewOrderIds((prev) => [...prev, ...newOnes.map((o) => o._id)]);
+
+          if (audioRef.current) {
+            audioRef.current.muted = false;
+            audioRef.current.volume = 1;
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch((err) => {
+              console.warn("Notification sound failed", err);
+            });
+          }
+
+          toast.success("New order received!");
+        }
+
         setOrders(filtered);
         setDisputes(resDisputes.data.disputes || []);
       } catch (err) {
@@ -63,12 +86,10 @@ export default function ManagerOrder() {
       } finally {
         setLoading(false);
       }
-    };
+    }, 5000); // fetch every 3 seconds
 
-    if (status === "authenticated") {
-      fetchManagerOrders();
-    }
-  }, [status, session, dateFilter]);
+    return () => clearInterval(interval);
+  }, [status, session, dateFilter, orders]);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
@@ -190,7 +211,7 @@ export default function ManagerOrder() {
           </button>
         </div>
       </aside>
-
+      <audio ref={audioRef} src="/notification.mp3" preload="auto" />
       {/* Main Content */}
       <main className="flex-1 pt-16 md:pt-0 md:ml-64 p-6 overflow-auto">
         {/* Filters */}
@@ -257,9 +278,16 @@ export default function ManagerOrder() {
                   const disp = disputes.find((d) => d.orderId === order._id);
                   return (
                     <tr key={order._id} className="border-t hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium">
+                      <td className="px-4 py-3 font-medium flex items-center gap-2">
                         #{order._id.slice(-6).toUpperCase()}
+                        {newOrderIds.includes(order._id) &&
+                          order.status !== "completed" && (
+                            <span className="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full">
+                              NEW
+                            </span>
+                          )}
                       </td>
+
                       <td className="px-4 py-3">{order.guestInfo?.name}</td>
                       <td className="px-4 py-3">
                         {order.items
