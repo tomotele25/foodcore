@@ -22,7 +22,8 @@ const Vendor = () => {
 
   const vendorsPerPage = 8;
   const router = useRouter();
-  const BACKENDURL = "http://localhost:2005";
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
   useEffect(() => {
     const fetchData = async () => {
