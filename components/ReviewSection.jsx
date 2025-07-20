@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 import { Star } from "lucide-react";
+import axios from "axios";
+import { useSession } from "next-auth/react";
+import toast, { Toaster } from "react-hot-toast";
 
-const ReviewSection = ({ vendorId, userId }) => {
+const ReviewSection = ({ vendorId }) => {
   const [reviewText, setReviewText] = useState("");
   const [rating, setRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+
+  const { data: session } = useSession();
 
   const handleRating = (star) => {
     setRating(star);
@@ -15,40 +23,44 @@ const ReviewSection = ({ vendorId, userId }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!reviewText || !rating)
-      return alert("Please enter a review and rating.");
+      return toast.error("Please enter a review and select a rating.");
 
     setSubmitting(true);
+
     try {
-      await fetch("/api/reviews", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      await axios.post(
+        `${BACKENDURL}/api/rateVendor`,
+        {
+          stars: rating,
+          comment: reviewText,
           vendorId,
-          userId,
-          review: reviewText,
-          rating,
-        }),
-      });
-      alert("Review submitted!");
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${session?.user?.accessToken}`,
+          },
+        }
+      );
+
+      toast.success("Review submitted!");
       setReviewText("");
       setRating(0);
     } catch (error) {
-      console.error(error);
-      alert("Something went wrong.");
+      console.error("Error submitting review:", error.response?.data || error);
+      toast.error("Something went wrong. Please try again.");
     }
+
     setSubmitting(false);
   };
 
   return (
     <div className="mt-10 bg-white p-6 rounded-2xl shadow-md border border-gray-100 max-w-xl mx-auto">
+      <Toaster position="top-right" />
       <h3 className="text-lg font-semibold mb-4 text-gray-800">
         Leave a Review
       </h3>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Star Rating */}
         <div className="flex gap-1">
           {[1, 2, 3, 4, 5].map((star) => (
             <Star
@@ -63,7 +75,6 @@ const ReviewSection = ({ vendorId, userId }) => {
           ))}
         </div>
 
-        {/* Review Text */}
         <textarea
           rows={4}
           className="w-full border border-gray-300 p-2 rounded-md text-sm resize-none"
@@ -72,7 +83,6 @@ const ReviewSection = ({ vendorId, userId }) => {
           onChange={(e) => setReviewText(e.target.value)}
         />
 
-        {/* Submit */}
         <button
           type="submit"
           disabled={submitting}

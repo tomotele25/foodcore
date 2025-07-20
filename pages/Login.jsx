@@ -44,7 +44,7 @@ const Login = () => {
       } else if (role === "manager") {
         router.push("/vendors/ManagerDashboard");
       } else {
-        router.push("/Vendor");
+        router.push("/");
       }
     } else {
       toast.error("Invalid email or password");
