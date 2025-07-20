@@ -8,7 +8,8 @@ import Hero from "@/components/Hero";
 import Carousel from "@/components/Carousel";
 import ScrollToTopBtn from "@/components/ScrollToTopBtn";
 import PromoBanner from "@/components/PromoBanner";
-import FadeInSection from "@/components/FadeInSection";
+
+import Faq from "@/components/Faq";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -23,22 +24,15 @@ export default function Home() {
       <main>
         <Navbar />
 
-        <FadeInSection delay={0.1}>
-          <Hero />
-        </FadeInSection>
+        <Hero />
 
-        <FadeInSection delay={0.2}>
-          <PromoBanner />
-        </FadeInSection>
+        <PromoBanner />
 
-        <FadeInSection delay={0.3}>
-          <Carousel />
-        </FadeInSection>
+        <Carousel />
 
-        <FadeInSection delay={0.4}>
-          <Vendor />
-        </FadeInSection>
+        <Vendor />
 
+        <Faq />
         <Footer />
       </main>
     </div>

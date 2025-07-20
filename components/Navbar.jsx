@@ -37,10 +37,10 @@ const Navbar = () => {
             href="#how-it-works"
             className="hover:text-[#AE2108] transition"
           >
-            How It Works
+            Faq
           </Link>
-          <Link href="#contact" className="hover:text-[#AE2108] transition">
-            Contact
+          <Link href="/Blog" className="hover:text-[#AE2108] transition">
+            Blog
           </Link>
         </div>
 
