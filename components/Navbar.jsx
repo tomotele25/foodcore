@@ -1,163 +1,55 @@
-// "use client";
-// import React, { useState } from "react";
-// import Image from "next/image";
-// import Link from "next/link";
-// import { Menu, X } from "lucide-react";
-
-// const Navbar = () => {
-//   const [isOpen, setIsOpen] = useState(false);
-
-//   return (
-//     <div className="fixed top-0 left-0 w-full z-50">
-//       <nav className="bg-white shadow-md px-6 py-4 flex items-center justify-between relative">
-//         {/* Logo */}
-//         <Link href="/" className="flex items-center gap-2">
-//           <Image
-//             src="/logo.jpg"
-//             alt="ChowSpace Logo"
-//             width={60}
-//             height={40}
-//             className="  "
-//             priority
-//           />
-//           <span className="text-xl font-semibold text-[#AE2108]">
-//             ChowSpace
-//           </span>
-//         </Link>
-
-//         {/* Desktop Menu */}
-//         <div className="hidden md:flex items-center gap-6 text-gray-800 text-sm">
-//           <Link href="#vendors" className="hover:text-[#AE2108]">
-//             Vendors
-//           </Link>
-//           <Link href="#how-it-works" className="hover:text-[#AE2108]">
-//             How It Works
-//           </Link>
-//           <Link href="#contact" className="hover:text-[#AE2108]">
-//             Contact
-//           </Link>
-//         </div>
-
-//         {/* Auth Links - Desktop */}
-//         <div className="hidden md:flex items-center gap-4">
-//           <Link
-//             href="/Login"
-//             className="text-sm font-medium text-[#AE2108] hover:underline"
-//           >
-//             Sign In
-//           </Link>
-//           <Link
-//             href="/Signup"
-//             className="bg-[#AE2108] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#941B06]"
-//           >
-//             Sign Up
-//           </Link>
-//         </div>
-
-//         {/* Mobile menu toggle */}
-//         <button
-//           className="md:hidden text-[#AE2108]"
-//           onClick={() => setIsOpen(!isOpen)}
-//         >
-//           {isOpen ? <X size={28} /> : <Menu size={28} />}
-//         </button>
-
-//         {/* Mobile Menu */}
-//         {isOpen && (
-//           <div className="absolute top-full left-0 w-full bg-white/90 backdrop-blur-md shadow-md md:hidden flex flex-col px-6 py-4 gap-4 text-gray-800 text-sm z-50">
-//             <Link
-//               href="#vendors"
-//               className="hover:text-[#AE2108]"
-//               onClick={() => setIsOpen(false)}
-//             >
-//               Vendors
-//             </Link>
-//             <Link
-//               href="#how-it-works"
-//               className="hover:text-[#AE2108]"
-//               onClick={() => setIsOpen(false)}
-//             >
-//               How It Works
-//             </Link>
-//             <Link
-//               href="#contact"
-//               className="hover:text-[#AE2108]"
-//               onClick={() => setIsOpen(false)}
-//             >
-//               Contact
-//             </Link>
-//             <hr className="border-gray-200" />
-//             <Link
-//               href="/Login"
-//               className="text-sm font-medium text-[#AE2108] hover:underline"
-//               onClick={() => setIsOpen(false)}
-//             >
-//               Sign In
-//             </Link>
-//             <Link
-//               href="/Signup"
-//               className="bg-[#AE2108] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#941B06]"
-//               onClick={() => setIsOpen(false)}
-//             >
-//               Sign Up
-//             </Link>
-//           </div>
-//         )}
-//       </nav>
-//     </div>
-//   );
-// };
-
-// export default Navbar;
-
 "use client";
-import React, { useEffect, useState } from "react";
+
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import CustomersOrder from "@/pages/CustomersOrder";
 import { useSession } from "next-auth/react";
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   return (
-    <div className="fixed top-0 left-0 w-full z-50">
-      <nav className="bg-white shadow-md px-6 py-4 flex items-center justify-between relative">
+    <header className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <Image
             src="/logo.jpg"
             alt="ChowSpace Logo"
-            width={60}
+            width={50}
             height={40}
-            className="  "
+            className="object-contain rounded-md"
             priority
           />
-          <span className="text-xl font-semibold text-[#AE2108]">
+          <span className="text-lg sm:text-xl font-semibold text-[#AE2108]">
             ChowSpace
           </span>
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-6 text-gray-800 text-sm">
-          <Link href="#vendors" className="hover:text-[#AE2108]">
+        <div className="hidden md:flex items-center gap-6 text-sm text-gray-800">
+          <Link href="#vendors" className="hover:text-[#AE2108] transition">
             Vendors
           </Link>
-          <Link href="#how-it-works" className="hover:text-[#AE2108]">
+          <Link
+            href="#how-it-works"
+            className="hover:text-[#AE2108] transition"
+          >
             How It Works
           </Link>
-          <Link href="#contact" className="hover:text-[#AE2108]">
+          <Link href="#contact" className="hover:text-[#AE2108] transition">
             Contact
           </Link>
         </div>
 
-        {/* Auth Links - Desktop */}
+        {/* Auth Section */}
         <div className="hidden md:flex items-center gap-4">
           {session?.user?.role === "customer" ? (
             <Link
               href="/CustomersOrder"
-              className="text-sm text-[#AE2108] font-medium"
+              className="text-sm text-[#AE2108] font-medium hover:underline"
             >
               My Orders
             </Link>
@@ -171,7 +63,7 @@ const Navbar = () => {
               </Link>
               <Link
                 href="/Signup"
-                className="bg-[#AE2108] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#941B06]"
+                className="bg-[#AE2108] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#941B06] transition"
               >
                 Sign Up
               </Link>
@@ -179,57 +71,69 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile menu toggle */}
+        {/* Mobile Toggle */}
         <button
           className="md:hidden text-[#AE2108]"
           onClick={() => setIsOpen(!isOpen)}
         >
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
+          {isOpen ? <X size={26} /> : <Menu size={26} />}
         </button>
-
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="absolute top-full left-0 w-full bg-white/90 backdrop-blur-md shadow-md md:hidden flex flex-col px-6 py-4 gap-4 text-gray-800 text-sm z-50">
-            <Link
-              href="#vendors"
-              className="hover:text-[#AE2108]"
-              onClick={() => setIsOpen(false)}
-            >
-              Vendors
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="hover:text-[#AE2108]"
-              onClick={() => setIsOpen(false)}
-            >
-              How It Works
-            </Link>
-            <Link
-              href="#contact"
-              className="hover:text-[#AE2108]"
-              onClick={() => setIsOpen(false)}
-            >
-              Contact
-            </Link>
-            <hr className="border-gray-200" />
-            <Link
-              href="/Login"
-              className="text-sm font-medium text-[#AE2108] hover:underline"
-              onClick={() => setIsOpen(false)}
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/Signup"
-              className="bg-[#AE2108] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#941B06]"
-              onClick={() => setIsOpen(false)}
-            >
-              Sign Up
-            </Link>
-          </div>
-        )}
       </nav>
-    </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden px-6 py-4 bg-white/90 shadow-md backdrop-blur-md flex flex-col gap-4 text-sm text-gray-800 transition-all">
+          <Link
+            href="#vendors"
+            onClick={() => setIsOpen(false)}
+            className="hover:text-[#AE2108]"
+          >
+            Vendors
+          </Link>
+          <Link
+            href="#how-it-works"
+            onClick={() => setIsOpen(false)}
+            className="hover:text-[#AE2108]"
+          >
+            How It Works
+          </Link>
+          <Link
+            href="#contact"
+            onClick={() => setIsOpen(false)}
+            className="hover:text-[#AE2108]"
+          >
+            Contact
+          </Link>
+          <hr className="border-gray-200" />
+          {session?.user?.role === "customer" ? (
+            <Link
+              href="/CustomersOrder"
+              onClick={() => setIsOpen(false)}
+              className="text-[#AE2108] hover:underline"
+            >
+              My Orders
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/Login"
+                onClick={() => setIsOpen(false)}
+                className="text-[#AE2108] hover:underline"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/Signup"
+                onClick={() => setIsOpen(false)}
+                className="bg-[#AE2108] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#941B06] transition"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
+        </div>
+      )}
+    </header>
   );
 };
 

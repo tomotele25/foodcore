@@ -8,7 +8,7 @@ import { Heart, Clock } from "lucide-react";
 import { useRouter } from "next/router";
 import VendorSkeletonCard from "@/components/VendorSkeletonCard";
 import { useSession } from "next-auth/react";
-
+import { Star, StarHalf, Star as StarEmpty } from "lucide-react";
 const Vendor = () => {
   const [vendors, setVendors] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -22,8 +22,8 @@ const Vendor = () => {
 
   const vendorsPerPage = 8;
   const router = useRouter();
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
+  const BACKENDURL = "http://localhost:2005";
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -119,8 +119,9 @@ const Vendor = () => {
             {paginated.map((vendor) => (
               <div
                 key={vendor._id}
-                className="relative group bg-white border border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden"
+                className="group relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
               >
+                {/* Vendor Image */}
                 <div className="relative w-full h-48">
                   <Image
                     src={vendor.logo || "/logo.jpg"}
@@ -128,13 +129,15 @@ const Vendor = () => {
                     fill
                     className="object-cover"
                   />
+                  {/* Overlay when closed */}
                   {vendor.status === "closed" && (
-                    <div className="absolute inset-0 backdrop-blur-md bg-black/40 flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">
+                    <div className="absolute inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center">
+                      <span className="text-white text-sm font-semibold">
                         Closed
                       </span>
                     </div>
                   )}
+                  {/* Favorite Button */}
                   <div
                     onClick={handleLoginModal}
                     className="absolute top-3 left-3 bg-white p-1.5 rounded-full shadow"
@@ -148,37 +151,86 @@ const Vendor = () => {
                   </div>
                 </div>
 
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate mb-1">
+                {/* Vendor Details */}
+                <div className="p-4 space-y-3">
+                  {/* Business Name */}
+                  <h3 className="text-lg font-bold text-gray-900 truncate">
                     {vendor.businessName}
                   </h3>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500 mb-2">
-                    <span>{vendor.category}</span>
-                    <span>{vendor.location}</span>
+
+                  {/* Category • Location */}
+                  <div className="text-sm text-gray-500 flex flex-wrap gap-x-2 gap-y-1">
+                    <span className="truncate">{vendor.category}</span>
+                    <span>•</span>
+                    <span className="truncate">{vendor.location}</span>
                   </div>
 
-                  <div className="flex items-center text-sm text-gray-600 mb-3">
-                    <Clock size={16} className="mr-1 text-[#AE2108]" />
-                    {vendor.deliveryDuration} mins delivery
+                  {/* Delivery Duration */}
+                  <div className="flex items-center gap-1 text-sm text-gray-600">
+                    <Clock size={16} className="text-[#AE2108]" />
+                    <span>{vendor.deliveryDuration} mins delivery</span>
                   </div>
 
-                  <p
-                    className={`inline-block text-xs px-2 py-1 rounded-full font-medium mb-2 ${
-                      vendor.status === "opened"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
-                  >
-                    {vendor.status}
-                  </p>
+                  {/* Ratings and Status */}
+                  <div className="flex items-center justify-between flex-wrap gap-y-2">
+                    {/* Rating Stars */}
+                    <div className="flex items-center gap-1 text-yellow-500">
+                      {Array.from({ length: 5 }).map((_, index) => {
+                        const rating = vendor.averageRating || 0;
+                        if (rating >= index + 1) {
+                          return (
+                            <Star
+                              key={index}
+                              size={16}
+                              fill="currentColor"
+                              stroke="none"
+                            />
+                          );
+                        } else if (rating > index && rating < index + 1) {
+                          return (
+                            <StarHalf
+                              key={index}
+                              size={16}
+                              fill="currentColor"
+                              stroke="none"
+                            />
+                          );
+                        } else {
+                          return (
+                            <Star
+                              key={index}
+                              size={16}
+                              className="text-gray-300"
+                              fill="none"
+                            />
+                          );
+                        }
+                      })}
+                      <span className="ml-1 text-xs text-gray-600">
+                        ({vendor.averageRating || 0})
+                      </span>
+                    </div>
 
+                    {/* Status */}
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                        vendor.status === "opened"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
+                      {vendor.status}
+                    </span>
+                  </div>
+
+                  {/* View Menu Button */}
                   <Link
                     href={
                       vendor.status === "opened"
                         ? `/vendors/menu/${vendor.slug}`
                         : "#"
                     }
-                    className={`block w-full text-center text-sm font-medium px-4 py-2 rounded-md transition-all duration-200 ${
+                    className={`block w-full text-center text-sm font-semibold px-4 py-2 rounded-md transition-all duration-200 ${
                       vendor.status === "opened"
                         ? "bg-[#AE2108] text-white hover:bg-[#941B06]"
                         : "bg-gray-300 text-gray-600 cursor-not-allowed"

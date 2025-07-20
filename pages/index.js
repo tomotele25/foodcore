@@ -1,3 +1,5 @@
+"use client";
+
 import { Poppins } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -6,6 +8,8 @@ import Hero from "@/components/Hero";
 import Carousel from "@/components/Carousel";
 import ScrollToTopBtn from "@/components/ScrollToTopBtn";
 import PromoBanner from "@/components/PromoBanner";
+import FadeInSection from "@/components/FadeInSection";
+
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -18,10 +22,23 @@ export default function Home() {
       <ScrollToTopBtn />
       <main>
         <Navbar />
-        <Hero />
-        <PromoBanner />
-        <Carousel />
-        <Vendor />
+
+        <FadeInSection delay={0.1}>
+          <Hero />
+        </FadeInSection>
+
+        <FadeInSection delay={0.2}>
+          <PromoBanner />
+        </FadeInSection>
+
+        <FadeInSection delay={0.3}>
+          <Carousel />
+        </FadeInSection>
+
+        <FadeInSection delay={0.4}>
+          <Vendor />
+        </FadeInSection>
+
         <Footer />
       </main>
     </div>
