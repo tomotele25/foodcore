@@ -11,8 +11,7 @@ const ReviewSection = ({ vendorId }) => {
   const [rating, setRating] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+  const BACKENDURL = "http://localhost:2005";
 
   const { data: session } = useSession();
 

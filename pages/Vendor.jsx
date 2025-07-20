@@ -7,6 +7,7 @@ import axios from "axios";
 import { Heart, Clock } from "lucide-react";
 import { useRouter } from "next/router";
 import VendorSkeletonCard from "@/components/VendorSkeletonCard";
+import { useSession } from "next-auth/react";
 
 const Vendor = () => {
   const [vendors, setVendors] = useState([]);
@@ -15,6 +16,10 @@ const Vendor = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loginmodal, setLoginmodal] = useState(false);
+  const [isFavorite, setIsFavourite] = useState(null);
+  const { data: session, status } = useSession();
+
   const vendorsPerPage = 8;
   const router = useRouter();
   const BACKENDURL =
@@ -57,6 +62,16 @@ const Vendor = () => {
   const goToNext = () =>
     currentPage < totalPages && setCurrentPage((p) => p + 1);
   const goToPrev = () => currentPage > 1 && setCurrentPage((p) => p - 1);
+
+  const handleLoginModal = () => {
+    if (!session?.user) {
+      setLoginmodal(!loginmodal);
+    }
+  };
+
+  const toggleFav = () => {
+    setIsFavourite(!isFavorite);
+  };
 
   return (
     <section className="relative px-5 sm:px-20 py-16 min-h-screen bg-[#fffdfc] overflow-hidden">
@@ -120,8 +135,16 @@ const Vendor = () => {
                       </span>
                     </div>
                   )}
-                  <div className="absolute top-3 left-3 bg-white p-1.5 rounded-full shadow">
-                    <Heart size={18} color="#AE2108" />
+                  <div
+                    onClick={handleLoginModal}
+                    className="absolute top-3 left-3 bg-white p-1.5 rounded-full shadow"
+                  >
+                    <Heart
+                      size={18}
+                      onClick={toggleFav}
+                      color="#AE2108"
+                      fill={isFavorite ? "#AE2108" : "none"}
+                    />
                   </div>
                 </div>
 
@@ -195,6 +218,21 @@ const Vendor = () => {
           </div>
         )}
       </div>
+      {loginmodal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-white/10">
+          <div className="bg-white/70 backdrop-blur-xl rounded-xl shadow-xl p-6 w-80 text-center border border-white/30">
+            <p className="mb-4 text-gray-800 font-medium">
+              Please login or sign up to add to favourites.
+            </p>
+            <button
+              onClick={() => router.push("/Login")}
+              className="bg-[#AE2108] text-white px-4 py-2 rounded hover:bg-[#941B06] transition"
+            >
+              Login
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

@@ -162,7 +162,11 @@ export default function OrderConfirmed() {
                 <div key={index} className="flex items-center gap-4">
                   <div className="w-14 h-14 relative rounded overflow-hidden border">
                     <Image
-                      src={item.image || "/placeholder.jpg"}
+                      src={
+                        item.image?.startsWith("http")
+                          ? logo
+                          : `${BACKENDURL}/uploads/${item.image}`
+                      }
                       alt={item.name}
                       fill
                       className="object-cover"

@@ -103,6 +103,7 @@ const Checkout = () => {
         name: item.productName,
         quantity: item.quantity,
         price: item.price,
+        logo: item.image,
       })),
       guestInfo: { name, phone, address, email },
       deliveryMethod: "delivery",
@@ -237,6 +238,9 @@ const Checkout = () => {
                 className="block text-sm font-medium text-gray-700 capitalize mb-1"
               >
                 {field.replace(/^\w/, (c) => c.toUpperCase())}
+                {field === "email" && (
+                  <span className="text-gray-400 text-sm"> (optional)</span>
+                )}
               </label>
               <input
                 id={field}
