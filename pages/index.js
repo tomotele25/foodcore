@@ -61,8 +61,12 @@ export default function Home() {
         <Hero />
         <PromoBanner />
         <Carousel />
-        <Vendor />
-        <Faq />
+        <section id="vendors">
+          <Vendor />
+        </section>
+        <section id="Faq">
+          <Faq />
+        </section>
         <Footer />
       </main>
     </div>
