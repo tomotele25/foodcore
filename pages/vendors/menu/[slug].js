@@ -72,13 +72,12 @@ const VendorMenuPage = () => {
 
   return (
     <>
-      import Head from "next/head";
       <Head>
         {/* Page title and meta */}
         <title>Menu | ChowSpace</title>
         <meta
           name="description"
-          content="Explore the delicious menu from your favorite vendors on ChowSpace. From local dishes to continental meals, we've got something for every taste!"
+          content="Explore the delicious menu from your favorite vendors on ChowSpace. From local dishes to continental meals, we&#39;ve got something for every taste!"
         />
         <meta name="robots" content="index, follow" />
 
