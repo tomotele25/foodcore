@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Head from "next/head";
 import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -33,7 +34,6 @@ const Login = () => {
     if (response?.ok) {
       toast.success("Login successful");
 
-      // Wait for session to update
       const updatedSession = await getSession();
       const role = updatedSession?.user?.role;
 
@@ -54,81 +54,88 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col  md:flex-row">
-      <Toaster position="top-right" />
+    <>
+      <Head>
+        <title>Login | ChowSpace</title>
+        <meta name="robots" content="noindex, nofollow" />
+      </Head>
 
-      {/* Left Image */}
-      <div className="md:w-1/2 h-64 md:h-screen relative">
-        <Image
-          src="/logo.jpg"
-          alt="Login Visual"
-          fill
-          className="sm:object-cover"
-        />
-      </div>
+      <div className="min-h-screen flex flex-col md:flex-row">
+        <Toaster position="top-right" />
 
-      {/* Right Form */}
-      <div className="md:w-1/2 flex items-center justify-center px-6 py-12 bg-white">
-        <div className="w-full max-w-md">
-          <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
-            Login as Customer
-          </h2>
+        {/* Left Image */}
+        <div className="md:w-1/2 h-64 md:h-screen relative">
+          <Image
+            src="/logo.jpg"
+            alt="Login Visual"
+            fill
+            className="sm:object-cover"
+          />
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-700">Email</label>
-              <input
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                placeholder="you@example.com"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
+        {/* Right Form */}
+        <div className="md:w-1/2 flex items-center justify-center px-6 py-12 bg-white">
+          <div className="w-full max-w-md">
+            <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
+              Login as Customer
+            </h2>
 
-            <div className="relative">
-              <label className="block text-sm text-gray-700">Password</label>
-              <input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={handleChange}
-                required
-                placeholder="••••••••"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-              />
-              <span
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-[38px] cursor-pointer text-sm text-gray-500"
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-700">Email</label>
+                <input
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  placeholder="you@example.com"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div className="relative">
+                <label className="block text-sm text-gray-700">Password</label>
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                />
+                <span
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-[38px] cursor-pointer text-sm text-gray-500"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full py-3 rounded-lg font-medium text-white transition ${
+                  loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#AE2108] hover:bg-[#941B06]"
+                }`}
               >
-                {showPassword ? "Hide" : "Show"}
-              </span>
-            </div>
+                {loading ? "Logging in..." : "Login"}
+              </button>
+            </form>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-3 rounded-lg font-medium text-white transition ${
-                loading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#AE2108] hover:bg-[#941B06]"
-              }`}
-            >
-              {loading ? "Logging in..." : "Login"}
-            </button>
-          </form>
-
-          <p className="text-sm text-gray-600 mt-4 text-center">
-            Don’t have an account?{" "}
-            <a href="/Signup" className="text-[#AE2108] hover:underline">
-              Sign Up
-            </a>
-          </p>
+            <p className="text-sm text-gray-600 mt-4 text-center">
+              Don’t have an account?{" "}
+              <a href="/Signup" className="text-[#AE2108] hover:underline">
+                Sign Up
+              </a>
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

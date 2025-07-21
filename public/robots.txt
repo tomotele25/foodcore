@@ -1,0 +1,17 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://chowspace.vercel.app
+
+# Sitemaps
+Sitemap: https://chowspace.vercel.app/sitemap.xml
+
+User-agent: *
+Disallow: /Login
+Disallow: /Signup
+Disallow: /vendor
+Disallow: /manager
+Disallow: /admin
+Disallow: /Payment-Redirect
