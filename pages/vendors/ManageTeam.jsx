@@ -120,7 +120,7 @@ export default function CreateManager() {
           </h2>
           <nav className="space-y-3">
             <Link
-              href="/vendor/dashboard"
+              href="/vendors/Dashboard"
               className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
             >
               <LayoutDashboard size={18} /> Dashboard

@@ -20,7 +20,7 @@ import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 
 const menuItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/vendor/dashboard" },
+  { name: "Dashboard", icon: LayoutDashboard, path: "/vendors/Dashboard" },
   { name: "Orders", icon: PackageOpen, path: "/vendors/Orders" },
   { name: "Products", icon: UtensilsCrossed, path: "/vendors/ManageProducts" },
   { name: "Wallet", icon: Wallet, path: "/vendors/Wallet" },
@@ -100,7 +100,7 @@ export default function VendorDashboard() {
         >
           <div className="flex flex-col flex-grow">
             <div className="flex items-center justify-between px-4 py-4 border-b">
-              <h1 className="text-xl font-bold text-[#AE2108]">Vendor Panel</h1>
+              <h1 className="text-xl font-bold text-[#AE2108]">Chowspace</h1>
               <button
                 onClick={() => setSidebarOpen(false)}
                 className="md:hidden"

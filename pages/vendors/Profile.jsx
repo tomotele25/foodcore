@@ -18,7 +18,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const menuItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/vendor/dashboard" },
+  { name: "Dashboard", icon: LayoutDashboard, path: "/vendors/Dashboard" },
   { name: "Profile", icon: Users, path: "/vendor/profile" },
   { name: "Settings", icon: Settings, path: "/vendor/settings" },
 ];

@@ -108,7 +108,7 @@ export default function ManageLocation() {
               <PackageOpen size={18} /> Products
             </Link>
             <Link
-              href="/manager/profile"
+              href="/vendors/Profile"
               className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
             >
               <Settings size={18} /> Profile
