@@ -104,11 +104,10 @@ const Navbar = () => {
           <hr className="border-gray-200" />
           {session?.user?.role === "customer" ? (
             <Link
-              href="/CustomersOrder"
-              onClick={() => setIsOpen(false)}
-              className="text-[#AE2108] hover:underline"
+              href="customers/CustomersProfile"
+              className="flex items-center justify-center text-white font-semibold bg-[#AE2108] hover:bg-[#941B06] transition w-10 h-10 rounded-full text-sm shadow"
             >
-              My Orders
+              {session?.user?.fullname?.[0]}
             </Link>
           ) : (
             <>
