@@ -10,10 +10,17 @@ import { useState, useEffect } from "react";
 export default function App({ Component, pageProps }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  let timer;
 
   useEffect(() => {
-    const handleStart = () => setLoading(true);
-    const handleComplete = () => setLoading(false);
+    const handleStart = () => {
+      timer = setTimeout(() => setLoading(true), 200);
+    };
+
+    const handleComplete = () => {
+      clearTimeout(timer);
+      setLoading(false);
+    };
 
     router.events.on("routeChangeStart", handleStart);
     router.events.on("routeChangeComplete", handleComplete);
