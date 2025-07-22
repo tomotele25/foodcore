@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useSession } from "next-auth/react";
-
+import CustomersProfile from "@/pages/customers/CustomersProfile";
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
@@ -42,19 +42,19 @@ const Navbar = () => {
         </div>
 
         {/* Auth Section */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex justify-center items-center gap-4">
           {session?.user?.role === "customer" ? (
             <Link
-              href="/CustomersOrder"
-              className="text-sm text-[#AE2108] font-medium hover:underline"
+              href="customers/CustomersProfile"
+              className="flex items-center justify-center text-white font-semibold bg-[#AE2108] hover:bg-[#941B06] transition w-10 h-10 rounded-full text-sm shadow"
             >
-              My Orders
+              {session?.user?.fullname?.[0]}
             </Link>
           ) : (
             <>
               <Link
                 href="/Login"
-                className="text-sm text-[#AE2108] hover:underline"
+                className="text-sm text-[#AE2108] font-medium hover:underline"
               >
                 Sign In
               </Link>
