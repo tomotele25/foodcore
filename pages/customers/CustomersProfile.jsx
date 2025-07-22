@@ -42,24 +42,25 @@ const CustomersProfile = () => {
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-2xl p-6">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4 sm:gap-0">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-[#AE2108] text-white flex items-center justify-center rounded-full text-lg font-bold uppercase">
               {session.user.fullname?.charAt(0)}
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
                 Hello, {session.user.fullname} 👋
               </h2>
               <p className="text-sm text-gray-500">{session.user.email}</p>
             </div>
           </div>
+
           <button
             onClick={async () => {
               await signOut();
               router.push("/");
             }}
-            className="flex items-center px-4 py-2 bg-gray-100 text-sm text-gray-700 rounded-full hover:bg-red-50 hover:text-red-600 transition"
+            className="flex items-center px-4 py-2 bg-gray-100 text-sm text-gray-700 rounded-full hover:bg-red-50 hover:text-red-600 transition self-start sm:self-auto"
           >
             <LogOut className="w-4 h-4 mr-2" />
             Logout

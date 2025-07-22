@@ -12,6 +12,7 @@ import {
   BarChart3,
   Menu,
   X,
+  PhoneCall,
 } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
@@ -21,6 +22,11 @@ const menuItems = [
   { name: "Manage Vendors", icon: Users, path: "/admin/ManageVendor" },
   { name: "Settings", icon: Settings, path: "/admin/settings" },
   { name: "Promotion", icon: Settings, path: "/admin/Promotion" },
+  {
+    name: "Conatct-support",
+    icon: PhoneCall,
+    path: "/admin/AdminContactSupport",
+  },
 ];
 
 const AdminDashboard = () => {
