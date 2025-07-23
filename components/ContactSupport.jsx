@@ -11,6 +11,7 @@ const BACKENDURL =
 
 export default function ContactSupport() {
   const [open, setOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
   const [chatMode, setChatMode] = useState(false);
@@ -44,6 +45,10 @@ export default function ContactSupport() {
   };
 
   const sendTicket = async (topic) => {
+    if (!session) {
+      toast.error("Please log in to contact support.");
+      return;
+    }
     try {
       setLoading(true);
       const res = await axios.post(
@@ -65,6 +70,8 @@ export default function ContactSupport() {
         setChatMode(true);
         setSelected(topic);
         localStorage.setItem("chowspace_ticketId", id);
+        localStorage.setItem("chowspace_chatMode", "true");
+        localStorage.setItem("chowspace_selected", topic);
         fetchMessages(id);
       } else {
         toast.error("Failed to submit ticket.");
@@ -103,9 +110,13 @@ export default function ContactSupport() {
   useEffect(() => {
     if (session?.user?.accessToken) {
       const savedTicketId = localStorage.getItem("chowspace_ticketId");
-      if (savedTicketId) {
+      const savedMode = localStorage.getItem("chowspace_chatMode");
+      const savedTopic = localStorage.getItem("chowspace_selected");
+
+      if (savedTicketId && savedMode === "true") {
         setTicketId(savedTicketId);
         setChatMode(true);
+        setSelected(savedTopic);
         fetchMessages(savedTicketId);
       }
     }
@@ -113,17 +124,28 @@ export default function ContactSupport() {
 
   const handleClose = () => {
     setOpen(false);
+    setIsMinimized(false);
     setSelected(null);
     setChatMode(false);
     setMessages([]);
     setTicketId(null);
     localStorage.removeItem("chowspace_ticketId");
+    localStorage.removeItem("chowspace_chatMode");
+    localStorage.removeItem("chowspace_selected");
   };
 
   return (
     <>
+      {/* Floating Support Button */}
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          if (!open) {
+            setOpen(true);
+            setIsMinimized(false);
+          } else {
+            setIsMinimized(!isMinimized);
+          }
+        }}
         className="fixed bottom-6 right-6 z-50 bg-[#AE2108] hover:bg-red-800 text-white p-3 rounded-full shadow-lg transition"
         title="Contact ChowSpace Support"
         aria-label="Open Support Chat"
@@ -131,29 +153,50 @@ export default function ContactSupport() {
         <Headset className="w-5 h-5" />
       </button>
 
-      {open && (
+      {/* Chat Box */}
+      {open && !isMinimized && (
         <div className="fixed bottom-6 right-6 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col h-[520px] max-h-[90vh] animate-fade-in">
           {/* Header */}
           <div className="flex items-center justify-between p-4 bg-[#AE2108] rounded-t-2xl shadow-md">
             <h2 className="text-white font-semibold text-lg tracking-wide">
               ChowSpace Help
             </h2>
-            <button
-              onClick={handleClose}
-              className="text-white hover:text-gray-300 focus:outline-none"
-              aria-label="Close Chat"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsMinimized(true)}
+                className="text-white text-xl font-bold hover:text-gray-300"
+                title="Minimize"
+              >
+                –
+              </button>
+              <button
+                onClick={handleClose}
+                className="text-white hover:text-gray-300 focus:outline-none"
+                aria-label="Close Chat"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
           </div>
 
-          {/* Chat content */}
+          {/* Chat Content */}
           <div
             ref={chatRef}
             className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
             style={{ scrollbarWidth: "thin" }}
           >
-            {!chatMode ? (
+            {!session ? (
+              <p className="text-gray-700 text-center font-medium">
+                🚫 You need to{" "}
+                <a
+                  href="/Login"
+                  className="text-[#AE2108] underline hover:text-red-800"
+                >
+                  log in
+                </a>{" "}
+                to contact support.
+              </p>
+            ) : !chatMode ? (
               <>
                 <p className="mb-4 text-gray-700 font-semibold text-base">
                   👋 How can we help you today?
@@ -196,7 +239,6 @@ export default function ContactSupport() {
                         }`}
                       style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
                     >
-                      {/* Sender label and active dot */}
                       <div className="flex items-center mb-1 space-x-2">
                         <span className="font-semibold text-sm select-none">
                           {senderName}
@@ -220,7 +262,7 @@ export default function ContactSupport() {
             )}
           </div>
 
-          {/* Input */}
+          {/* Input Area */}
           {chatMode && (
             <footer className="flex items-center gap-3 p-4 border-t border-gray-200 bg-white rounded-b-2xl shadow-inner">
               <input

@@ -18,6 +18,7 @@ const AdminContactSupport = () => {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unreadMap, setUnreadMap] = useState({});
   const router = useRouter();
   const chatRef = useRef(null);
 
@@ -26,17 +27,33 @@ const AdminContactSupport = () => {
   useEffect(() => {
     if (session?.user?.accessToken) {
       fetchTickets();
+      const interval = setInterval(fetchTickets, 15000); // Poll every 15s
+      return () => clearInterval(interval);
     }
   }, [session?.user?.accessToken]);
 
   const fetchTickets = async () => {
     try {
       const res = await axios.get(`${BACKENDURL}/api/support/tickets`, {
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
-      setTickets(res.data.tickets || []);
+      const fetchedTickets = res.data.tickets || [];
+
+      // Check if new messages arrived
+      const updatedUnreadMap = { ...unreadMap };
+      fetchedTickets.forEach((ticket) => {
+        const previous = tickets.find((t) => t._id === ticket._id);
+        if (
+          previous &&
+          previous.lastMessageAt !== ticket.lastMessageAt &&
+          selectedTicket?._id !== ticket._id
+        ) {
+          updatedUnreadMap[ticket._id] = true;
+        }
+      });
+
+      setUnreadMap(updatedUnreadMap);
+      setTickets(fetchedTickets);
     } catch (err) {
       console.error(err);
       toast.error("Failed to load tickets");
@@ -55,6 +72,9 @@ const AdminContactSupport = () => {
       );
       setMessages(res.data.messages || []);
       scrollToBottom();
+
+      // Mark as read
+      setUnreadMap((prev) => ({ ...prev, [ticketId]: false }));
     } catch (err) {
       console.error(err);
       toast.error("Failed to load messages");
@@ -111,13 +131,10 @@ const AdminContactSupport = () => {
           <h2 className="text-lg font-semibold">Support Tickets</h2>
           <button
             onClick={router.back}
-            className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-300"
-            aria-label="Go back"
-            title="Go back"
+            className="p-2 rounded-full hover:bg-gray-100"
           >
             <ArrowRightLeftIcon className="w-5 h-5 text-gray-700" />
           </button>
-
           <button
             onClick={() => setSidebarOpen(false)}
             className="md:hidden text-gray-600"
@@ -133,7 +150,7 @@ const AdminContactSupport = () => {
               <button
                 key={ticket._id}
                 onClick={() => handleSelectTicket(ticket)}
-                className={`block w-full text-left px-3 py-2 rounded ${
+                className={`relative block w-full text-left px-3 py-2 rounded ${
                   selectedTicket?._id === ticket._id
                     ? "bg-[#AE2108] text-white"
                     : "hover:bg-gray-200"
@@ -141,6 +158,13 @@ const AdminContactSupport = () => {
               >
                 <p className="font-medium">{ticket.subject}</p>
                 <p className="text-xs text-gray-600">Status: {ticket.status}</p>
+
+                {/* 🔴 New badge */}
+                {unreadMap[ticket._id] && (
+                  <span className="absolute top-2 right-2 text-xs bg-red-500 text-white rounded-full px-1.5 py-0.5">
+                    New
+                  </span>
+                )}
               </button>
             ))
           )}
