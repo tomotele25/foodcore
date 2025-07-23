@@ -127,7 +127,7 @@ export default function ContactSupport() {
     if (chatMode && ticketId && session?.user?.accessToken) {
       const interval = setInterval(() => {
         fetchMessages(ticketId);
-      }, 15000);
+      }, 5000);
 
       return () => clearInterval(interval);
     }

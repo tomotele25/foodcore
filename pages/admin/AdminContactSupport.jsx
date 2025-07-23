@@ -27,7 +27,7 @@ const AdminContactSupport = () => {
   useEffect(() => {
     if (session?.user?.accessToken) {
       fetchTickets();
-      const interval = setInterval(fetchTickets, 15000); // Poll every 15s
+      const interval = setInterval(fetchTickets, 5000);
       return () => clearInterval(interval);
     }
   }, [session?.user?.accessToken]);
