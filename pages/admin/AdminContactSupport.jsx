@@ -32,6 +32,16 @@ const AdminContactSupport = () => {
     }
   }, [session?.user?.accessToken]);
 
+  // 🔁 Poll selected ticket messages every 15s
+  useEffect(() => {
+    if (selectedTicket?._id && session?.user?.accessToken) {
+      const interval = setInterval(() => {
+        fetchMessages(selectedTicket._id);
+      }, 15000);
+      return () => clearInterval(interval);
+    }
+  }, [selectedTicket?._id, session?.user?.accessToken]);
+
   const fetchTickets = async () => {
     try {
       const res = await axios.get(`${BACKENDURL}/api/support/tickets`, {
@@ -39,7 +49,6 @@ const AdminContactSupport = () => {
       });
       const fetchedTickets = res.data.tickets || [];
 
-      // Check if new messages arrived
       const updatedUnreadMap = { ...unreadMap };
       fetchedTickets.forEach((ticket) => {
         const previous = tickets.find((t) => t._id === ticket._id);
@@ -72,8 +81,6 @@ const AdminContactSupport = () => {
       );
       setMessages(res.data.messages || []);
       scrollToBottom();
-
-      // Mark as read
       setUnreadMap((prev) => ({ ...prev, [ticketId]: false }));
     } catch (err) {
       console.error(err);
@@ -158,8 +165,6 @@ const AdminContactSupport = () => {
               >
                 <p className="font-medium">{ticket.subject}</p>
                 <p className="text-xs text-gray-600">Status: {ticket.status}</p>
-
-                {/* 🔴 New badge */}
                 {unreadMap[ticket._id] && (
                   <span className="absolute top-2 right-2 text-xs bg-red-500 text-white rounded-full px-1.5 py-0.5">
                     New
@@ -173,7 +178,6 @@ const AdminContactSupport = () => {
 
       {/* Main Chat Area */}
       <main className="flex-1 flex flex-col relative">
-        {/* Header */}
         <header className="bg-[#AE2108] text-white p-4 flex items-center justify-between">
           <h1 className="text-lg font-semibold">
             {selectedTicket

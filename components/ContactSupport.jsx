@@ -122,6 +122,17 @@ export default function ContactSupport() {
     }
   }, [session?.user?.accessToken]);
 
+  // 🔁 Fetch messages every 15 seconds while chat is active
+  useEffect(() => {
+    if (chatMode && ticketId && session?.user?.accessToken) {
+      const interval = setInterval(() => {
+        fetchMessages(ticketId);
+      }, 15000);
+
+      return () => clearInterval(interval);
+    }
+  }, [chatMode, ticketId, session?.user?.accessToken]);
+
   const handleClose = () => {
     setOpen(false);
     setIsMinimized(false);
