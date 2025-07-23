@@ -148,10 +148,12 @@ export default function ManageProducts() {
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-md p-4 hidden md:flex flex-col justify-between sticky top-0 h-screen">
         <div>
-          <h2 className="text-xl font-bold text-[#AE2108] mb-6">chowspace</h2>
+          <h2 className="text-xl font-bold text-[#AE2108] mb-6">
+            Vendor Panel
+          </h2>
           <nav className="space-y-3">
             <Link
-              href="/vendors/Dashboard"
+              href="/vendor/dashboard"
               className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
             >
               <LayoutDashboard size={18} /> Dashboard

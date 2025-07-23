@@ -139,7 +139,7 @@ export default function ManagerDashboard() {
               Products
             </Link>
             <Link
-              href="/manager/profile"
+              href="/manager/Profile"
               className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
             >
               <Settings size={18} />

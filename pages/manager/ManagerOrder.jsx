@@ -13,6 +13,7 @@ import {
   X,
   UtensilsCrossed,
   Settings,
+  LocationEditIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useRef } from "react";
@@ -149,7 +150,9 @@ export default function ManagerOrder() {
         return "bg-red-100 text-red-700";
     }
   };
-
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/Login" });
+  };
   return (
     <div className="flex h-screen bg-gray-100 relative">
       {/* Mobile Topbar */}
@@ -162,49 +165,62 @@ export default function ManagerOrder() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed z-40 top-0 left-0 h-full w-64 bg-white shadow transform transition-transform duration-300 ease-in-out flex flex-col justify-between ${
+        className={`fixed top-0 left-0 z-40 h-full w-64 bg-white shadow-lg flex flex-col justify-between transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0`}
       >
         <div>
-          <div className="hidden md:flex items-center justify-center py-4 border-b">
-            <h1 className="text-xl font-bold text-[#AE2108]">Manager Panel</h1>
+          <div className="flex items-center justify-between p-4 border-b">
+            <h2 className="text-xl font-bold text-[#AE2108]">Manager Panel</h2>
+            <button onClick={toggleSidebar} className="md:hidden">
+              <X />
+            </button>
           </div>
-          <nav className="mt-4 space-y-2 px-4">
+
+          <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
             <Link
               href="/vendors/ManagerDashboard"
-              className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded"
+              className="flex items-center gap-2 text-gray-700 font-semibold"
             >
               <LayoutDashboard size={18} />
               Dashboard
             </Link>
             <Link
+              href="/vendors/ManageLocation"
+              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
+            >
+              <LocationEditIcon size={18} />
+              Locations
+            </Link>
+            <Link
               href="/manager/ManagerOrder"
-              className="flex items-center gap-3 px-3 py-2 text-[#AE2108] bg-gray-100 rounded font-semibold"
+              className="flex items-center gap-2 text-[#AE2108] hover:text-[#AE2108]"
             >
               <UtensilsCrossed size={18} />
               Orders
             </Link>
             <Link
               href="/vendors/ManageProducts"
-              className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded"
+              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
             >
               <PackageOpen size={18} />
               Products
             </Link>
             <Link
-              href="/manager/profile"
-              className="flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-100 rounded"
+              href="/manager/Profile"
+              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
             >
               <Settings size={18} />
               Profile
             </Link>
           </nav>
         </div>
+
+        {/* Logout Button Fixed Bottom */}
         <div className="p-4 border-t">
           <button
-            onClick={() => router.push("/")}
-            className="flex items-center gap-2 text-red-600 hover:bg-red-100 px-3 py-2 rounded w-full"
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-red-600 hover:bg-red-100 px-3 py-2 rounded-md w-full"
           >
             <LogOut size={18} />
             Logout

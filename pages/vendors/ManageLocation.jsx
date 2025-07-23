@@ -66,57 +66,60 @@ export default function ManageLocation() {
   return (
     <div className="flex h-screen">
       {/* Sidebar */}
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-md p-4 transform transition-transform duration-300 ease-in-out flex flex-col justify-between ${
+      <aside
+        className={`fixed top-0 left-0 z-40 h-full w-64 bg-white shadow-lg flex flex-col justify-between transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:static md:inset-0`}
+        } md:translate-x-0`}
       >
         <div>
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between p-4 border-b">
             <h2 className="text-xl font-bold text-[#AE2108]">Manager Panel</h2>
-            <button
-              onClick={toggleSidebar}
-              className="text-gray-500 md:hidden focus:outline-none"
-            >
+            <button onClick={toggleSidebar} className="md:hidden">
               <X />
             </button>
           </div>
 
-          <nav className="space-y-4">
+          <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
             <Link
               href="/vendors/ManagerDashboard"
-              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
+              className="flex items-center gap-2 text-gray-700 font-semibold"
             >
-              <LayoutDashboard size={18} /> Dashboard
+              <LayoutDashboard size={18} />
+              Dashboard
             </Link>
             <Link
               href="/vendors/ManageLocation"
-              className="flex items-center gap-2 text-[#AE2108] font-semibold"
+              className="flex items-center gap-2 text-[#AE2108] hover:text-[#AE2108]"
             >
-              <LocationEditIcon size={18} /> Locations
+              <LocationEditIcon size={18} />
+              Locations
             </Link>
             <Link
               href="/manager/ManagerOrder"
               className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
             >
-              <UtensilsCrossed size={18} /> Orders
+              <UtensilsCrossed size={18} />
+              Orders
             </Link>
             <Link
               href="/vendors/ManageProducts"
               className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
             >
-              <PackageOpen size={18} /> Products
+              <PackageOpen size={18} />
+              Products
             </Link>
             <Link
-              href="/vendors/Profile"
+              href="/manager/Profile"
               className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
             >
-              <Settings size={18} /> Profile
+              <Settings size={18} />
+              Profile
             </Link>
           </nav>
         </div>
 
-        <div className="pt-6 border-t border-gray-200">
+        {/* Logout Button Fixed Bottom */}
+        <div className="p-4 border-t">
           <button
             onClick={handleLogout}
             className="flex items-center gap-2 text-red-600 hover:bg-red-100 px-3 py-2 rounded-md w-full"
@@ -125,7 +128,7 @@ export default function ManageLocation() {
             Logout
           </button>
         </div>
-      </div>
+      </aside>
 
       {/* Main Content */}
       <div className="flex-1 p-6 ml-0 overflow-y-auto bg-gray-50">
