@@ -17,7 +17,8 @@ import {
   MapPin as LocationEditIcon,
 } from "lucide-react";
 
-const BACKENDURL = "http://localhost:2005";
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
 const ManagerProfile = () => {
   const { data: session, status } = useSession();
