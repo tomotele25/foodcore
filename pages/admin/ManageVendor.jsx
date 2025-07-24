@@ -66,7 +66,7 @@ const ManageVendor = () => {
         contact: form.phoneNumber,
         location: form.location,
         address: "Default Address",
-        deliveryDuration: 0,
+
         category: "general",
       };
 
