@@ -3,6 +3,7 @@
 import React from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   ShoppingBag,
   Gift,
@@ -17,7 +18,7 @@ const CustomersProfile = () => {
   const { data: session } = useSession();
   const router = useRouter();
 
-  if (!session?.user || session?.user?.role !== "customer") {
+  if (!session?.user || session.user.role !== "customer") {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="bg-white p-6 rounded-xl shadow-md text-center max-w-sm w-full">
@@ -67,55 +68,111 @@ const CustomersProfile = () => {
           </button>
         </div>
 
-        {/* Profile Options */}
+        {/* Options Inline, No Reuse */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <ProfileCard
-            icon={<ShoppingBag className="text-[#AE2108] w-5 h-5" />}
-            title="Order History"
-            description="Track and manage your previous orders"
-          />
-          <ProfileCard
-            icon={<Gift className="text-[#AE2108] w-5 h-5" />}
-            title="Redeem Coupon"
-            description="Apply discount codes to your orders"
-          />
-          <ProfileCard
-            icon={<Settings className="text-[#AE2108] w-5 h-5" />}
-            title="Account Settings"
-            description="Update your personal information"
-          />
-          <ProfileCard
-            icon={<MapPin className="text-[#AE2108] w-5 h-5" />}
-            title="Delivery Address"
-            description="Manage your shipping locations"
-          />
-          <ProfileCard
-            icon={<Heart className="text-[#AE2108] w-5 h-5" />}
-            title="Saved Items"
-            description="View items you saved for later"
-          />
-          <ProfileCard
-            icon={<HelpCircle className="text-[#AE2108] w-5 h-5" />}
-            title="Help & Support"
-            description="Get help or contact ChowSpace"
-          />
+          <Link href="/customers/OrderHistory">
+            <div className="p-4 bg-gray-100 rounded-xl hover:bg-gray-200 cursor-pointer transition">
+              <div className="flex items-start space-x-4">
+                <div className="p-2 bg-white rounded-full shadow">
+                  <ShoppingBag className="text-[#AE2108] w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-800">
+                    Order History
+                  </h4>
+                  <p className="text-xs text-gray-500">
+                    Track and manage your previous orders
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/customers/Coupon">
+            <div className="p-4 bg-gray-100 rounded-xl hover:bg-gray-200 cursor-pointer transition">
+              <div className="flex items-start space-x-4">
+                <div className="p-2 bg-white rounded-full shadow">
+                  <Gift className="text-[#AE2108] w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-gray-800">
+                    Redeem Coupon
+                  </h4>
+                  <p className="text-xs text-gray-500">
+                    Apply discount codes to your orders
+                  </p>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <div className="p-4 bg-gray-100 rounded-xl hover:bg-gray-200 cursor-pointer transition">
+            <div className="flex items-start space-x-4">
+              <div className="p-2 bg-white rounded-full shadow">
+                <Settings className="text-[#AE2108] w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-800">
+                  Account Settings
+                </h4>
+                <p className="text-xs text-gray-500">
+                  Update your personal information
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-gray-100 rounded-xl hover:bg-gray-200 cursor-pointer transition">
+            <div className="flex items-start space-x-4">
+              <div className="p-2 bg-white rounded-full shadow">
+                <MapPin className="text-[#AE2108] w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-800">
+                  Delivery Address
+                </h4>
+                <p className="text-xs text-gray-500">
+                  Manage your shipping locations
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-gray-100 rounded-xl hover:bg-gray-200 cursor-pointer transition">
+            <div className="flex items-start space-x-4">
+              <div className="p-2 bg-white rounded-full shadow">
+                <Heart className="text-[#AE2108] w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-800">
+                  Saved Items
+                </h4>
+                <p className="text-xs text-gray-500">
+                  View items you saved for later
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-gray-100 rounded-xl hover:bg-gray-200 cursor-pointer transition">
+            <div className="flex items-start space-x-4">
+              <div className="p-2 bg-white rounded-full shadow">
+                <HelpCircle className="text-[#AE2108] w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-800">
+                  Help & Support
+                </h4>
+                <p className="text-xs text-gray-500">
+                  Get help or contact ChowSpace
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
-
-// Reusable Card Component
-const ProfileCard = ({ icon, title, description }) => (
-  <div className="p-4 bg-gray-100 rounded-xl hover:bg-gray-200 cursor-pointer transition">
-    <div className="flex items-start space-x-4">
-      <div className="p-2 bg-white rounded-full shadow">{icon}</div>
-      <div>
-        <h4 className="text-sm font-medium text-gray-800">{title}</h4>
-        <p className="text-xs text-gray-500">{description}</p>
-      </div>
-    </div>
-  </div>
-);
 
 export default CustomersProfile;

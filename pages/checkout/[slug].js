@@ -6,16 +6,15 @@ import axios from "axios";
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
-
+import { useSession } from "next-auth/react";
 const formatCurrency = (amount) =>
   typeof amount === "number" ? amount.toLocaleString() : "0";
 
 const Checkout = () => {
   const router = useRouter();
   const { slug } = router.query;
-
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
+  const { data: session, status } = useSession();
+  const BACKENDURL = "http://localhost:2005";
 
   const { cart, addToCart, removeFromCart } = useCart();
 
@@ -42,7 +41,15 @@ const Checkout = () => {
   // Combine platform fee (2%) and Paystack fee buffer (1.5%) as one 5% charge
   const charges = Math.round(cartTotal * 0.05);
   const finalTotal = cartTotal + charges + deliveryFee + packFee;
-
+  useEffect(() => {
+    if (session?.user) {
+      setDeliveryDetails((prev) => ({
+        ...prev,
+        name: session.user.fullname || "",
+        email: session.user.email || "",
+      }));
+    }
+  }, [session]);
   useEffect(() => {
     if (!slug) return;
 
@@ -82,20 +89,28 @@ const Checkout = () => {
   const handlePay = async () => {
     if (loading) return;
     setLoading(true);
+
     const { name, phone, address, location, email } = deliveryDetails;
 
-    if (!name || !phone || !address || !location) {
+    const guestName = session?.user?.fullname || name;
+    const guestEmail = session?.user?.email || email;
+
+    // Validate required delivery info
+    if (!guestName || !phone || !address || !location) {
       toast.error("Fill in all delivery details");
+      setLoading(false);
       return;
     }
 
     if (!vendor?._id) {
       toast.error("Vendor not loaded.");
+      setLoading(false);
       return;
     }
 
     const txRef = `chowspace-${Date.now()}`;
 
+    // Build common order payload
     const orderPayload = {
       vendorId: vendor._id,
       items: cartItems.map((item) => ({
@@ -105,7 +120,6 @@ const Checkout = () => {
         price: item.price,
         logo: item.image,
       })),
-      guestInfo: { name, phone, address, email },
       deliveryMethod: "delivery",
       note: "",
       totalAmount: finalTotal,
@@ -113,14 +127,34 @@ const Checkout = () => {
       paymentRef: txRef,
     };
 
+    // Add either customerId or guestInfo
+    if (session?.user?.id) {
+      orderPayload.customerId = session.user.id;
+    } else {
+      orderPayload.guestInfo = {
+        name: guestName,
+        email: guestEmail,
+        phone,
+        address,
+      };
+    }
+
     try {
       const res = await axios.post(`${BACKENDURL}/api/init-payment`, {
         amount: finalTotal,
-        guestInfo: { name, phone, address, email },
-        email: email || `guest${Date.now()}@chowspace.com`,
+        email: guestEmail || `guest${Date.now()}@chowspace.com`,
         vendorId: vendor._id,
         tx_ref: txRef,
         orderPayload,
+        customerId: session?.user?.id,
+        guestInfo: !session?.user?.id
+          ? {
+              name: guestName,
+              email: guestEmail,
+              phone,
+              address,
+            }
+          : undefined,
       });
 
       if (res.data.success && res.data.paymentLink) {
@@ -132,6 +166,8 @@ const Checkout = () => {
     } catch (error) {
       console.error("Payment init error", error);
       toast.error("Could not start payment");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -232,35 +268,40 @@ const Checkout = () => {
             }}
             className="space-y-6"
           >
-            {["name", "phone", "address", "email"].map((field) => (
-              <div key={field}>
-                <label
-                  htmlFor={field}
-                  className="block text-sm font-medium text-gray-700 capitalize mb-1"
-                >
-                  {field.replace(/^\w/, (c) => c.toUpperCase())}
-                  {field === "email" && (
-                    <span className="text-gray-400 text-sm"> (optional)</span>
-                  )}
-                </label>
-                <input
-                  id={field}
-                  type={
-                    field === "phone"
-                      ? "tel"
-                      : field === "email"
-                      ? "email"
-                      : "text"
-                  }
-                  name={field}
-                  value={deliveryDetails[field]}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#AE2108] focus:border-[#AE2108] transition"
-                  placeholder={`Enter your ${field}`}
-                  required={field !== "email"}
-                />
-              </div>
-            ))}
+            {["name", "phone", "address", "email"]
+              .filter((field) => {
+                if (!session) return true; // show all if not logged in
+                return field === "phone" || field === "address"; // hide name & email if logged in
+              })
+              .map((field) => (
+                <div key={field}>
+                  <label
+                    htmlFor={field}
+                    className="block text-sm font-medium text-gray-700 capitalize mb-1"
+                  >
+                    {field.replace(/^\w/, (c) => c.toUpperCase())}
+                    {field === "email" && (
+                      <span className="text-gray-400 text-sm"> (optional)</span>
+                    )}
+                  </label>
+                  <input
+                    id={field}
+                    type={
+                      field === "phone"
+                        ? "tel"
+                        : field === "email"
+                        ? "email"
+                        : "text"
+                    }
+                    name={field}
+                    value={deliveryDetails[field]}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#AE2108] focus:border-[#AE2108] transition"
+                    placeholder={`Enter your ${field}`}
+                    required={field !== "email"}
+                  />
+                </div>
+              ))}
 
             <div>
               <label
