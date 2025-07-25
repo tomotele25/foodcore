@@ -43,19 +43,31 @@ const Vendor = () => {
     fetchData();
   }, []);
 
-  const filteredVendors = vendors.filter((vendor) => {
-    const matchSearch =
-      vendor.fullname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.category?.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredAndSortedVendors = vendors
+    .filter((vendor) => {
+      const matchSearch =
+        vendor.fullname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vendor.category?.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchLocation =
-      selectedLocation === "All" || vendor.location === selectedLocation;
+      const matchLocation =
+        selectedLocation === "All" || vendor.location === selectedLocation;
 
-    return matchSearch && matchLocation;
-  });
+      return matchSearch && matchLocation;
+    })
+    .sort((a, b) => {
+      const aPromo =
+        a.promotionExpiresAt && new Date(a.promotionExpiresAt) > new Date();
 
-  const totalPages = Math.ceil(filteredVendors.length / vendorsPerPage);
-  const paginated = filteredVendors.slice(
+      const bPromo =
+        b.promotionExpiresAt && new Date(b.promotionExpiresAt) > new Date();
+
+      return bPromo - aPromo;
+    });
+
+  const totalPages = Math.ceil(
+    filteredAndSortedVendors.length / vendorsPerPage
+  );
+  const paginated = filteredAndSortedVendors.slice(
     (currentPage - 1) * vendorsPerPage,
     currentPage * vendorsPerPage
   );
@@ -230,7 +242,7 @@ const Vendor = () => {
                       href={
                         vendor.status === "opened"
                           ? `/vendors/menu/${vendor.slug}`
-                          : "#"
+                          : ""
                       }
                       className={`block w-full text-center text-sm font-semibold px-4 py-2 rounded-md transition-all duration-200 ${
                         vendor.status === "opened"
