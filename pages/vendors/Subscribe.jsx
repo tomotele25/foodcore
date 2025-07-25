@@ -24,7 +24,7 @@ const plans = [
   },
   {
     name: "Premium",
-    price: 100,
+    price: 12550,
     displayPrice: "₦12,550",
     duration: "30 Days",
     benefits: [

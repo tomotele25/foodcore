@@ -14,6 +14,7 @@ import {
   UtensilsCrossed,
   Wallet,
   Rocket,
+  Star,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -23,6 +24,7 @@ import axios from "axios";
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/vendors/Dashboard" },
   { name: "Orders", icon: PackageOpen, path: "/vendors/Orders" },
+  { name: "Reviews", icon: Star, path: "/vendors/Reviews" },
   { name: "Products", icon: UtensilsCrossed, path: "/vendors/ManageProducts" },
   { name: "Wallet", icon: Wallet, path: "/vendors/Wallet" },
   { name: "Profile", icon: User, path: "/vendors/Profile" },
