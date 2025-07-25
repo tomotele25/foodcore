@@ -13,6 +13,7 @@ import {
   User,
   UtensilsCrossed,
   Wallet,
+  Rocket,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -25,6 +26,7 @@ const menuItems = [
   { name: "Products", icon: UtensilsCrossed, path: "/vendors/ManageProducts" },
   { name: "Wallet", icon: Wallet, path: "/vendors/Wallet" },
   { name: "Profile", icon: User, path: "/vendors/Profile" },
+  { name: "Subscribe", icon: Rocket, path: "/vendors/Subscribe" },
   { name: "Manage Team", icon: Users, path: "/vendors/ManageTeam" },
   { name: "Settings", icon: Settings, path: "/vendor/settings" },
 ];

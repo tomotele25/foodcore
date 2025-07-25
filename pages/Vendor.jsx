@@ -4,11 +4,11 @@ import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import axios from "axios";
-import { Heart, Clock } from "lucide-react";
+import { Heart, Clock, Star, StarHalf } from "lucide-react";
 import { useRouter } from "next/router";
 import VendorSkeletonCard from "@/components/VendorSkeletonCard";
 import { useSession } from "next-auth/react";
-import { Star, StarHalf, Star as StarEmpty } from "lucide-react";
+
 const Vendor = () => {
   const [vendors, setVendors] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -18,7 +18,7 @@ const Vendor = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loginmodal, setLoginmodal] = useState(false);
   const [isFavorite, setIsFavourite] = useState(null);
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
 
   const vendorsPerPage = 8;
   const router = useRouter();
@@ -117,131 +117,133 @@ const Vendor = () => {
           </div>
         ) : paginated.length > 0 ? (
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {paginated.map((vendor) => (
-              <div
-                key={vendor._id}
-                className="group relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
-              >
-                {/* Vendor Image */}
-                <div className="relative w-full h-48">
-                  <Image
-                    src={vendor.logo || "/logo.jpg"}
-                    alt={vendor.businessName}
-                    fill
-                    className="object-cover"
-                  />
-                  {/* Overlay when closed */}
-                  {vendor.status === "closed" && (
-                    <div className="absolute inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center">
-                      <span className="text-white text-sm font-semibold">
-                        Closed
-                      </span>
+            {paginated.map((vendor) => {
+              const isPromoted =
+                vendor.promotionExpiresAt &&
+                new Date(vendor.promotionExpiresAt) > new Date();
+
+              return (
+                <div
+                  key={vendor._id}
+                  className="group relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+                >
+                  {/* PROMO Badge */}
+                  {isPromoted && (
+                    <div className="absolute top-3 right-3 bg-yellow-400 text-black px-2 py-1 text-xs font-bold rounded-full shadow z-10">
+                      PROMO 🌟
                     </div>
                   )}
-                  {/* Favorite Button */}
-                  <div
-                    onClick={handleLoginModal}
-                    className="absolute top-3 left-3 bg-white p-1.5 rounded-full shadow"
-                  >
-                    <Heart
-                      size={18}
-                      onClick={toggleFav}
-                      color="#AE2108"
-                      fill={isFavorite ? "#AE2108" : "none"}
+
+                  {/* Vendor Image */}
+                  <div className="relative w-full h-48">
+                    <Image
+                      src={vendor.logo || "/logo.jpg"}
+                      alt={vendor.businessName}
+                      fill
+                      className="object-cover"
                     />
-                  </div>
-                </div>
-
-                {/* Vendor Details */}
-                <div className="p-4 space-y-3">
-                  {/* Business Name */}
-                  <h3 className="text-lg font-bold text-gray-900 truncate">
-                    {vendor.businessName}
-                  </h3>
-
-                  {/* Category • Location */}
-                  <div className="text-sm text-gray-500 flex flex-wrap gap-x-2 gap-y-1">
-                    <span className="truncate">{vendor.category}</span>
-                    <span>•</span>
-                    <span className="truncate">{vendor.location}</span>
-                  </div>
-
-                  {/* Delivery Duration */}
-                  <div className="flex items-center gap-1 text-sm text-gray-600">
-                    <Clock size={16} className="text-[#AE2108]" />
-                    <span>{vendor.deliveryDuration} mins delivery</span>
+                    {vendor.status === "closed" && (
+                      <div className="absolute inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center">
+                        <span className="text-white text-sm font-semibold">
+                          Closed
+                        </span>
+                      </div>
+                    )}
+                    <div
+                      onClick={handleLoginModal}
+                      className="absolute top-3 left-3 bg-white p-1.5 rounded-full shadow"
+                    >
+                      <Heart
+                        size={18}
+                        onClick={toggleFav}
+                        color="#AE2108"
+                        fill={isFavorite ? "#AE2108" : "none"}
+                      />
+                    </div>
                   </div>
 
-                  {/* Ratings and Status */}
-                  <div className="flex items-center justify-between flex-wrap gap-y-2">
-                    {/* Rating Stars */}
-                    <div className="flex items-center gap-1 text-yellow-500">
-                      {Array.from({ length: 5 }).map((_, index) => {
-                        const rating = vendor.averageRating || 0;
-                        if (rating >= index + 1) {
-                          return (
-                            <Star
-                              key={index}
-                              size={16}
-                              fill="currentColor"
-                              stroke="none"
-                            />
-                          );
-                        } else if (rating > index && rating < index + 1) {
-                          return (
-                            <StarHalf
-                              key={index}
-                              size={16}
-                              fill="currentColor"
-                              stroke="none"
-                            />
-                          );
-                        } else {
-                          return (
-                            <Star
-                              key={index}
-                              size={16}
-                              className="text-gray-300"
-                              fill="none"
-                            />
-                          );
-                        }
-                      })}
-                      <span className="ml-1 text-xs text-gray-600">
-                        ({vendor.averageRating || 0})
+                  {/* Vendor Details */}
+                  <div className="p-4 space-y-3">
+                    <h3 className="text-lg font-bold text-gray-900 truncate">
+                      {vendor.businessName}
+                    </h3>
+                    <div className="text-sm text-gray-500 flex flex-wrap gap-x-2 gap-y-1">
+                      <span className="truncate">{vendor.category}</span>
+                      <span>•</span>
+                      <span className="truncate">{vendor.location}</span>
+                    </div>
+
+                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                      <Clock size={16} className="text-[#AE2108]" />
+                      <span>{vendor.deliveryDuration} mins delivery</span>
+                    </div>
+
+                    <div className="flex items-center justify-between flex-wrap gap-y-2">
+                      <div className="flex items-center gap-1 text-yellow-500">
+                        {Array.from({ length: 5 }).map((_, index) => {
+                          const rating = vendor.averageRating || 0;
+                          if (rating >= index + 1) {
+                            return (
+                              <Star
+                                key={index}
+                                size={16}
+                                fill="currentColor"
+                                stroke="none"
+                              />
+                            );
+                          } else if (rating > index && rating < index + 1) {
+                            return (
+                              <StarHalf
+                                key={index}
+                                size={16}
+                                fill="currentColor"
+                                stroke="none"
+                              />
+                            );
+                          } else {
+                            return (
+                              <Star
+                                key={index}
+                                size={16}
+                                className="text-gray-300"
+                                fill="none"
+                              />
+                            );
+                          }
+                        })}
+                        <span className="ml-1 text-xs text-gray-600">
+                          ({vendor.averageRating || 0})
+                        </span>
+                      </div>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                          vendor.status === "opened"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {vendor.status}
                       </span>
                     </div>
 
-                    {/* Status */}
-                    <span
-                      className={`text-xs px-2 py-1 rounded-full font-semibold ${
+                    <Link
+                      href={
                         vendor.status === "opened"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-700"
+                          ? `/vendors/menu/${vendor.slug}`
+                          : "#"
+                      }
+                      className={`block w-full text-center text-sm font-semibold px-4 py-2 rounded-md transition-all duration-200 ${
+                        vendor.status === "opened"
+                          ? "bg-[#AE2108] text-white hover:bg-[#941B06]"
+                          : "bg-gray-300 text-gray-600 cursor-not-allowed"
                       }`}
                     >
-                      {vendor.status}
-                    </span>
+                      View Menu
+                    </Link>
                   </div>
-
-                  {/* View Menu Button */}
-                  <Link
-                    href={
-                      vendor.status === "opened"
-                        ? `/vendors/menu/${vendor.slug}`
-                        : "#"
-                    }
-                    className={`block w-full text-center text-sm font-semibold px-4 py-2 rounded-md transition-all duration-200 ${
-                      vendor.status === "opened"
-                        ? "bg-[#AE2108] text-white hover:bg-[#941B06]"
-                        : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                    }`}
-                  >
-                    View Menu
-                  </Link>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="text-center text-gray-500">
@@ -271,6 +273,7 @@ const Vendor = () => {
           </div>
         )}
       </div>
+
       {loginmodal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-md bg-white/10">
           <div className="bg-white/70 backdrop-blur-xl rounded-xl shadow-xl p-6 w-80 text-center border border-white/30">
