@@ -220,7 +220,9 @@ export default function VendorDashboard() {
                           #{order._id.slice(-6).toUpperCase()}
                         </td>
                         <td className="px-4 py-3">
-                          {order.guestInfo?.name || "Guest"}
+                          {order.guestInfo?.name}
+                          <br />
+                          {order.customerId?.fullname}
                         </td>
                         <td className="px-4 py-3">₦{order.totalAmount}</td>
                         <td

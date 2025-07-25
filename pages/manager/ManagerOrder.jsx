@@ -33,9 +33,7 @@ export default function ManagerOrder() {
   });
 
   const router = useRouter();
-  const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
-
+  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
   useEffect(() => {
     if (status !== "authenticated") return;
 
@@ -304,7 +302,11 @@ export default function ManagerOrder() {
                           )}
                       </td>
 
-                      <td className="px-4 py-3">{order.guestInfo?.name}</td>
+                      <td className="px-4 py-3">
+                        {order.guestInfo?.name}
+                        <br />
+                        {order.customerId?.fullname}
+                      </td>
                       <td className="px-4 py-3">
                         {order.items
                           ?.map((item) => `${item.name} x${item.quantity}`)

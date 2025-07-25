@@ -96,7 +96,11 @@ export default function OrdersPage() {
                       <td className="px-4 py-3 font-medium text-gray-800">
                         #{order._id.slice(-6).toUpperCase()}
                       </td>
-                      <td className="px-4 py-3">{order.guestInfo?.name}</td>
+                      <td className="px-4 py-3">
+                        {order.guestInfo?.name}
+                        <br />
+                        {order.customerId?.fullname}
+                      </td>
                       <td className="px-4 py-3">
                         {order.items.map((i) => i.name).join(", ")}
                       </td>
