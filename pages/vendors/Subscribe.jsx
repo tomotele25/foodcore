@@ -39,7 +39,8 @@ const plans = [
     border: "border-yellow-500",
   },
 ];
-const BACKENDURL = "http://localhost:2005";
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
 
 const Subscribe = () => {
   const { data: session } = useSession();
