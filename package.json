@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@paystack/inline-js": "^2.22.6",
+    "@vercel/speed-insights": "^1.2.0",
     "axios": "^1.10.0",
     "browser-image-compression": "^2.0.2",
     "flutterwave-node-v3": "^1.3.0",

@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
 import Loader from "@/components/Loader";
 import { useState, useEffect } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function App({ Component, pageProps }) {
   const router = useRouter();
@@ -40,6 +41,7 @@ export default function App({ Component, pageProps }) {
         <SessionProvider session={pageProps.session}>
           <NetworkStatus />
           {loading ? <Loader /> : <Component {...pageProps} />}
+          <SpeedInsights />{" "}
         </SessionProvider>
       </CartProvider>
     </>
