@@ -33,7 +33,9 @@ export default function ManagerOrder() {
   });
 
   const router = useRouter();
-  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+
   useEffect(() => {
     if (status !== "authenticated") return;
 

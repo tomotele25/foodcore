@@ -13,7 +13,7 @@ const nextConfig = {
       },
       {
         protocol: "https",
-        hostname: "chowspace-backend.vercel.app", // ✅ Add this
+        hostname: "https://chowspace.ng",
       },
     ],
   },
