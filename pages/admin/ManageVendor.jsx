@@ -250,7 +250,7 @@ const ManageVendor = () => {
           onClick={() => setModal(true)}
           className="fixed bottom-6 right-6 bg-[#AE2108] hover:bg-[#941B06] text-white px-4 py-2 rounded-full shadow-lg z-50 text-2xl"
         >
-          +
+          +<span className="sr-only">Delete</span>
         </button>
 
         {/* Modal */}

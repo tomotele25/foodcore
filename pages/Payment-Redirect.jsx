@@ -162,6 +162,7 @@ export default function OrderConfirmed() {
                 <div key={index} className="flex items-center gap-4">
                   <div className="w-14 h-14 relative rounded overflow-hidden border">
                     <Image
+                      loading="lazy"
                       src={
                         item.image?.startsWith("http")
                           ? logo

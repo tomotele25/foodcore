@@ -10,6 +10,7 @@ export default function PromoBanner() {
       <div className="absolute inset-0 z-0 overflow-hidden">
         <div className="w-full h-full scale-100 group-hover:scale-105 transition-transform duration-1000 ease-out">
           <Image
+            loading="lazy"
             src="/food-banner.jpg"
             alt="Food ingredients background"
             layout="fill"

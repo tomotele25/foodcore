@@ -123,6 +123,7 @@ const VendorMenuPage = () => {
             <div className="flex items-center gap-4 mb-10">
               <div className="w-16 h-16 relative rounded-full overflow-hidden border">
                 <Image
+                  loading="lazy"
                   src={vendor.logo || "/logo.jpg"}
                   alt={vendor.businessName}
                   fill
@@ -187,6 +188,7 @@ const VendorMenuPage = () => {
                   >
                     <div className="w-full h-28 relative">
                       <Image
+                        loading="lazy"
                         src={product.image || "https://placehold.co/150x150"}
                         alt="Product"
                         fill

@@ -71,6 +71,7 @@ const AdminDashboard = () => {
             <h1 className="text-xl font-bold text-[#AE2108]">Admin Panel</h1>
             <button onClick={toggleSidebar} className="md:hidden text-gray-600">
               <X size={24} />
+              <span className="sr-only">Delete</span>
             </button>
           </div>
           <nav className="mt-4 space-y-1 px-4">

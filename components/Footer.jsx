@@ -15,6 +15,7 @@ const Footer = () => {
         <div>
           <div className="flex items-center gap-2 mb-2">
             <Image
+              loading="lazy"
               src="/logo.jpg"
               alt="ChowSpace Logo"
               width={35}
@@ -65,13 +66,25 @@ const Footer = () => {
         <div>
           <h4 className="font-semibold mb-3">Follow Us</h4>
           <div className="flex gap-4 text-[#AE2108]">
-            <a href="#" className="hover:scale-110 transition">
+            <a
+              aria-label="View cart"
+              href="#"
+              className="hover:scale-110 transition"
+            >
               <Facebook size={20} />
             </a>
-            <a href="#" className="hover:scale-110 transition">
+            <a
+              aria-label="View cart"
+              href="#"
+              className="hover:scale-110 transition"
+            >
               <Twitter size={20} />
             </a>
-            <a href="#" className="hover:scale-110 transition">
+            <a
+              aria-label="View cart "
+              href="#"
+              className="hover:scale-110 transition"
+            >
               <Instagram size={20} />
             </a>
           </div>

@@ -82,6 +82,7 @@ export default function Blog() {
               variants={fadeInUp}
             >
               <Image
+                loading="lazy"
                 src={post.image}
                 alt={post.title}
                 width={800}

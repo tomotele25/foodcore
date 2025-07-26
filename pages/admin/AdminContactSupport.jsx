@@ -141,12 +141,14 @@ const AdminContactSupport = () => {
             className="p-2 rounded-full hover:bg-gray-100"
           >
             <ArrowRightLeftIcon className="w-5 h-5 text-gray-700" />
+            <span className="sr-only">Delete</span>
           </button>
           <button
             onClick={() => setSidebarOpen(false)}
             className="md:hidden text-gray-600"
           >
             <X />
+            <span className="sr-only">Delete</span>
           </button>
         </div>
         <nav className="p-4 space-y-2 overflow-y-auto h-[calc(100%-4rem)]">
@@ -189,6 +191,7 @@ const AdminContactSupport = () => {
             className="md:hidden text-white"
           >
             <Menu />
+            <span className="sr-only">Delete</span>
           </button>
         </header>
 

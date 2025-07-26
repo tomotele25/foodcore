@@ -149,6 +149,7 @@ const Vendor = () => {
                   {/* Vendor Image */}
                   <div className="relative w-full h-48">
                     <Image
+                      loading="lazy"
                       src={vendor.logo || "/logo.jpg"}
                       alt={vendor.businessName}
                       fill

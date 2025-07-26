@@ -226,6 +226,7 @@ const Profile = () => {
               >
                 {logoPreview ? (
                   <Image
+                    loading="lazy"
                     src={logoPreview}
                     alt="Logo"
                     width={80}

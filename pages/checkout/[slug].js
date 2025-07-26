@@ -211,6 +211,7 @@ const Checkout = () => {
                     <div className="flex items-center gap-4 w-full sm:w-auto">
                       <div className="w-20 h-20 relative rounded-lg overflow-hidden border border-gray-300 shadow-sm">
                         <Image
+                          loading="lazy"
                           src={
                             item.image?.startsWith("http")
                               ? item.image

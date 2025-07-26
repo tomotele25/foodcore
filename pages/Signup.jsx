@@ -74,6 +74,7 @@ const Signup = () => {
         {/* Left Image */}
         <div className="md:w-1/2 h-64 md:h-screen relative">
           <Image
+            loading="lazy"
             src="/logo.jpg"
             alt="Signup Visual"
             fill
@@ -201,7 +202,11 @@ const Signup = () => {
 
             <p className="text-sm text-gray-600 mt-4 text-center">
               Already have an account?{" "}
-              <a href="/Login" className="text-[#AE2108] hover:underline">
+              <a
+                aria-label="View cart "
+                href="/Login"
+                className="text-[#AE2108] hover:underline"
+              >
                 Log In
               </a>
             </p>
