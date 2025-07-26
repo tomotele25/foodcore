@@ -7,7 +7,7 @@ import { useRouter } from "next/router";
 import Loader from "@/components/Loader";
 import { useState, useEffect } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-
+import { Analytics } from "@vercel/analytics/next";
 export default function App({ Component, pageProps }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -41,7 +41,8 @@ export default function App({ Component, pageProps }) {
         <SessionProvider session={pageProps.session}>
           <NetworkStatus />
           {loading ? <Loader /> : <Component {...pageProps} />}
-          <SpeedInsights />{" "}
+          <SpeedInsights />
+          <Analytics />
         </SessionProvider>
       </CartProvider>
     </>
