@@ -26,7 +26,7 @@ export default function Home() {
           name="description"
           content="Welcome to ChowSpace – your go-to platform for discovering local vendors and ordering delicious meals fast and easy."
         />
-        <link rel="canonical" href="https://chowspace.vercel.app/" />
+        <link rel="canonical" href="https://chowspace.ng/" />
         <meta
           property="og:title"
           content="ChowSpace | Order Meals from Trusted Vendors"
@@ -35,10 +35,10 @@ export default function Home() {
           property="og:description"
           content="Order food from trusted local vendors near you with ChowSpace. Easy checkout, fast delivery."
         />
-        <meta property="og:url" content="https://chowspace.vercel.app/" />
+        <meta property="og:url" content="https://chowspace.ng/" />
         <meta
           property="og:image"
-          content="https://chowspace.vercel.app/og-preview.jpg"
+          content="https://chowspace.ng/og-preview.jpg"
         />
         <meta name="twitter:card" content="summary_large_image" />
         <meta
@@ -51,7 +51,7 @@ export default function Home() {
         />
         <meta
           name="twitter:image"
-          content="https://chowspace.vercel.app/og-preview.jpg"
+          content="https://chowspace.ng/og-preview.jpg"
         />
       </Head>
 

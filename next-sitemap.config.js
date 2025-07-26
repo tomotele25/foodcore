@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: "https://chowspace.vercel.app",
+  siteUrl: "https://chowspace.ng",
   generateRobotsTxt: true,
   sitemapSize: 5000,
   changefreq: "daily",
@@ -14,5 +14,5 @@ module.exports = {
     "/Payment-Redirect",
     "/checkout/success",
   ],
-  additionalSitemaps: ["https://chowspace.vercel.app/server-sitemap.xml"],
+  additionalSitemaps: ["https://chowspace.ng/server-sitemap.xml"],
 };

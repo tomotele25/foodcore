@@ -16,11 +16,13 @@ import {
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import ReviewSection from "@/components/ReviewSection";
+import { useRouter } from "next/router";
 import Head from "next/head";
 const VendorMenuPage = () => {
   const router = useRouter();
   const { slug } = router.query;
 
+  const canonicalUrl = `https://chowspace.ng/menu/${slug ?? ""}`;
   const [vendor, setVendor] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,28 +75,27 @@ const VendorMenuPage = () => {
   return (
     <>
       <Head>
-        {/* Page title and meta */}
-        <title>Menu | ChowSpace</title>
+        <title>
+          {slug ? `${slug} | Menu | ChowSpace` : "Menu | ChowSpace"}
+        </title>
         <meta
           name="description"
-          content="Explore the delicious menu from your favorite vendors on ChowSpace. From local dishes to continental meals, we&#39;ve got something for every taste!"
+          content="Explore the delicious menu from your favorite vendors on ChowSpace."
         />
         <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={canonicalUrl} />
 
-        {/* Canonical URL */}
-        <link rel="canonical" href="https://chowspace.vercel.app/menu" />
-
-        {/* Open Graph for Facebook, WhatsApp, LinkedIn, etc. */}
+        {/* Open Graph */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content="Menu | ChowSpace" />
         <meta
           property="og:description"
           content="Browse the full list of meals available for delivery from ChowSpace vendors near you."
         />
-        <meta property="og:url" content="https://chowspace.vercel.app/menu" />
+        <meta property="og:url" content={canonicalUrl} />
         <meta
           property="og:image"
-          content="https://chowspace.vercel.app/og-preview.jpg"
+          content="https://chowspace.ng/og-preview.jpg"
         />
 
         {/* Twitter Card */}
@@ -106,7 +107,7 @@ const VendorMenuPage = () => {
         />
         <meta
           name="twitter:image"
-          content="https://chowspace.vercel.app/og-preview.jpg"
+          content="https://chowspace.ng/og-preview.jpg"
         />
       </Head>
       <section className="px-6 py-8 bg-gray-50 min-h-screen">
