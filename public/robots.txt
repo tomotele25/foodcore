@@ -1,17 +1,15 @@
-# *
+# Allow all user agents full access to public pages
 User-agent: *
 Allow: /
 
-# Host
-Host: https://chowspace.ng
-
-# Sitemaps
-Sitemap: https://chowspace.ng/sitemap.xml
-
-User-agent: *
+# Disallow sensitive/private routes
 Disallow: /Login
 Disallow: /Signup
 Disallow: /vendor
 Disallow: /manager
 Disallow: /admin
 Disallow: /Payment-Redirect
+
+# Sitemap declaration
+Sitemap: https://chowspace.ng/sitemap.xml
+Sitemap: https://chowspace.ng/server-sitemap.xml
