@@ -15,8 +15,7 @@ import {
   PackagePlus,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
-import ReviewSection from "@/components/ReviewSection";
-import { useRouter } from "next/router";
+
 import Head from "next/head";
 const VendorMenuPage = () => {
   const router = useRouter();
