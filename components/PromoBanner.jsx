@@ -10,7 +10,6 @@ export default function PromoBanner() {
       <div className="absolute inset-0 z-0 overflow-hidden">
         <div className="w-full h-full scale-100 group-hover:scale-105 transition-transform duration-1000 ease-out">
           <Image
-            loading="lazy"
             src="/food-banner.jpg"
             alt="Food ingredients background"
             layout="fill"
@@ -45,6 +44,13 @@ export default function PromoBanner() {
           <ShoppingBag size={20} className="text-[#AE2108]" />
           Order Now
         </a>
+      </div>
+
+      {/* Coming Soon */}
+      <div className="relative z-10 mt-8 text-center">
+        <p className="text-sm sm:text-base text-orange-100 italic tracking-wide">
+          🚧 More deals & features coming soon. Stay tuned!
+        </p>
       </div>
     </section>
   );

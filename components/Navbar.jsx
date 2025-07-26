@@ -22,7 +22,6 @@ const Navbar = () => {
             width={50}
             height={40}
             className="object-contain rounded-md"
-            priority
           />
           <span className="text-lg sm:text-xl font-semibold text-[#AE2108]">
             ChowSpace

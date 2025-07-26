@@ -35,7 +35,7 @@ const Faq = () => {
 
   return (
     <section className="max-w-4xl mx-auto px-4 py-16">
-      <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 text-gray-800">
+      <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 text-[#AE2108]">
         Frequently Asked Questions
       </h2>
 

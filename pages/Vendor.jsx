@@ -137,12 +137,16 @@ const Vendor = () => {
               return (
                 <div
                   key={vendor._id}
-                  className="group relative bg-white border border-gray-200 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden"
+                  className={`group relative bg-white border rounded-2xl overflow-hidden transition-all duration-300 shadow-md hover:shadow-xl ${
+                    isPromoted
+                      ? "border-transparent bg-gradient-to-br from-yellow-100 to-white hover:scale-[1.015]"
+                      : "border-gray-200"
+                  }`}
                 >
                   {/* PROMO Badge */}
                   {isPromoted && (
-                    <div className="absolute top-3 right-3 bg-yellow-400 text-black px-2 py-1 text-xs font-bold rounded-full shadow z-10">
-                      PROMO 🌟
+                    <div className="absolute top-3 right-3 z-10 bg-yellow-400 text-[#AE2108] px-2 py-1 text-xs font-bold rounded-full shadow-md animate-pulse ring-2 ring-yellow-300/50">
+                      ⭐ Promoted
                     </div>
                   )}
 

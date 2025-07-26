@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import axios from "axios";
-import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Crown } from "lucide-react";
 import "swiper/css";
 import "swiper/css/navigation";
 
@@ -24,8 +24,8 @@ const Carousel = () => {
         const response = await axios.get(`${BACKENDURL}/api/vendor/getVendors`);
         const data = response.data.vendors || [];
 
-        const handpicked = data.slice(0, 5);
-        if (isMounted) setVendors(handpicked);
+        const promoted = data.filter((vendor) => vendor.isPromoted === true);
+        if (isMounted) setVendors(promoted.slice(0, 5));
       } catch (error) {
         console.error("Error fetching vendors:", error);
       } finally {
@@ -80,7 +80,12 @@ const Carousel = () => {
             <SwiperSlide key={index}>
               {item.status === "opened" ? (
                 <Link href={`/vendors/menu/${item.slug}`} passHref>
-                  <div className="group cursor-pointer bg-white rounded-2xl shadow-md overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1 duration-300">
+                  <div className="group cursor-pointer bg-white rounded-2xl shadow-md overflow-hidden transition-all hover:shadow-xl hover:-translate-y-1 duration-300 relative">
+                    {/* Promoted Badge */}
+                    <div className="absolute top-3 left-3 z-10 bg-yellow-400 text-black text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
+                      <Crown size={14} /> Promoted
+                    </div>
+
                     <div className="w-full h-52 relative">
                       <img
                         src={item.logo || "/logo.jpg"}
@@ -111,7 +116,12 @@ const Carousel = () => {
                   </div>
                 </Link>
               ) : (
-                <div className="bg-white rounded-2xl shadow-md overflow-hidden opacity-70 cursor-not-allowed">
+                <div className="bg-white rounded-2xl shadow-md overflow-hidden opacity-70 cursor-not-allowed relative">
+                  {/* Promoted Badge */}
+                  <div className="absolute top-3 left-3 z-10 bg-yellow-400 text-black text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
+                    <Crown size={14} /> Promoted
+                  </div>
+
                   <div className="w-full h-52 relative">
                     <img
                       src={item.logo || "/logo.jpg"}
