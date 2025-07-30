@@ -1,7 +1,7 @@
 "use client";
 
 import { Poppins } from "next/font/google";
-import Head from "next/head"; // ✅ import Head
+import Head from "next/head";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Vendor from "./Vendor";

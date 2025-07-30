@@ -20,5 +20,12 @@
     <priority>0.7</priority>
   </url>
  
+  <url>
+    <loc>https://chowspace.ng/server-sitemap.xml</loc>
+    <lastmod>2025-07-21T13:34:10.640Z</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+ 
 
 </urlset>

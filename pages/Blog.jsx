@@ -38,16 +38,40 @@ const fadeInUp = {
 
 export default function Blog() {
   useEffect(() => {
-    window.scrollTo(0, 0); // Scroll to top on mount
+    window.scrollTo(0, 0);
   }, []);
 
   return (
     <>
       <Head>
-        <title>Blog | ChowSpace</title>
+        <title>ChowSpace | Blog</title>
+        <meta name="description" content="ChowSpace Blog" />
+        <link rel="canonical" href="https://chowspace.ng/Blog" />
         <meta
-          name="description"
-          content="Explore ChowSpace insights on food tech, vendor tips, and our journey in revolutionizing food delivery in Nigeria and beyond."
+          property="og:title"
+          content="ChowSpace | Order Meals from Trusted Vendors"
+        />
+        <meta
+          property="og:description"
+          content="Order food from trusted local vendors near you with ChowSpace. Easy checkout, fast delivery."
+        />
+        <meta property="og:url" content="https://chowspace.ng/Blog" />
+        <meta
+          property="og:image"
+          content="https://chowspace.ng/og-preview.jpg"
+        />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="ChowSpace | Order Meals from Trusted Vendors"
+        />
+        <meta
+          name="twitter:description"
+          content="Order meals fast and fresh from vendors near you."
+        />
+        <meta
+          name="twitter:image"
+          content="https://chowspace.ng/og-preview.jpg"
         />
       </Head>
 

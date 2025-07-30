@@ -12,6 +12,7 @@ import {
   MapPin,
   Heart,
   HelpCircle,
+  Star,
 } from "lucide-react";
 
 const CustomersProfile = () => {
@@ -68,8 +69,26 @@ const CustomersProfile = () => {
           </button>
         </div>
 
-        {/* Options Inline, No Reuse */}
+        {/* Options */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Chowspace Points */}
+          <div className="p-4 bg-gray-100 rounded-xl hover:bg-gray-200 cursor-pointer transition">
+            <div className="flex items-start space-x-4">
+              <div className="p-2 bg-white rounded-full shadow">
+                <Star className="text-[#AE2108] w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-sm font-medium text-gray-800">
+                  Chowspace Points
+                </h4>
+                <p className="text-xs text-gray-500">
+                  You currently have{" "}
+                  <span className="font-semibold text-gray-700">0 points</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
           <Link href="/customers/OrderHistory">
             <div className="p-4 bg-gray-100 rounded-xl hover:bg-gray-200 cursor-pointer transition">
               <div className="flex items-start space-x-4">
