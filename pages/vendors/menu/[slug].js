@@ -88,7 +88,10 @@ const VendorMenuPage = () => {
           }
         />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={`https://chowspace.ng/menu/${slug}`} />
+        <link
+          rel="canonical"
+          href={`https://chowspace.ng/vendors/menu/${slug}`}
+        />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
@@ -108,7 +111,10 @@ const VendorMenuPage = () => {
               : "Order from top vendors with ease on ChowSpace."
           }
         />
-        <meta property="og:url" content={`https://chowspace.ng/menu/${slug}`} />
+        <meta
+          property="og:url"
+          content={`https://chowspace.ng/vendors/menu/${slug}`}
+        />
         <meta
           property="og:image"
           content={vendor?.logo || "https://chowspace.ng/og-preview.jpg"}
