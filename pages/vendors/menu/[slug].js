@@ -75,40 +75,68 @@ const VendorMenuPage = () => {
     <>
       <Head>
         <title>
-          {slug ? `${slug} | Menu | ChowSpace` : "Menu | ChowSpace"}
+          {vendor
+            ? `${vendor.businessName} | Menu | ChowSpace`
+            : "Menu | ChowSpace"}
         </title>
         <meta
           name="description"
-          content="Explore the delicious menu from your favorite vendors on ChowSpace."
+          content={
+            vendor
+              ? `View the full menu from ${vendor.businessName} on ChowSpace. Order delicious meals from ${vendor.location}.`
+              : "Explore delicious meals from your favorite vendors on ChowSpace."
+          }
         />
         <meta name="robots" content="index, follow" />
-        <link rel="canonical" href={canonicalUrl} />
+        <link rel="canonical" href={`https://chowspace.ng/menu/${slug}`} />
 
         {/* Open Graph */}
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="Menu | ChowSpace" />
+        <meta
+          property="og:title"
+          content={
+            vendor
+              ? `${vendor.businessName} | Menu | ChowSpace`
+              : "Menu | ChowSpace"
+          }
+        />
         <meta
           property="og:description"
-          content="Browse the full list of meals available for delivery from ChowSpace vendors near you."
+          content={
+            vendor
+              ? `Check out ${vendor.businessName}'s menu and order easily on ChowSpace.`
+              : "Order from top vendors with ease on ChowSpace."
+          }
         />
-        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:url" content={`https://chowspace.ng/menu/${slug}`} />
         <meta
           property="og:image"
-          content="https://chowspace.ng/og-preview.jpg"
+          content={vendor?.logo || "https://chowspace.ng/og-preview.jpg"}
         />
 
-        {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Menu | ChowSpace" />
+        <meta
+          name="twitter:title"
+          content={
+            vendor
+              ? `${vendor.businessName} | Menu | ChowSpace`
+              : "Menu | ChowSpace"
+          }
+        />
         <meta
           name="twitter:description"
-          content="Delicious meals delivered fast from trusted vendors on ChowSpace."
+          content={
+            vendor
+              ? `Hungry? Browse and order from ${vendor.businessName}'s menu on ChowSpace.`
+              : "Delicious meals from local vendors on ChowSpace."
+          }
         />
         <meta
           name="twitter:image"
-          content="https://chowspace.ng/og-preview.jpg"
+          content={vendor?.logo || "https://chowspace.ng/og-preview.jpg"}
         />
       </Head>
+
       <section className="px-6 py-8 bg-gray-50 min-h-screen">
         <div className="max-w-6xl mx-auto">
           <button

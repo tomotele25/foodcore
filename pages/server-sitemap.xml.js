@@ -11,20 +11,12 @@ export async function getServerSideProps(ctx) {
     const data = await res.json();
     const vendors = data.vendors || [];
 
-    const fields = vendors.flatMap((vendor) => [
-      {
-        loc: `https://chowspace.ng/menu/${vendor.slug}`,
-        lastmod: vendor.updatedAt || new Date().toISOString(),
-        changefreq: "daily",
-        priority: 0.9,
-      },
-      {
-        loc: `https://chowspace.ng/checkout/${vendor.slug}`,
-        lastmod: vendor.updatedAt || new Date().toISOString(),
-        changefreq: "daily",
-        priority: 0.7,
-      },
-    ]);
+    const fields = vendors.map((vendor) => ({
+      loc: `https://chowspace.ng/menu/${vendor.slug}`,
+      lastmod: vendor.updatedAt || new Date().toISOString(),
+      changefreq: "daily",
+      priority: 0.9,
+    }));
 
     return getServerSideSitemapLegacy(ctx, fields);
   } catch (error) {
