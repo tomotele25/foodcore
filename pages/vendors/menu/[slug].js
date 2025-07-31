@@ -21,7 +21,7 @@ const VendorMenuPage = () => {
   const router = useRouter();
   const { slug } = router.query;
 
-  const canonicalUrl = `https://chowspace.ng/menu/${slug ?? ""}`;
+  const canonicalUrl = `https://chowspace.ng/vendors/menu/${slug ?? ""}`;
   const [vendor, setVendor] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);

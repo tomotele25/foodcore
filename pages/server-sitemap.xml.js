@@ -12,7 +12,7 @@ export async function getServerSideProps(ctx) {
     const vendors = data.vendors || [];
 
     const fields = vendors.map((vendor) => ({
-      loc: `https://chowspace.ng/menu/${vendor.slug}`,
+      loc: `https://chowspace.ng/vendors/menu/${vendor.slug}`,
       lastmod: vendor.updatedAt || new Date().toISOString(),
       changefreq: "daily",
       priority: 0.9,
