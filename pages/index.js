@@ -27,6 +27,9 @@ export default function Home() {
           content="Welcome to ChowSpace – your go-to platform for discovering local vendors and ordering delicious meals fast and easy."
         />
         <link rel="canonical" href="https://chowspace.ng/" />
+
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+
         <meta
           property="og:title"
           content="ChowSpace | Order Meals from Trusted Vendors"
@@ -40,6 +43,7 @@ export default function Home() {
           property="og:image"
           content="https://chowspace.ng/og-preview.jpg"
         />
+
         <meta name="twitter:card" content="summary_large_image" />
         <meta
           name="twitter:title"
