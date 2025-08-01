@@ -15,12 +15,13 @@ import {
   Wallet,
   Rocket,
   Star,
+  Bell,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
-
+import Notification from "@/components/Notification";
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/vendors/Dashboard" },
   { name: "Orders", icon: PackageOpen, path: "/vendors/Orders" },
@@ -29,6 +30,7 @@ const menuItems = [
   { name: "Wallet", icon: Wallet, path: "/vendors/Wallet" },
   { name: "Profile", icon: User, path: "/vendors/Profile" },
   { name: "Subscribe", icon: Rocket, path: "/vendors/Subscribe" },
+  { name: "Announcement", icon: Bell, path: "/vendors/Announcement" },
   { name: "Manage Team", icon: Users, path: "/vendors/ManageTeam" },
   { name: "Settings", icon: Settings, path: "/vendor/settings" },
 ];
@@ -138,11 +140,14 @@ export default function VendorDashboard() {
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto  p-4 bg-gray-100">
-          <header className="flex items-center justify-between mb-6">
+          <header className="flex items-center  justify-between mb-6">
             <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu size={24} />
             </button>
             <h2 className="text-lg font-semibold text-gray-800">Dashboard</h2>
+            <span>
+              <Notification />
+            </span>
           </header>
 
           {/* Store Status */}
