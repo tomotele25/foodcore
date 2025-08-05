@@ -218,68 +218,76 @@ const VendorMenuPage = () => {
                 return (
                   <div
                     key={product._id}
-                    className="bg-white rounded-xl shadow-md hover:shadow-lg transition duration-200"
+                    className="bg-white rounded-xl shadow-md hover:shadow-lg transition duration-200 flex flex-col"
                   >
                     <div className="w-full h-28 relative">
                       <Image
-                        loading="lazy"
+                        priority
                         src={product.image || "https://placehold.co/150x150"}
                         alt="Product"
                         fill
-                        className="object-cover"
+                        className="object-cover rounded-t-xl"
                       />
                     </div>
 
-                    <div className="p-4 space-y-1">
-                      <h3 className="font-semibold text-gray-900 text-sm leading-snug">
-                        {product.productName}
-                      </h3>
+                    {/* Main content: fills vertical space and pushes bottom elements down */}
+                    <div className="p-4 flex flex-col justify-between flex-grow">
+                      {/* Spacer div takes available space to push content to the bottom */}
+                      <div className="flex-grow" />
 
-                      <p className="text-xs text-gray-500">
-                        {product.category}
-                      </p>
-
-                      <p className="text-sm text-[#AE2108] font-semibold">
-                        ₦{product.price}
-                      </p>
-
-                      <p
-                        className={`text-xs font-medium ${
-                          product.available ? "text-[#AE2108]" : "text-red-500"
-                        }`}
-                      >
-                        {product.available ? "Available" : "Unavailable"}
-                      </p>
-
-                      {count > 0 ? (
-                        <div className="flex items-center gap-2 pt-2">
-                          <button
-                            onClick={() => removeFromCart(product._id)}
-                            className="p-1 bg-gray-200 rounded"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="text-sm font-medium">{count}</span>
-                          <button
-                            onClick={() => incrementItem(product._id)}
-                            className="p-1 bg-gray-200 rounded"
-                          >
-                            <Plus size={14} />
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => addToCart(product)}
-                          disabled={!product.available}
-                          className={`w-full py-1.5 mt-2 rounded text-xs font-medium flex items-center justify-center gap-1 ${
+                      <div className="space-y-1">
+                        <h3 className="font-semibold text-gray-900 text-sm leading-snug break-words">
+                          {product.productName}
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          {product.category}
+                        </p>
+                        <p className="text-sm text-[#AE2108] font-semibold">
+                          ₦{product.price}
+                        </p>
+                        <p
+                          className={`text-xs font-medium ${
                             product.available
-                              ? "bg-[#AE2108] text-white hover:bg-[#941B06]"
-                              : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                              ? "text-[#AE2108]"
+                              : "text-red-500"
                           }`}
                         >
-                          <Plus size={14} /> Order
-                        </button>
-                      )}
+                          {product.available ? "Available" : "Unavailable"}
+                        </p>
+                      </div>
+
+                      {/* Order/Quantity buttons */}
+                      <div className="mt-4">
+                        {count > 0 ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => removeFromCart(product._id)}
+                              className="p-1 bg-gray-200 rounded"
+                            >
+                              <Minus size={14} />
+                            </button>
+                            <span className="text-sm font-medium">{count}</span>
+                            <button
+                              onClick={() => incrementItem(product._id)}
+                              className="p-1 bg-gray-200 rounded"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => addToCart(product)}
+                            disabled={!product.available}
+                            className={`w-full py-1.5 mt-2 rounded text-xs font-medium flex items-center justify-center gap-1 ${
+                              product.available
+                                ? "bg-[#AE2108] text-white hover:bg-[#941B06]"
+                                : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                            }`}
+                          >
+                            <Plus size={14} /> Order
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

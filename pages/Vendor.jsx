@@ -188,12 +188,13 @@ const Vendor = () => {
                     {/* Vendor Image */}
                     <div className="relative w-full h-48">
                       <Image
-                        loading="lazy"
                         src={vendor.logo || "/logo.jpg"}
                         alt={vendor.businessName}
                         fill
                         className="object-cover"
+                        priority
                       />
+
                       {vendor.status === "closed" && (
                         <div className="absolute inset-0 backdrop-blur-sm bg-black/40 flex items-center justify-center">
                           <span className="text-white text-sm font-semibold">

@@ -70,7 +70,7 @@ const Hero = () => {
         <div className="flex-1 flex justify-center items-center">
           <div className="w-[280px] h-[280px] sm:w-[360px] sm:h-[360px] relative rounded-full overflow-hidden shadow-2xl border-4 border-white group">
             <Image
-              loading="lazy"
+              priority
               src="/Hero.png"
               alt="ChowSpace Hero"
               fill

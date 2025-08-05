@@ -107,21 +107,6 @@ export default function ContactSupport() {
     }
   };
 
-  useEffect(() => {
-    if (session?.user?.accessToken) {
-      const savedTicketId = localStorage.getItem("chowspace_ticketId");
-      const savedMode = localStorage.getItem("chowspace_chatMode");
-      const savedTopic = localStorage.getItem("chowspace_selected");
-
-      if (savedTicketId && savedMode === "true") {
-        setTicketId(savedTicketId);
-        setChatMode(true);
-        setSelected(savedTopic);
-        fetchMessages(savedTicketId);
-      }
-    }
-  }, [session?.user?.accessToken]);
-
   // 🔁 Fetch messages every 15 seconds while chat is active
   useEffect(() => {
     if (chatMode && ticketId && session?.user?.accessToken) {
@@ -147,12 +132,24 @@ export default function ContactSupport() {
 
   return (
     <>
-      {/* Floating Support Button */}
       <button
         onClick={() => {
           if (!open) {
             setOpen(true);
             setIsMinimized(false);
+
+            if (session?.user?.accessToken) {
+              const savedTicketId = localStorage.getItem("chowspace_ticketId");
+              const savedMode = localStorage.getItem("chowspace_chatMode");
+              const savedTopic = localStorage.getItem("chowspace_selected");
+
+              if (savedTicketId && savedMode === "true") {
+                setTicketId(savedTicketId);
+                setChatMode(true);
+                setSelected(savedTopic);
+                fetchMessages(savedTicketId);
+              }
+            }
           } else {
             setIsMinimized(!isMinimized);
           }
@@ -164,7 +161,6 @@ export default function ContactSupport() {
         <Headset className="w-5 h-5" />
       </button>
 
-      {/* Chat Box */}
       {open && !isMinimized && (
         <div className="fixed bottom-6 right-6 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 flex flex-col h-[520px] max-h-[90vh] animate-fade-in">
           {/* Header */}
