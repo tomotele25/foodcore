@@ -340,7 +340,7 @@ export default function ManageProducts() {
                   <option value="Grilled/Fried">Grilled/Fried</option>
                   <option value="Beverages">Beverages</option>
                   <option value="Smoothies">Smoothies</option>
-                  <option value="Smoothies">Small Chops</option>
+                  <option value="Small Chops">Small Chops</option>
                   <option value="Shawarma & Sandwiches">
                     Shawarma & Sandwiches
                   </option>
