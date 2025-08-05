@@ -71,6 +71,7 @@ const Hero = () => {
           <div className="w-[280px] h-[280px] sm:w-[360px] sm:h-[360px] relative rounded-full overflow-hidden shadow-2xl border-4 border-white group">
             <Image
               priority
+              quality={70}
               src="/Hero.png"
               alt="ChowSpace Hero"
               fill
