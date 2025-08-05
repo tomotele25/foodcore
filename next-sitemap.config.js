@@ -14,4 +14,5 @@ module.exports = {
     "/Payment-Redirect",
     "/checkout/success",
   ],
+  additionalSitemaps: ["https://chowspace.ng/server-sitemap.xml"],
 };
