@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 import { SessionProvider } from "next-auth/react";
 import { CartProvider } from "@/context/CartContext";
+import { CategoryProvider } from "@/context/CategoryContext";
 import NetworkStatus from "@/components/NetworkStatus";
 import { Toaster } from "react-hot-toast";
 import { useRouter } from "next/router";
@@ -8,6 +9,7 @@ import Loader from "@/components/Loader";
 import { useState, useEffect } from "react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
+
 export default function App({ Component, pageProps }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -37,14 +39,17 @@ export default function App({ Component, pageProps }) {
   return (
     <>
       <Toaster position="top-right" />
-      <CartProvider>
-        <SessionProvider session={pageProps.session}>
-          <NetworkStatus />
-          {loading ? <Loader /> : <Component {...pageProps} />}
-          <SpeedInsights />
-          <Analytics />
-        </SessionProvider>
-      </CartProvider>
+
+      <CategoryProvider>
+        <CartProvider>
+          <SessionProvider session={pageProps.session}>
+            <NetworkStatus />
+            {loading ? <Loader /> : <Component {...pageProps} />}
+            <SpeedInsights />
+            <Analytics />
+          </SessionProvider>
+        </CartProvider>
+      </CategoryProvider>
     </>
   );
 }

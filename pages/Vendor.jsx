@@ -9,6 +9,8 @@ import { useRouter } from "next/router";
 import VendorSkeletonCard from "@/components/VendorSkeletonCard";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
+import { useCategory } from "@/context/CategoryContext"; // import your context hook
+
 const Vendor = () => {
   const [vendors, setVendors] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -19,6 +21,7 @@ const Vendor = () => {
   const [loginmodal, setLoginmodal] = useState(false);
   const [isFavorite, setIsFavourite] = useState(null);
   const { data: session } = useSession();
+  const { selectedCategory } = useCategory(); // get global selected category
 
   const vendorsPerPage = 8;
   const router = useRouter();
@@ -52,15 +55,18 @@ const Vendor = () => {
       const matchLocation =
         selectedLocation === "All" || vendor.location === selectedLocation;
 
-      return matchSearch && matchLocation;
+      const matchCategory =
+        !selectedCategory || selectedCategory === "All"
+          ? true
+          : vendor.category?.toLowerCase() === selectedCategory.toLowerCase();
+
+      return matchSearch && matchLocation && matchCategory;
     })
     .sort((a, b) => {
       const aPromo =
         a.promotionExpiresAt && new Date(a.promotionExpiresAt) > new Date();
-
       const bPromo =
         b.promotionExpiresAt && new Date(b.promotionExpiresAt) > new Date();
-
       return bPromo - aPromo;
     });
 
@@ -178,14 +184,12 @@ const Vendor = () => {
                         : "border-gray-200"
                     }`}
                   >
-                    {/* PROMO Badge */}
                     {isPromoted && (
                       <div className="absolute top-3 right-3 z-10 bg-yellow-400 text-[#AE2108] px-2 py-1 text-xs font-bold rounded-full shadow-md animate-pulse ring-2 ring-yellow-300/50">
                         ⭐ Promoted
                       </div>
                     )}
 
-                    {/* Vendor Image */}
                     <div className="relative w-full h-48">
                       <Image
                         src={vendor.logo || "/logo.jpg"}
@@ -202,6 +206,7 @@ const Vendor = () => {
                           </span>
                         </div>
                       )}
+
                       <div
                         onClick={handleLoginModal}
                         className="absolute top-3 left-3 bg-white p-1.5 rounded-full shadow"
@@ -215,7 +220,6 @@ const Vendor = () => {
                       </div>
                     </div>
 
-                    {/* Vendor Details */}
                     <div className="p-4 space-y-3">
                       <h3 className="text-lg font-bold text-gray-900 truncate">
                         {vendor.businessName}

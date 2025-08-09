@@ -11,6 +11,7 @@ import ScrollToTopBtn from "@/components/ScrollToTopBtn";
 import PromoBanner from "@/components/PromoBanner";
 import Faq from "@/components/Faq";
 import ContactSupport from "@/components/ContactSupport";
+import Categories from "@/components/Categories";
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -64,6 +65,7 @@ export default function Home() {
       <main>
         <Navbar />
         <Hero />
+        <Categories />
         <PromoBanner />
         <Carousel />
         <section id="vendors">

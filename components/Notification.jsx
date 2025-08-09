@@ -5,7 +5,8 @@ import { useSession } from "next-auth/react";
 import axios from "axios";
 import { Bell } from "lucide-react";
 
-const BACKEND_URL = "http://localhost:2005"; // update if needed
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
 const Notification = () => {
   const { data: session, status } = useSession();
@@ -17,7 +18,7 @@ const Notification = () => {
       if (status === "authenticated" && session?.user?.role) {
         try {
           const res = await axios.get(
-            `${BACKEND_URL}/api/announcement/${session.user.role + "s"}`,
+            `${BACKENDURL}/api/announcement/${session.user.role + "s"}`,
             {
               headers: {
                 Authorization: `Bearer ${session.user.accessToken}`,

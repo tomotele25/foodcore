@@ -14,6 +14,7 @@ export default function PromoBanner() {
             alt="Food ingredients background"
             layout="fill"
             objectFit="cover"
+            loading="lazy"
             className="pointer-events-none"
           />
         </div>

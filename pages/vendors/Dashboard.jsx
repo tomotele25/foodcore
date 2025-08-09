@@ -23,7 +23,7 @@ import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import Notification from "@/components/Notification";
 const menuItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/vendors/Dashboard" },
+  // { name: "Dashboard", icon: LayoutDashboard, path: "/vendors/Dashboard" },
   { name: "Orders", icon: PackageOpen, path: "/vendors/Orders" },
   { name: "Reviews", icon: Star, path: "/vendors/Reviews" },
   { name: "Products", icon: UtensilsCrossed, path: "/vendors/ManageProducts" },
@@ -32,7 +32,7 @@ const menuItems = [
   { name: "Subscribe", icon: Rocket, path: "/vendors/Subscribe" },
   { name: "Announcement", icon: Bell, path: "/vendors/Announcement" },
   { name: "Manage Team", icon: Users, path: "/vendors/ManageTeam" },
-  { name: "Settings", icon: Settings, path: "/vendor/settings" },
+  { name: "Settings", icon: Settings, path: "/Settings" },
 ];
 
 const BACKENDURL =

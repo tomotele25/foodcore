@@ -10,89 +10,80 @@ const slides = [
     title: "Discover Delicious Meals",
     subtitle: "From Top Vendors Around You",
     description:
-      "Browse curated vendors and enjoy a variety of cuisines — delivered hot and fast, just the way you like it.",
+      "Browse curated vendors and enjoy a variety of cuisines  delivered hot and fast, just the way you like it.",
+    image: "/Hero.png",
   },
   {
     title: "Order With Ease",
     subtitle: "Fast. Trusted. Affordable.",
     description:
-      "From breakfast to dinner, ChowSpace makes ordering food seamless and stress-free.",
+      "From breakfast to dinner, ChowSpace makes ordering food seamless and stress free.",
+    image: "/Hero.png",
   },
   {
     title: "Satisfy Your Cravings",
     subtitle: "All your favorite meals, one tap away",
     description:
-      "Anytime, anywhere — find dishes from local food heroes near you. Eat better, live better.",
+      "Anytime, anywhere find dishes from local food heroes near you. Eat better, live better.",
+    image: "/Hero.png",
   },
 ];
 
-const Hero = () => {
+export default function Hero() {
   const [current, setCurrent] = useState(0);
-  const [fade, setFade] = useState(true);
+  const [animate, setAnimate] = useState(true);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setFade(false);
+      setAnimate(false);
       setTimeout(() => {
         setCurrent((prev) => (prev + 1) % slides.length);
-        setFade(true);
+        setAnimate(true);
       }, 400);
     }, 6000);
+
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <section className="relative px-4 sm:px-8 lg:px-20 pt-32 sm:pt-24 h-screen w-full bg-gradient-to-br from-orange-50 via-white to-yellow-50 overflow-hidden flex items-center justify-center">
-      <div className="absolute top-[-100px] left-[-100px] w-[400px] h-[400px] bg-gradient-to-r from-yellow-300 via-pink-200 to-red-300 rounded-full blur-3xl opacity-30 animate-pulse z-0" />
+    <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-black">
+      {/* Background image */}
+      <Image
+        priority
+        src={slides[current].image}
+        alt={slides[current].title}
+        fill
+        className={`object-cover transition-opacity duration-700 ${
+          animate ? "opacity-100" : "opacity-0"
+        }`}
+      />
 
-      <div className="relative z-10 max-w-7xl w-full flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-left">
-        <div className="flex-1">
-          <div className={fade ? "fade-in" : "fade-out"}>
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-gray-900 mb-3">
-              {slides[current].title}
-            </h1>
-            <h2 className="text-xl sm:text-2xl font-semibold text-[#AE2108] mb-2">
-              {slides[current].subtitle}
-            </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-md mb-6 mx-auto md:mx-0">
-              {slides[current].description}
-            </p>
-            <Link
-              href="#vendors"
-              className="inline-flex items-center gap-2 bg-[#AE2108] hover:bg-[#941B06] text-white px-6 py-3 rounded-full font-medium text-sm shadow-lg hover:scale-105 transition-transform duration-300"
-            >
-              Explore Vendors <ArrowRight size={16} />
-            </Link>
-          </div>
-        </div>
+      {/* Overlay with gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
 
-        {/* Hero Image */}
-        <div className="flex-1 flex justify-center items-center">
-          <div className="w-[280px] h-[280px] sm:w-[360px] sm:h-[360px] relative rounded-full overflow-hidden shadow-2xl border-4 border-white group">
-            <Image
-              priority
-              quality={70}
-              src="/Hero.png"
-              alt="ChowSpace Hero"
-              fill
-              className="object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-          </div>
-        </div>
+      {/* Text content */}
+      <div
+        className={`relative z-10 max-w-3xl px-6 pt-20 sm:px-12 text-center transform transition-all duration-700 ${
+          animate ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        }`}
+      >
+        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-3 leading-snug">
+          {slides[current].title}
+        </h1>
+        <h2 className="text-lg sm:text-2xl font-semibold text-[#FFDDC1] mb-4">
+          {slides[current].subtitle}
+        </h2>
+        <p className="text-base sm:text-lg text-white/90 max-w-md mx-auto mb-6 leading-relaxed">
+          {slides[current].description}
+        </p>
+        <Link
+          href="#vendors"
+          aria-label="Explore Vendors"
+          className="inline-flex items-center gap-2 border-2 border-white text-white hover:bg-white hover:text-[#AE2108] px-6 py-3 rounded-full font-medium text-sm shadow-md hover:scale-105 transition-transform duration-300"
+        >
+          Explore Vendors <ArrowRight size={16} />
+        </Link>
       </div>
-
-      <style>{`
-        .fade-in {
-          opacity: 1;
-          transition: opacity 0.6s ease-in;
-        }
-        .fade-out {
-          opacity: 0;
-          transition: opacity 0.4s ease-out;
-        }
-      `}</style>
     </section>
   );
-};
-
-export default Hero;
+}

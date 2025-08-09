@@ -5,10 +5,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useSession } from "next-auth/react";
-import CustomersProfile from "@/pages/customers/CustomersProfile";
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
+
+  const navLinks = [
+    { href: "#vendors", label: "Vendors" },
+    { href: "#Faq", label: "FAQ" },
+    { href: "/blog", label: "Blog" },
+  ];
 
   return (
     <header className="fixed top-0 left-0 w-full z-50 bg-white/80 backdrop-blur-md shadow-sm">
@@ -19,7 +25,7 @@ const Navbar = () => {
             loading="lazy"
             src="/logo.jpg"
             alt="ChowSpace Logo"
-            width={50}
+            width={45}
             height={40}
             className="object-contain rounded-md"
           />
@@ -30,22 +36,22 @@ const Navbar = () => {
 
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center gap-6 text-sm text-gray-800">
-          <Link href="#vendors" className="hover:text-[#AE2108] transition">
-            Vendors
-          </Link>
-          <Link href="#Faq" className="hover:text-[#AE2108] transition">
-            Faq
-          </Link>
-          <Link href="/blog" className="hover:text-[#AE2108] transition">
-            Blog
-          </Link>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="hover:text-[#AE2108] transition-colors"
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
 
         {/* Auth Section */}
         <div className="hidden md:flex justify-center items-center gap-4">
           {session?.user?.role === "customer" ? (
             <Link
-              href="customers/CustomersProfile"
+              href="/customers/CustomersProfile"
               className="flex items-center justify-center text-white font-semibold bg-[#AE2108] hover:bg-[#941B06] transition w-10 h-10 rounded-full text-sm shadow"
             >
               {session?.user?.fullname?.[0]}
@@ -78,33 +84,27 @@ const Navbar = () => {
       </nav>
 
       {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden px-6 py-4 bg-white/90 shadow-md backdrop-blur-md flex flex-col gap-4 text-sm text-gray-800 transition-all">
-          <Link
-            href="#vendors"
-            onClick={() => setIsOpen(false)}
-            className="hover:text-[#AE2108]"
-          >
-            Vendors
-          </Link>
-          <Link
-            href="#how-it-works"
-            onClick={() => setIsOpen(false)}
-            className="hover:text-[#AE2108]"
-          >
-            How It Works
-          </Link>
-          <Link
-            href="#contact"
-            onClick={() => setIsOpen(false)}
-            className="hover:text-[#AE2108]"
-          >
-            Contact
-          </Link>
+      <div
+        className={`md:hidden overflow-hidden bg-white/90 backdrop-blur-md shadow-md transition-all duration-300 ${
+          isOpen ? "max-h-96 py-4 px-6" : "max-h-0 px-6"
+        }`}
+      >
+        <div className="flex flex-col gap-4 text-sm text-gray-800">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setIsOpen(false)}
+              className="hover:text-[#AE2108] transition-colors"
+            >
+              {link.label}
+            </Link>
+          ))}
           <hr className="border-gray-200" />
           {session?.user?.role === "customer" ? (
             <Link
-              href="customers/CustomersProfile"
+              href="/customers/CustomersProfile"
+              onClick={() => setIsOpen(false)}
               className="flex items-center justify-center text-white font-semibold bg-[#AE2108] hover:bg-[#941B06] transition w-10 h-10 rounded-full text-sm shadow"
             >
               {session?.user?.fullname?.[0]}
@@ -128,7 +128,7 @@ const Navbar = () => {
             </>
           )}
         </div>
-      )}
+      </div>
     </header>
   );
 };
