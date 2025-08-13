@@ -1,6 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
-const BACKENDURL = "http://localhost:2005";
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
 export const customProvider = CredentialsProvider({
   name: "Credentials",

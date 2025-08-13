@@ -34,7 +34,8 @@ const menuItems = [
   { name: "Settings", icon: Settings, path: "/Settings" },
 ];
 
-const BACKENDURL = "http://localhost:2005";
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
 export default function VendorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
