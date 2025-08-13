@@ -23,7 +23,6 @@ import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import Notification from "@/components/Notification";
 const menuItems = [
-  // { name: "Dashboard", icon: LayoutDashboard, path: "/vendors/Dashboard" },
   { name: "Orders", icon: PackageOpen, path: "/vendors/Orders" },
   { name: "Reviews", icon: Star, path: "/vendors/Reviews" },
   { name: "Products", icon: UtensilsCrossed, path: "/vendors/ManageProducts" },
@@ -35,8 +34,7 @@ const menuItems = [
   { name: "Settings", icon: Settings, path: "/Settings" },
 ];
 
-const BACKENDURL =
-  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+const BACKENDURL = "http://localhost:2005";
 
 export default function VendorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -45,7 +43,7 @@ export default function VendorDashboard() {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const router = useRouter();
   const { data: session, status } = useSession();
-
+  const [vendorStatus, setVendorStatus] = useState("");
   useEffect(() => {
     if (status === "unauthenticated") router.push("/Login");
   }, [status]);
@@ -60,7 +58,24 @@ export default function VendorDashboard() {
       console.error("Error fetching status:", error);
     }
   };
-
+  const toggleStoreStatus = async () => {
+    const newStatus = storeStatus === "closed" ? "opened" : "closed";
+    try {
+      const res = await axios.put(
+        `${BACKENDURL}/api/vendor/toggleStatus`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${session?.user?.accessToken}`,
+          },
+        }
+      );
+      setStoreStatus(res.data.vendor?.status);
+      toast.success(`Store is now ${res.data.vendor?.status}`);
+    } catch {
+      toast.error("Could not toggle store status");
+    }
+  };
   const fetchOrders = async () => {
     try {
       const res = await axios.get(
@@ -152,13 +167,27 @@ export default function VendorDashboard() {
 
           {/* Store Status */}
           <div className="mb-8">
-            <div className="flex items-center justify-between bg-white p-5 rounded-lg shadow">
-              <div className="text-gray-700">
-                Store is currently{" "}
-                <span className="font-bold text-[#AE2108] capitalize">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+              <p className="text-sm text-gray-600">
+                Store status:{" "}
+                <span
+                  className={`font-semibold capitalize ${
+                    storeStatus === "opened" ? "text-green-700" : "text-red-600"
+                  }`}
+                >
                   {storeStatus}
                 </span>
-              </div>
+              </p>
+              <button
+                onClick={toggleStoreStatus}
+                className={`px-4 py-2 text-sm text-white rounded-lg shadow transition ${
+                  storeStatus === "opened"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
+              >
+                {storeStatus === "opened" ? "Close Store" : "Open Store"}
+              </button>
             </div>
           </div>
 

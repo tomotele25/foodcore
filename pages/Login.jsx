@@ -43,6 +43,8 @@ const Login = () => {
         router.push("/vendors/Dashboard");
       } else if (role === "manager") {
         router.push("/vendors/ManagerDashboard");
+      } else if (role === "rider") {
+        router.push("/riders/RiderDashboard");
       } else {
         router.push("/");
       }

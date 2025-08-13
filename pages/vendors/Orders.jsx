@@ -111,7 +111,7 @@ export default function OrdersPage() {
                       <td className="px-4 py-3">
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            order.status === "Pending"
+                            order.status === "pending"
                               ? "bg-yellow-100 text-yellow-700"
                               : "bg-green-100 text-green-700"
                           }`}
