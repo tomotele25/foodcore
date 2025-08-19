@@ -39,7 +39,7 @@ const Checkout = () => {
     0
   );
 
-  let charges = 200;
+  let charges = 250;
   if (cartTotal >= 100000) {
     charges = 1000;
   } else if (cartTotal >= 20000) {
@@ -349,7 +349,7 @@ const Checkout = () => {
                 <span>₦{formatCurrency(deliveryFee)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Charges (5%)</span>
+                <span>Service fee</span>
                 <span>₦{formatCurrency(charges)}</span>
               </div>
 
