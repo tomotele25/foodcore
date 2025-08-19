@@ -39,7 +39,7 @@ const Checkout = () => {
     0
   );
 
-  const charges = Math.min(Math.round(cartTotal * 0.05), 2000);
+  const charges = Math.min(Math.round(cartTotal * 0.05), 1000);
   const finalTotal = cartTotal + charges + deliveryFee + packFee;
   useEffect(() => {
     if (session?.user) {
