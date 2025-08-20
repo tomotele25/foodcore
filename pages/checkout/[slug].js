@@ -278,8 +278,8 @@ const Checkout = () => {
                 >
                   <option value="">Select Packaging</option>
                   {vendor.packOptions?.map((opt) => (
-                    <option key={opt.type} value={opt.type}>
-                      {opt.type} - ₦{formatCurrency(opt.fee)}
+                    <option key={opt.name} value={opt.name}>
+                      {opt.name} - ₦{formatCurrency(opt.fee)}
                     </option>
                   ))}
                 </select>

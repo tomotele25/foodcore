@@ -1,129 +1,209 @@
 "use client";
 
 import React, { useState } from "react";
-import { ArrowLeft, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import axios from "axios";
-import { useSession } from "next-auth/react";
+import Link from "next/link";
+import {
+  Menu,
+  X,
+  LayoutDashboard,
+  LocationEditIcon,
+  UtensilsCrossed,
+  PackageOpen,
+  Settings,
+  LogOut,
+} from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 
-const BACKENDURL =
-  "https://chowspace-backend.vercel.app" || "http://localhost:2005";
-
-const Packaging = () => {
-  const router = useRouter();
+export default function Packaging() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [packName, setPackName] = useState("");
-  const [packPrice, setPackPrice] = useState("");
-  const [packs, setPacks] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [price, setPrice] = useState("");
+  const [message, setMessage] = useState(null);
+
+  const BACKENDURL =
+    "http://localhost:2005" || "https://chowspace-backend.vercel.app";
+
   const { data: session } = useSession();
+  const managerId = session?.user?._id || session?.user?.id;
 
-  const managerId = session?.user?.id;
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  const addPack = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!packName || !packPrice) return;
+
+    if (!managerId) {
+      setMessage({ type: "error", text: "Manager ID not found in session." });
+      return;
+    }
 
     try {
-      setLoading(true);
-
       const res = await axios.post(
-        `${BACKENDURL}/managers/${managerId}/packs`,
-        {
-          name: packName,
-          fee: Number(packPrice),
-        }
+        `${BACKENDURL}/api/managers/${managerId}/packs`,
+        { name: packName, fee: Number(price) }
       );
 
-      setPacks(res.data.vendor.packs);
+      setMessage({
+        type: "success",
+        text: "Pack added successfully!",
+      });
       setPackName("");
-      setPackPrice("");
-    } catch (error) {
-      console.error(
-        "Error adding pack:",
-        error.response?.data || error.message
-      );
-    } finally {
-      setLoading(false);
+      setPrice("");
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: err.response?.data?.message || "Failed to add pack.",
+      });
     }
   };
 
-  const removePack = (idx) => {
-    setPacks(packs.filter((_, i) => i !== idx));
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/Login" });
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto space-y-6">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center text-orange-600 hover:text-orange-800"
+    <div className="flex h-screen">
+      {/* Sidebar */}
+      <aside
+        className={`fixed top-0 left-0 z-40 h-full w-64 bg-white shadow-lg flex flex-col justify-between transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
       >
-        <ArrowLeft className="mr-2" /> Go Back
-      </button>
+        <div>
+          <div className="flex items-center justify-between p-4 border-b">
+            <h2 className="text-xl font-bold text-[#AE2108]">Manager Panel</h2>
+            <button onClick={toggleSidebar} className="md:hidden">
+              <X />
+            </button>
+          </div>
 
-      <h1 className="text-2xl font-bold">Packaging Options</h1>
-
-      <form
-        onSubmit={addPack}
-        className="flex flex-col sm:flex-row sm:items-end gap-4 bg-white rounded-lg p-4 shadow"
-      >
-        <div className="flex-1">
-          <label className="block text-sm font-medium mb-1">Pack Name</label>
-          <input
-            type="text"
-            value={packName}
-            onChange={(e) => setPackName(e.target.value)}
-            placeholder="e.g. Plastic Small"
-            className="w-full p-2 border rounded focus:outline-none focus:ring focus:ring-orange-200"
-            required
-          />
+          <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
+            <Link
+              href="/vendors/ManagerDashboard"
+              className="flex items-center gap-2 text-gray-700 font-semibold"
+            >
+              <LayoutDashboard size={18} />
+              Dashboard
+            </Link>
+            <Link
+              href="/vendors/ManageLocation"
+              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
+            >
+              <LocationEditIcon size={18} />
+              Locations
+            </Link>
+            <Link
+              href="/manager/ManagerOrder"
+              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
+            >
+              <UtensilsCrossed size={18} />
+              Orders
+            </Link>
+            <Link
+              href="/vendors/Packaging"
+              className="flex items-center gap-2 text-[#AE2108] hover:text-[#AE2108]"
+            >
+              <PackageOpen size={18} />
+              Packaging
+            </Link>
+            <Link
+              href="/manager/Profile"
+              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
+            >
+              <Settings size={18} />
+              Profile
+            </Link>
+          </nav>
         </div>
-        <div className="w-24">
-          <label className="block text-sm font-medium mb-1">Fee</label>
-          <input
-            type="number"
-            value={packPrice}
-            onChange={(e) => setPackPrice(e.target.value)}
-            placeholder="₦"
-            className="w-full p-2 border rounded focus:outline-none focus:ring focus:ring-orange-200"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="bg-orange-600 hover:bg-orange-700 text-white rounded px-4 py-2 transition disabled:opacity-50"
-        >
-          {loading ? "Adding..." : "Add"}
-        </button>
-      </form>
 
-      <div>
-        <h2 className="text-lg font-semibold mb-2">Current Packs</h2>
-        {packs.length === 0 ? (
-          <p className="text-gray-500">No packaging options added yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {packs.map((p, idx) => (
-              <li
-                key={idx}
-                className="bg-gray-50 flex justify-between p-3 rounded shadow-sm"
-              >
-                <span>
-                  {p.name} — <span className="font-semibold">₦{p.fee}</span>
-                </span>
-                <button
-                  onClick={() => removePack(idx)}
-                  className="text-red-500 hover:text-red-700"
+        {/* Logout Button Fixed Bottom */}
+        <div className="p-4 border-t">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-red-600 hover:bg-red-100 px-3 py-2 rounded-md w-full"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col ml-0 md:ml-64 bg-gray-50">
+        {/* Top Navbar (with toggle button on mobile) */}
+        <header className="flex items-center justify-between bg-white shadow px-4 py-3 md:py-4">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 text-gray-700 rounded-lg md:hidden"
+          >
+            {sidebarOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
+          <h1 className="text-lg font-semibold">Packaging</h1>
+        </header>
+
+        <main className="flex-1 p-6 overflow-y-auto">
+          <div className="max-w-xl mx-auto mt-8">
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <h1 className="text-2xl font-bold text-gray-800 mb-6">
+                Add Packaging Option
+              </h1>
+
+              {message && (
+                <div
+                  className={`mb-4 p-3 rounded ${
+                    message.type === "success"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
                 >
-                  <Trash2 size={18} />
+                  {message.text}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div>
+                  <label className="block mb-1 font-medium text-gray-700">
+                    Pack Name
+                  </label>
+                  <input
+                    type="text"
+                    value={packName}
+                    onChange={(e) => setPackName(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#AE2108] focus:outline-none focus:border-[#AE2108]"
+                    placeholder="e.g. Plastic Small"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-1 font-medium text-gray-700">
+                    Price (₦)
+                  </label>
+                  <input
+                    type="number"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#AE2108] focus:outline-none focus:border-[#AE2108]"
+                    placeholder="e.g. 500"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full bg-[#AE2108] text-white py-2 px-4 rounded-lg hover:bg-red-700 transition"
+                >
+                  Save Pack
                 </button>
-              </li>
-            ))}
-          </ul>
-        )}
+              </form>
+            </div>
+          </div>
+        </main>
       </div>
     </div>
   );
-};
-
-export default Packaging;
+}
