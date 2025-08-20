@@ -132,6 +132,13 @@ export default function ManagerDashboard() {
               Orders
             </Link>
             <Link
+              href="/manager/Packaging"
+              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
+            >
+              <UtensilsCrossed size={18} />
+              Packaging
+            </Link>
+            <Link
               href="/vendors/ManageProducts"
               className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
             >

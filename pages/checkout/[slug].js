@@ -7,13 +7,14 @@ import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
 import { useSession } from "next-auth/react";
+
 const formatCurrency = (amount) =>
   typeof amount === "number" ? amount.toLocaleString() : "0";
 
 const Checkout = () => {
   const router = useRouter();
   const { slug } = router.query;
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
@@ -31,7 +32,7 @@ const Checkout = () => {
   });
 
   const [deliveryFee, setDeliveryFee] = useState(0);
-  const packFee = 0;
+  const [cartPackFees, setCartPackFees] = useState([]);
 
   const cartItems = cart.flat();
   const cartTotal = cartItems.reduce(
@@ -40,12 +41,10 @@ const Checkout = () => {
   );
 
   let charges = 250;
-  if (cartTotal >= 100000) {
-    charges = 1000;
-  } else if (cartTotal >= 20000) {
-    charges = 400;
-  }
+  if (cartTotal >= 100000) charges = 1000;
+  else if (cartTotal >= 20000) charges = 400;
 
+  const packFee = cartPackFees.reduce((sum, fee) => sum + (fee || 0), 0);
   const finalTotal = cartTotal + deliveryFee + packFee + charges;
 
   useEffect(() => {
@@ -57,6 +56,7 @@ const Checkout = () => {
       }));
     }
   }, [session]);
+
   useEffect(() => {
     if (!slug) return;
 
@@ -93,6 +93,15 @@ const Checkout = () => {
     }
   };
 
+  const handlePackChange = (packIndex, selectedType) => {
+    const packOption = vendor.packOptions?.find((p) => p.type === selectedType);
+    setCartPackFees((prev) => {
+      const newFees = [...prev];
+      newFees[packIndex] = packOption?.fee || 0;
+      return newFees;
+    });
+  };
+
   const handlePay = async () => {
     if (loading) return;
     setLoading(true);
@@ -102,7 +111,6 @@ const Checkout = () => {
     const guestName = session?.user?.fullname || name;
     const guestEmail = session?.user?.email || email;
 
-    // Validate required delivery info
     if (!guestName || !phone || !address || !location) {
       toast.error("Fill in all delivery details");
       setLoading(false);
@@ -117,7 +125,6 @@ const Checkout = () => {
 
     const txRef = `chowspace-${Date.now()}`;
 
-    // Build common order payload
     const orderPayload = {
       vendorId: vendor._id,
       items: cartItems.map((item) => ({
@@ -129,12 +136,12 @@ const Checkout = () => {
       })),
       deliveryMethod: "delivery",
       note: "",
+      packFees: cartPackFees, // include packaging fees
       totalAmount: finalTotal,
       paymentStatus: "paid",
       paymentRef: txRef,
     };
 
-    // Add either customerId or guestInfo
     if (session?.user?.id) {
       orderPayload.customerId = session.user.id;
     } else {
@@ -155,12 +162,7 @@ const Checkout = () => {
         orderPayload,
         customerId: session?.user?.id,
         guestInfo: !session?.user?.id
-          ? {
-              name: guestName,
-              email: guestEmail,
-              phone,
-              address,
-            }
+          ? { name: guestName, email: guestEmail, phone, address }
           : undefined,
       });
 
@@ -189,7 +191,6 @@ const Checkout = () => {
     <>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10">
         <Toaster position="top-right" reverseOrder={false} />
-
         <h1 className="text-3xl font-extrabold mb-8 text-gray-900 text-center sm:text-left">
           Checkout from{" "}
           <span className="text-[#AE2108]">{vendor.businessName}</span>
@@ -260,6 +261,29 @@ const Checkout = () => {
                   </div>
                 ))}
               </div>
+
+              {/* Packaging selection per pack */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Packaging
+                </label>
+                <select
+                  value={
+                    vendor.packOptions?.find(
+                      (p) => p.fee === cartPackFees[packIndex]
+                    )?.type || ""
+                  }
+                  onChange={(e) => handlePackChange(packIndex, e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#AE2108] focus:border-[#AE2108] transition"
+                >
+                  <option value="">Select Packaging</option>
+                  {vendor.packOptions?.map((opt) => (
+                    <option key={opt.type} value={opt.type}>
+                      {opt.type} - ₦{formatCurrency(opt.fee)}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           ))
         )}
@@ -278,8 +302,8 @@ const Checkout = () => {
           >
             {["name", "phone", "address", "email"]
               .filter((field) => {
-                if (!session) return true; // show all if not logged in
-                return field === "phone" || field === "address"; // hide name & email if logged in
+                if (!session) return true;
+                return field === "phone" || field === "address";
               })
               .map((field) => (
                 <div key={field}>

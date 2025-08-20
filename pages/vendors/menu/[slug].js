@@ -13,19 +13,22 @@ import {
   CopyPlus,
   ShoppingCart,
   PackagePlus,
+  X,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
 import Head from "next/head";
+
 const VendorMenuPage = () => {
   const router = useRouter();
   const { slug } = router.query;
 
-  const canonicalUrl = `https://chowspace.ng/vendors/menu/${slug ?? ""}`;
   const [vendor, setVendor] = useState(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [cartOpen, setCartOpen] = useState(true);
 
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2005";
@@ -79,72 +82,11 @@ const VendorMenuPage = () => {
             ? `${vendor.businessName} | Menu | ChowSpace`
             : "Menu | ChowSpace"}
         </title>
-        <meta
-          name="description"
-          content={
-            vendor
-              ? `View the full menu from ${vendor.businessName} on ChowSpace. Order delicious meals from ${vendor.location}.`
-              : "Explore delicious meals from your favorite vendors on ChowSpace."
-          }
-        />
-        <meta name="robots" content="index, follow" />
-        <link
-          rel="canonical"
-          href={`https://chowspace.ng/vendors/menu/${slug}`}
-        />
-
-        {/* Open Graph */}
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:title"
-          content={
-            vendor
-              ? `${vendor.businessName} | Menu | ChowSpace`
-              : "Menu | ChowSpace"
-          }
-        />
-        <meta
-          property="og:description"
-          content={
-            vendor
-              ? `Check out ${vendor.businessName}'s menu and order easily on ChowSpace.`
-              : "Order from top vendors with ease on ChowSpace."
-          }
-        />
-        <meta
-          property="og:url"
-          content={`https://chowspace.ng/vendors/menu/${slug}`}
-        />
-        <meta
-          property="og:image"
-          content={vendor?.logo || "https://chowspace.ng/og-preview.jpg"}
-        />
-
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content={
-            vendor
-              ? `${vendor.businessName} | Menu | ChowSpace`
-              : "Menu | ChowSpace"
-          }
-        />
-        <meta
-          name="twitter:description"
-          content={
-            vendor
-              ? `Hungry? Browse and order from ${vendor.businessName}'s menu on ChowSpace.`
-              : "Delicious meals from local vendors on ChowSpace."
-          }
-        />
-        <meta
-          name="twitter:image"
-          content={vendor?.logo || "https://chowspace.ng/og-preview.jpg"}
-        />
       </Head>
 
       <section className="px-6 py-8 bg-gray-50 min-h-screen">
         <div className="max-w-6xl mx-auto">
+          {/* Back button */}
           <button
             onClick={() => router.back()}
             className="mb-6 inline-flex items-center gap-2 text-[#AE2108]"
@@ -153,6 +95,7 @@ const VendorMenuPage = () => {
             <span className="text-sm font-medium">Back</span>
           </button>
 
+          {/* Vendor info */}
           {vendor && (
             <div className="flex items-center gap-4 mb-10">
               <div className="w-16 h-16 relative rounded-full overflow-hidden border">
@@ -174,6 +117,7 @@ const VendorMenuPage = () => {
             </div>
           )}
 
+          {/* Pack buttons */}
           <div className="flex flex-wrap gap-2 mb-6">
             {cart.map((_, index) => (
               <button
@@ -203,6 +147,7 @@ const VendorMenuPage = () => {
             </button>
           </div>
 
+          {/* Menu */}
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Menu</h2>
 
           {loading ? (
@@ -210,7 +155,7 @@ const VendorMenuPage = () => {
           ) : error ? (
             <p className="text-red-600">{error}</p>
           ) : products.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div className="grid pb-15 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {products.map((product) => {
                 const item = currentPack.find((p) => p._id === product._id);
                 const count = item ? item.quantity : 0;
@@ -230,9 +175,7 @@ const VendorMenuPage = () => {
                       />
                     </div>
 
-                    {/* Main content: fills vertical space and pushes bottom elements down */}
                     <div className="p-4 flex flex-col justify-between flex-grow">
-                      {/* Spacer div takes available space to push content to the bottom */}
                       <div className="flex-grow" />
 
                       <div className="space-y-1">
@@ -256,7 +199,6 @@ const VendorMenuPage = () => {
                         </p>
                       </div>
 
-                      {/* Order/Quantity buttons */}
                       <div className="mt-4">
                         {count > 0 ? (
                           <div className="flex items-center gap-2">
@@ -297,42 +239,126 @@ const VendorMenuPage = () => {
             <p className="text-gray-500">No items on the menu yet.</p>
           )}
 
+          {/* Minimizable Cart Drawer */}
           {currentPack.length > 0 && (
-            <div className="mt-10 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">
-                Your Order
-              </h3>
-              <ul className="divide-y text-sm">
-                {currentPack.map((item) => (
-                  <li key={item._id} className="py-2 flex justify-between">
-                    <span>
-                      {item.productName} × {item.quantity}
-                    </span>
-                    <span className="font-semibold text-[#AE2108]">
-                      ₦{item.price * item.quantity}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <div className="flex justify-between mt-4 font-semibold text-base">
-                <span>Total:</span>
-                <span className="text-[#AE2108]">₦{total}</span>
-              </div>
-              <div className="mt-4 flex gap-3">
-                <button
-                  onClick={emptyCart}
-                  className="text-sm bg-gray-200 hover:bg-gray-200 px-4 py-2 rounded flex items-center gap-1"
+            <>
+              {/* Mobile: sticky bar */}
+              {/* Mobile: expandable sticky cart */}
+              <div className="fixed bottom-0 left-0 w-full z-50 md:hidden">
+                {/* Minimized bar */}
+                <div
+                  className="bg-white border-t border-gray-200 shadow-lg p-4 flex justify-between items-center cursor-pointer"
+                  onClick={() => setCartOpen(!cartOpen)}
                 >
-                  <Trash2 size={16} /> Empty
-                </button>
-                <button
-                  onClick={() => router.push(`/checkout/${slug}`)}
-                  className="text-sm bg-[#AE2108] text-white hover:bg-[#941B06] px-4 py-2 rounded flex items-center gap-1"
-                >
-                  <ShoppingCart size={16} /> Checkout
-                </button>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {currentPack.length}{" "}
+                      {currentPack.length === 1 ? "item" : "items"}
+                    </p>
+                    <p className="font-semibold text-[#AE2108] text-lg">
+                      ₦{total}
+                    </p>
+                  </div>
+                  <button>
+                    {cartOpen ? <X size={20} /> : <ShoppingCart size={20} />}
+                  </button>
+                </div>
+
+                {/* Expanded cart drawer */}
+                {cartOpen && (
+                  <div className="bg-white border-t border-gray-200 shadow-inner p-4 max-h-80 overflow-y-auto">
+                    <ul className="divide-y text-sm">
+                      {currentPack.map((item) => (
+                        <li
+                          key={item._id}
+                          className="py-2 flex justify-between items-center"
+                        >
+                          <span>
+                            {item.productName} × {item.quantity}
+                          </span>
+                          <span className="font-semibold text-[#AE2108]">
+                            ₦{item.price * item.quantity}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="flex justify-between mt-4 font-semibold text-base">
+                      <span>Total:</span>
+                      <span className="text-[#AE2108]">₦{total}</span>
+                    </div>
+                    <div className="mt-4 flex gap-3">
+                      <button
+                        onClick={emptyCart}
+                        className="text-sm bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded flex items-center gap-1 w-1/2"
+                      >
+                        <Trash2 size={16} /> Empty
+                      </button>
+                      <button
+                        onClick={() => router.push(`/checkout/${slug}`)}
+                        className="text-sm bg-[#AE2108] text-white hover:bg-[#941B06] px-4 py-2 rounded flex items-center gap-1 w-1/2"
+                      >
+                        <ShoppingCart size={16} /> Checkout
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+
+              {/* Desktop: floating minimizable cart */}
+              <div className="hidden md:flex fixed right-8 bottom-8 w-80 bg-white border border-gray-200 rounded-2xl shadow-lg flex-col z-50 transition-all duration-300">
+                {/* Header: toggle open/close */}
+                <div className="flex justify-between items-center p-3 border-b cursor-pointer">
+                  <div className="flex items-center gap-2">
+                    <ShoppingCart size={18} />
+                    <span className="font-semibold">
+                      {currentPack.length} items
+                    </span>
+                  </div>
+                  <button onClick={() => setCartOpen(!cartOpen)}>
+                    {cartOpen ? <X size={18} /> : <ShoppingCart size={18} />}
+                  </button>
+                </div>
+
+                {/* Cart content */}
+                {cartOpen && (
+                  <div className="p-4 flex flex-col">
+                    <ul className="divide-y text-sm max-h-60 overflow-y-auto">
+                      {currentPack.map((item) => (
+                        <li
+                          key={item._id}
+                          className="py-2 flex justify-between"
+                        >
+                          <span>
+                            {item.productName} × {item.quantity}
+                          </span>
+                          <span className="font-semibold text-[#AE2108]">
+                            ₦{item.price * item.quantity}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="flex justify-between mt-4 font-semibold text-base">
+                      <span>Total:</span>
+                      <span className="text-[#AE2108]">₦{total}</span>
+                    </div>
+                    <div className="mt-4 flex gap-3">
+                      <button
+                        onClick={emptyCart}
+                        className="text-sm bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded flex items-center gap-1"
+                      >
+                        <Trash2 size={16} /> Empty
+                      </button>
+                      <button
+                        onClick={() => router.push(`/checkout/${slug}`)}
+                        className="text-sm bg-[#AE2108] text-white hover:bg-[#941B06] px-4 py-2 rounded flex items-center gap-1"
+                      >
+                        <ShoppingCart size={16} /> Checkout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </section>

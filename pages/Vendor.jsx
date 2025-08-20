@@ -21,7 +21,7 @@ const Vendor = () => {
   const [loginmodal, setLoginmodal] = useState(false);
   const [isFavorite, setIsFavourite] = useState(null);
   const { data: session } = useSession();
-  const { selectedCategory } = useCategory(); // get global selected category
+  const { selectedCategory } = useCategory();
 
   const vendorsPerPage = 8;
   const router = useRouter();
