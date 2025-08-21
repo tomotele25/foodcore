@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -16,15 +16,13 @@ import {
   Rocket,
   Star,
   Bell,
-  ArrowBigLeft,
-  ArrowRightIcon,
   CircleQuestionMarkIcon,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
-import Notification from "@/components/Notification";
+
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/vendors/Dashboard" },
   { name: "Orders", icon: PackageOpen, path: "/vendors/Orders" },
@@ -39,37 +37,51 @@ const menuItems = [
 ];
 
 const BACKENDURL =
-  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+  "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
-export default function VendorDashboard() {
+const weekdays = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+];
+
+export default function StoreHours() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [storeStatus, setStoreStatus] = useState("");
-  const [orders, setOrders] = useState([]);
-  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [storeHours, setStoreHours] = useState(
+    weekdays.map((day) => ({ day, open: "09:00", close: "17:00" }))
+  );
   const [mouseIsOver, setMouseIsOver] = useState(false);
+
+  const { data: session } = useSession();
   const router = useRouter();
-  const { data: session, status } = useSession();
 
-  useEffect(() => {
-    if (status === "unauthenticated") router.push("/Login");
-  }, [status]);
-
-  const fetchStoreStatus = async () => {
-    try {
-      const res = await axios.get(
-        `${BACKENDURL}/api/getVendorStatusById/${session?.user?.vendorId}`
-      );
-      setStoreStatus(res.data.status);
-    } catch (error) {
-      console.error("Error fetching status:", error);
-    }
+  const handleTimeChange = (index, field, value) => {
+    const updated = [...storeHours];
+    updated[index][field] = value;
+    setStoreHours(updated);
   };
 
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetchStoreStatus();
+  const saveStoreHours = async () => {
+    try {
+      await axios.put(
+        `${BACKENDURL}/api/vendor/update-hours`,
+        { openingHours: storeHours },
+        {
+          headers: {
+            Authorization: `Bearer ${session?.user?.accessToken}`,
+          },
+        }
+      );
+      toast.success("Store hours updated");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update store hours");
     }
-  }, [session, status]);
+  };
 
   const handleLogout = async () => {
     const toastId = toast.loading("Logging out...");
@@ -129,61 +141,64 @@ export default function VendorDashboard() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto  p-4 bg-gray-100">
-          <header className="flex items-center  justify-between mb-6">
+        <main className="flex-1 overflow-y-auto p-6 bg-gray-100">
+          <header className="flex items-center justify-between mb-6">
             <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu size={24} />
             </button>
-            <h2 className="text-lg font-semibold text-gray-800">Settings</h2>
+            <h2 className="text-lg font-semibold text-gray-800">
+              Set Store Hours
+            </h2>
           </header>
 
-          <div className="grid gap-10  sm:flex justify-between px-10 ">
-            <div className="flex items-center py-2 sm:py-5 gap-3 sm:gap-18 bg-white px-4 sm:px-16 shadow-2xs rounded-2xl">
-              <span className="flex text-sm items-center ">
-                <span>
-                  <img src="/logo.jpg" height={100} width={100} alt="" />
-                </span>
-                <span className="grid">
-                  <p className="text-nowrap">Tomotele Christopher</p>
-                  <Link href="/vendors/Profile">
-                    <p className="flex items-center gap-1">view profile</p>
-                  </Link>
-                </span>
-              </span>
-              <span>
-                <ArrowRightIcon size={10} />
-              </span>
-            </div>
-            <div className="flex flex-col gap-5 relative">
+          <div className="grid gap-10">
+            <div className="flex flex-col gap-5 relative bg-white p-6 rounded-2xl shadow-md">
               <h1 className="text-2xl font-bold flex items-center gap-2">
-                Set when store closes{" "}
+                Set Store Hours{" "}
                 <CircleQuestionMarkIcon
-                  onMouseEnter={() => {
-                    setMouseIsOver(true);
-                  }}
-                  onMouseLeave={() => {
-                    setMouseIsOver(false);
-                  }}
-                  className=" cursor-pointer "
+                  onMouseEnter={() => setMouseIsOver(true)}
+                  onMouseLeave={() => setMouseIsOver(false)}
+                  className="cursor-pointer"
                 />
               </h1>
+
               {mouseIsOver && (
-                <div className="absolute sm:right-72 bg-slate-100 shadow-2xl justify-items-start   top-10">
-                  <p className="text-xs  w-32 p-2 text-left capitalize">
-                    set when the store automatically closes
+                <div className="absolute sm:right-72 bg-slate-100 shadow p-2 top-12 rounded">
+                  <p className="text-xs w-48 p-2 text-left capitalize">
+                    Set opening and closing times for each day
                   </p>
                 </div>
               )}
-              <div>
-                <span className="grid">
-                  <span className="gap-2 flex">
+
+              <div className="grid gap-4 mt-4">
+                {storeHours.map((dayObj, idx) => (
+                  <div key={dayObj.day} className="flex items-center gap-2">
+                    <span className="w-24 font-semibold">{dayObj.day}</span>
                     <input
                       type="time"
-                      className="border-1 border-[#AE2108] w-1/2"
+                      value={dayObj.open}
+                      onChange={(e) =>
+                        handleTimeChange(idx, "open", e.target.value)
+                      }
+                      className="border border-[#AE2108] px-2 py-1 rounded"
                     />
-                    <button className="flex-1 px-5  bg-[#AE2108]">set</button>
-                  </span>
-                </span>
+                    <span>to</span>
+                    <input
+                      type="time"
+                      value={dayObj.close}
+                      onChange={(e) =>
+                        handleTimeChange(idx, "close", e.target.value)
+                      }
+                      className="border border-[#AE2108] px-2 py-1 rounded"
+                    />
+                  </div>
+                ))}
+                <button
+                  onClick={saveStoreHours}
+                  className="px-5 py-2 mt-4 bg-[#AE2108] text-white rounded-md"
+                >
+                  Save Hours
+                </button>
               </div>
             </div>
           </div>

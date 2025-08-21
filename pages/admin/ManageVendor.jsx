@@ -21,7 +21,7 @@ const menuItems = [
   { name: "Settings", icon: Settings, path: "/admin/settings" },
 ];
 
-const locations = ["Lagos", "Abuja", "Kano", "Port Harcourt", "Ibadan"];
+const locations = ["Lagos", "Abeokuta", "Ibadan"];
 
 const BACKENDURL =
   "https://chowspace-backend.vercel.app" || "http://localhost:2005";
@@ -40,6 +40,7 @@ const ManageVendor = () => {
     businessName: "",
     phoneNumber: "",
     location: "",
+    paymentPreference: "paystack",
   });
 
   useEffect(() => {
@@ -66,8 +67,8 @@ const ManageVendor = () => {
         contact: form.phoneNumber,
         location: form.location,
         address: "Default Address",
-
         category: "general",
+        paymentPreference: form.paymentPreference,
       };
 
       const res = await axios.post(`${BACKENDURL}/api/vendor/create`, payload);
@@ -80,6 +81,7 @@ const ManageVendor = () => {
           businessName: "",
           phoneNumber: "",
           location: "",
+          paymentPreference: "paystack",
         });
         setModal(false);
         fetchVendorData();
@@ -102,6 +104,17 @@ const ManageVendor = () => {
         "Error fetching vendors:",
         error.response?.data || error.message
       );
+    }
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`${BACKENDURL}/api/vendor/delete/${id}`);
+      toast.success("Vendor deleted!");
+      fetchVendorData();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to delete vendor.");
     }
   };
 
@@ -199,6 +212,7 @@ const ManageVendor = () => {
             </tbody>
           </table>
         </div>
+
         {/* Mobile Cards View */}
         <section className="flex-1 p-3 sm:p-4 lg:p-6 overflow-hidden">
           <div className="block lg:hidden space-y-4">
@@ -245,6 +259,7 @@ const ManageVendor = () => {
             ))}
           </div>
         </section>
+
         {/* Floating Button */}
         <button
           onClick={() => setModal(true)}
@@ -322,6 +337,20 @@ const ManageVendor = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-md"
                     placeholder="+234 801 234 5678"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">
+                    Payment Preference
+                  </label>
+                  <select
+                    name="paymentPreference"
+                    value={form.paymentPreference}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="paystack">Paystack</option>
+                    <option value="direct">Direct (WhatsApp)</option>
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">

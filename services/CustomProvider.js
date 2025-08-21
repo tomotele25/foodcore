@@ -32,6 +32,7 @@ export const customProvider = CredentialsProvider({
           location: user.location,
           contact: user.contact,
           address: user.address,
+          paymentPreference: user.paymentPreference,
         };
       }
       console.log(user);

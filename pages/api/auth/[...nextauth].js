@@ -18,6 +18,7 @@ export const nextOptions = {
         token.businessName = user.businessName;
         token.location = user.location;
         token.address = user.address;
+        token.paymentPreference = user.paymentPreference;
       }
       return token;
     },
@@ -34,6 +35,7 @@ export const nextOptions = {
         address: token.address,
         location: token.location,
         businessName: token.businessName,
+        paymentPreference: token.paymentPreference,
       };
       return session;
     },

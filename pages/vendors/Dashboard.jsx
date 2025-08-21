@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  LayoutDashboard,
   PackageOpen,
   Settings,
   LogOut,
@@ -22,6 +21,7 @@ import { useRouter } from "next/router";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import Notification from "@/components/Notification";
+
 const menuItems = [
   { name: "Orders", icon: PackageOpen, path: "/vendors/Orders" },
   { name: "Reviews", icon: Star, path: "/vendors/Reviews" },
@@ -39,44 +39,19 @@ const BACKENDURL =
 
 export default function VendorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [storeStatus, setStoreStatus] = useState("");
+  const [storeStatus, setStoreStatus] = useState("closed");
+  const [storeHours, setStoreHours] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
+
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [vendorStatus, setVendorStatus] = useState("");
+
   useEffect(() => {
     if (status === "unauthenticated") router.push("/Login");
   }, [status]);
 
-  const fetchStoreStatus = async () => {
-    try {
-      const res = await axios.get(
-        `${BACKENDURL}/api/getVendorStatusById/${session?.user?.vendorId}`
-      );
-      setStoreStatus(res.data.status);
-    } catch (error) {
-      console.error("Error fetching status:", error);
-    }
-  };
-  const toggleStoreStatus = async () => {
-    const newStatus = storeStatus === "closed" ? "opened" : "closed";
-    try {
-      const res = await axios.put(
-        `${BACKENDURL}/api/vendor/toggleStatus`,
-        { status: newStatus },
-        {
-          headers: {
-            Authorization: `Bearer ${session?.user?.accessToken}`,
-          },
-        }
-      );
-      setStoreStatus(res.data.vendor?.status);
-      toast.success(`Store is now ${res.data.vendor?.status}`);
-    } catch {
-      toast.error("Could not toggle store status");
-    }
-  };
+  // Fetch orders
   const fetchOrders = async () => {
     try {
       const res = await axios.get(
@@ -90,12 +65,110 @@ export default function VendorDashboard() {
     }
   };
 
+  // Fetch store hours
+  const fetchStoreHours = async () => {
+    try {
+      if (!session?.user?.vendorId) return;
+      const res = await axios.get(
+        `${BACKENDURL}/api/vendor/${session.user.vendorId}/opening-hours`,
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+      );
+      setStoreHours(res.data.openingHours || []);
+    } catch (err) {
+      console.error("Failed to fetch opening hours:", err);
+      setStoreHours([]);
+    }
+  };
+
+  // Fetch store status
+  const fetchStoreStatus = async () => {
+    try {
+      const res = await axios.get(
+        `${BACKENDURL}/api/getVendorStatusById/${session?.user?.vendorId}`
+      );
+      if (res.data.status) setStoreStatus(res.data.status);
+    } catch (err) {
+      console.error("Failed to fetch store status:", err);
+    }
+  };
+
+  // Toggle store manually
+  const toggleStoreStatus = async () => {
+    const newStatus = storeStatus === "closed" ? "opened" : "closed";
+    try {
+      const res = await axios.put(
+        `${BACKENDURL}/api/vendor/toggleStatus`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+      );
+      setStoreStatus(res.data.vendor?.status || newStatus);
+      toast.success(`Store is now ${res.data.vendor?.status || newStatus}`);
+    } catch {
+      toast.error("Could not toggle store status");
+    }
+  };
+
+  // Sync store status to backend
+  const syncStoreStatusToDB = async (status) => {
+    try {
+      await axios.put(
+        `${BACKENDURL}/api/vendor/toggleStatus`,
+        { status },
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
+      );
+    } catch (err) {
+      console.error("Failed to sync store status to DB:", err);
+    }
+  };
+
+  // Automatic store closure based on hours
+  const checkStoreHours = async () => {
+    if (!storeHours || storeHours.length === 0) {
+      setStoreStatus("closed");
+      return;
+    }
+
+    const now = new Date();
+    const dayName = now.toLocaleDateString("en-US", { weekday: "long" });
+    const todayHours = storeHours.find((d) => d.day === dayName);
+
+    if (!todayHours) {
+      setStoreStatus("closed");
+      await syncStoreStatusToDB("closed");
+      return;
+    }
+
+    const [openHour, openMin] = todayHours.open.split(":").map(Number);
+    const [closeHour, closeMin] = todayHours.close.split(":").map(Number);
+
+    const openTime = new Date();
+    openTime.setHours(openHour, openMin, 0, 0);
+
+    const closeTime = new Date();
+    closeTime.setHours(closeHour, closeMin, 0, 0);
+
+    const newStatus = now >= openTime && now <= closeTime ? "opened" : "closed";
+    setStoreStatus(newStatus);
+    await syncStoreStatusToDB(newStatus);
+  };
+
+  // Initial fetch
   useEffect(() => {
     if (status === "authenticated") {
-      fetchStoreStatus();
       fetchOrders();
+      fetchStoreHours();
+      fetchStoreStatus();
     }
   }, [session, status]);
+
+  // Check store hours every minute
+  useEffect(() => {
+    if (storeHours.length > 0) {
+      checkStoreHours(); // run immediately
+      const interval = setInterval(checkStoreHours, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [storeHours]);
 
   const handleLogout = async () => {
     const toastId = toast.loading("Logging out...");
@@ -155,15 +228,13 @@ export default function VendorDashboard() {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto  p-4 bg-gray-100">
-          <header className="flex items-center  justify-between mb-6">
+        <main className="flex-1 overflow-y-auto p-4 bg-gray-100">
+          <header className="flex items-center justify-between mb-6">
             <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu size={24} />
             </button>
             <h2 className="text-lg font-semibold text-gray-800">Dashboard</h2>
-            <span>
-              <Notification />
-            </span>
+            <Notification />
           </header>
 
           {/* Store Status */}
@@ -235,14 +306,14 @@ export default function VendorDashboard() {
                 <tbody>
                   {loadingOrders ? (
                     <tr>
-                      <td colSpan="4" className="text-center py-6">
+                      <td colSpan={4} className="text-center py-6">
                         Loading...
                       </td>
                     </tr>
                   ) : orders.length === 0 ? (
                     <tr>
                       <td
-                        colSpan="4"
+                        colSpan={4}
                         className="text-center py-6 text-gray-500"
                       >
                         No orders yet

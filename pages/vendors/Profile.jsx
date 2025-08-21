@@ -55,7 +55,7 @@ const Profile = () => {
     address: "",
     accountNumber: "",
     bankName: "",
-    deliveryDuration: "", // ✅ added
+    deliveryDuration: "",
   });
 
   const [editMode, setEditMode] = useState(false);
@@ -66,27 +66,28 @@ const Profile = () => {
 
   const BACKENDURL =
     "https://chowspace-backend.vercel.app" || "http://localhost:2005";
+
   useEffect(() => {
     if (status === "unauthenticated") router.push("/Login");
   }, [status]);
 
   useEffect(() => {
-    if (session?.vendor) {
-      const vendor = session.vendor;
+    if (session?.user) {
+      const user = session.user;
       const userData = {
-        fullname: vendor.fullname || "",
-        email: vendor.email || "",
-        businessName: vendor.businessName || "",
-        contact: vendor.phoneNumber || "",
-        location: vendor.location || "",
-        address: vendor.address || "",
-        accountNumber: vendor.accountNumber || "",
-        bankName: vendor.bankName || "",
-        deliveryDuration: vendor.deliveryDuration || "", // ✅ added
+        fullname: user.fullname || "",
+        email: user.email || "",
+        businessName: user.businessName || "",
+        contact: user.contact || "",
+        location: user.location || "",
+        address: user.address || "",
+        accountNumber: user.accountNumber || "",
+        bankName: user.bankName || "",
+        deliveryDuration: user.deliveryDuration || "",
       };
       setFormData(userData);
       setTempData(userData);
-      setLogoPreview(vendor.logo || "");
+      setLogoPreview(user.logo || "");
     }
   }, [session]);
 
@@ -94,7 +95,7 @@ const Profile = () => {
 
   const handleCancelClick = () => {
     setTempData(formData);
-    setLogoPreview(session?.vendor?.logo);
+    setLogoPreview(session?.user?.logo || "");
     setNewPassword("");
     setEditMode(false);
   };
@@ -123,7 +124,9 @@ const Profile = () => {
     form.append("address", tempData.address);
     form.append("deliveryDuration", tempData.deliveryDuration);
 
+    // Only add account/bank if vendor is not direct and info not already set
     if (
+      session?.user?.paymentPreference !== "direct" &&
       !formData.accountNumber &&
       tempData.accountNumber &&
       tempData.bankName
@@ -272,13 +275,21 @@ const Profile = () => {
                 <p>
                   <strong>Address:</strong> {session?.user?.address}
                 </p>
-                <p>
-                  <strong>Account Number:</strong>{" "}
-                  {formData.accountNumber || "Not set"}
-                </p>
-                <p>
-                  <strong>Bank Name:</strong> {formData.bankName || "Not set"}
-                </p>
+
+                {/* Only show bank/account if vendor is not direct */}
+                {session?.user?.paymentPreference !== "direct" && (
+                  <>
+                    <p>
+                      <strong>Account Number:</strong>{" "}
+                      {formData.accountNumber || "Not set"}
+                    </p>
+                    <p>
+                      <strong>Bank Name:</strong>{" "}
+                      {formData.bankName || "Not set"}
+                    </p>
+                  </>
+                )}
+
                 <p>
                   <strong>Delivery Duration:</strong>{" "}
                   {formData.deliveryDuration || "Not set"} mins
@@ -330,30 +341,34 @@ const Profile = () => {
                   placeholder="Estimated Delivery Time (minutes)"
                   min={1}
                 />
-                {!formData.accountNumber && (
-                  <>
-                    <input
-                      name="accountNumber"
-                      value={tempData.accountNumber}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border rounded"
-                      placeholder="Account Number"
-                    />
-                    <select
-                      name="bankName"
-                      value={tempData.bankName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border rounded bg-white"
-                    >
-                      <option value="">Select Bank</option>
-                      {BANK_OPTIONS.map((bank) => (
-                        <option key={bank.code} value={bank.name}>
-                          {bank.name}
-                        </option>
-                      ))}
-                    </select>
-                  </>
-                )}
+
+                {/* Bank/account fields for non-direct vendors */}
+                {session?.user?.paymentPreference !== "direct" &&
+                  !formData.accountNumber && (
+                    <>
+                      <input
+                        name="accountNumber"
+                        value={tempData.accountNumber}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border rounded"
+                        placeholder="Account Number"
+                      />
+                      <select
+                        name="bankName"
+                        value={tempData.bankName}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border rounded bg-white"
+                      >
+                        <option value="">Select Bank</option>
+                        {BANK_OPTIONS.map((bank) => (
+                          <option key={bank.code} value={bank.name}>
+                            {bank.name}
+                          </option>
+                        ))}
+                      </select>
+                    </>
+                  )}
+
                 <input
                   type="password"
                   placeholder="New Password (optional)"
