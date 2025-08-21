@@ -8,15 +8,16 @@ export default function PromoBanner() {
     <section className="relative isolate overflow-hidden bg-[#AE2108] text-white rounded-3xl px-4 sm:px-6 py-10 sm:py-14 shadow-2xl mt-8 mx-2 sm:mx-6 lg:mx-0 group">
       {/* Zooming background */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <div className="w-full h-full scale-100 group-hover:scale-105 transition-transform duration-1000 ease-out">
+        <div className="absolute inset-0 z-0 overflow-hidden">
           <Image
-            src="/food-banner.jpg"
+            src="/boripe new paster.jpg"
             alt="Food ingredients background"
-            layout="fill"
-            objectFit="cover"
-            loading="lazy"
-            className="pointer-events-none"
+            fill
+            style={{ objectFit: "cover", objectPosition: "center" }}
+            priority
+            className="pointer-events-none blur-sm"
           />
+          <div className="absolute inset-0 bg-black/30 pointer-events-none"></div>
         </div>
       </div>
 

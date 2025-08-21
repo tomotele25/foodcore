@@ -157,45 +157,46 @@ const Checkout = () => {
       return;
     }
 
+    const txRef = `chowspace-${Date.now()}`;
+    const guestEmail =
+      session?.user?.email || email || `guest${Date.now()}@chowspace.com`;
+
+    const orderPayload = {
+      vendorId: vendor._id,
+      items: cartItems.map((item) => ({
+        menuItemId: item._id,
+        name: item.productName,
+        quantity: item.quantity,
+        price: item.price,
+        logo: item.image,
+      })),
+      deliveryMethod: "delivery",
+      note: "",
+      packFees: cartPackFees,
+      totalAmount: finalTotal,
+      paymentRef: txRef,
+      paymentMethod:
+        vendor.paymentPreference === "direct" ? "direct" : "online",
+      paymentStatus: vendor.paymentPreference === "direct" ? "pending" : "paid",
+    };
+
+    if (session?.user?.id) orderPayload.customerId = session.user.id;
+    else orderPayload.guestInfo = { name, email: guestEmail, phone, address };
+
     try {
-      const txRef = `chowspace-${Date.now()}`;
-      const guestEmail =
-        session?.user?.email || email || `guest${Date.now()}@chowspace.com`;
-
-      const orderPayload = {
-        vendorId: vendor._id,
-        items: cartItems.map((item) => ({
-          menuItemId: item._id,
-          name: item.productName,
-          quantity: item.quantity,
-          price: item.price,
-          logo: item.image,
-        })),
-        deliveryMethod: "delivery",
-        note: "",
-        packFees: cartPackFees,
-        totalAmount: finalTotal,
-        paymentRef: txRef,
-        paymentMethod:
-          vendor.paymentPreference === "direct" ? "direct" : "online",
-        paymentStatus:
-          vendor.paymentPreference === "direct" ? "pending" : "paid",
-      };
-
-      if (session?.user?.id) orderPayload.customerId = session.user.id;
-      else orderPayload.guestInfo = { name, email: guestEmail, phone, address };
-
-      // Create order in DB first
-      await axios.post(`${BACKENDURL}/api/orders`, orderPayload);
-
-      // If direct payment, open WhatsApp chat
+      // If direct payment, open WhatsApp **first**
       if (vendor.paymentPreference === "direct") {
         const waLink = `https://wa.me/${formatPhoneNumber(
           vendor.contact
         )}?text=${generateWhatsAppMessage()}`;
-        window.open(waLink, "_blank");
-      } else {
-        // Otherwise, proceed with online payment
+        window.location.href = waLink;
+      }
+
+      // Create order in DB
+      await axios.post(`${BACKENDURL}/api/orders`, orderPayload);
+
+      // Online payment
+      if (vendor.paymentPreference !== "direct") {
         const res = await axios.post(`${BACKENDURL}/api/init-payment`, {
           amount: finalTotal,
           email: guestEmail,
