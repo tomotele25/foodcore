@@ -20,15 +20,24 @@ export default function ManageLocation() {
   const [location, setLocation] = useState("");
   const [price, setPrice] = useState("");
   const [message, setMessage] = useState(null);
+
+  // ✅ missing states added
+  const [vendorId, setVendorId] = useState(null);
+  const [locations, setLocations] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [editValues, setEditValues] = useState({ location: "", price: "" });
+
   const BACKENDURL =
-    "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    "https://chowspace-backend.vercel.app";
+
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
   const managerId = session?.user?.id;
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  // ✅ Fetch vendorId + locations using managerId
+  // ✅ Fetch vendor + locations
   useEffect(() => {
     if (!managerId) return;
 
@@ -37,7 +46,9 @@ export default function ManageLocation() {
         const res = await axios.get(
           `${BACKENDURL}/api/locations/manager/${managerId}`
         );
-        setVendorId(res.data.vendor._id);
+        if (res.data?.vendor?._id) {
+          setVendorId(res.data.vendor._id);
+        }
         setLocations(res.data.locations || []);
       } catch (err) {
         console.error("Failed to fetch vendor locations:", err);
@@ -47,7 +58,7 @@ export default function ManageLocation() {
     fetchVendorAndLocations();
   }, [managerId]);
 
-  // Create new location
+  // ✅ Create new location
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!token || !vendorId) {
@@ -74,27 +85,25 @@ export default function ManageLocation() {
     }
   };
 
-  // Start editing
+  // ✅ Start editing
   const startEditing = (loc) => {
     setEditingId(loc._id);
     setEditValues({ location: loc.location, price: loc.price });
   };
 
-  // Save edit
+  // ✅ Save edit
   const saveEdit = async (id) => {
+    if (!token || !managerId) return;
+
     try {
-      // send as an array since backend expects { locations: [...] }
       const res = await axios.put(
         `${BACKENDURL}/api/locations/${managerId}`,
-        { locations: [editValues] },
+        { locations: [{ ...editValues, _id: id }] },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       // Update local state
-      const updatedLoc = res.data.locations.find(
-        (l) => l.location === editValues.location
-      );
-
+      const updatedLoc = res.data.locations.find((l) => l._id === id);
       setLocations((prev) =>
         prev.map((loc) => (loc._id === id ? updatedLoc : loc))
       );
