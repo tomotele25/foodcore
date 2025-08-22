@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
 import {
@@ -11,6 +10,8 @@ import {
   PackageOpen,
   Settings,
   LogOut,
+  Pencil,
+  Save,
 } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 
@@ -23,38 +24,86 @@ export default function ManageLocation() {
     "https://chowspace-backend.vercel.app" || "http://localhost:2006";
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
+  const managerId = session?.user?.id;
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
+  // ✅ Fetch vendorId + locations using managerId
+  useEffect(() => {
+    if (!managerId) return;
+
+    const fetchVendorAndLocations = async () => {
+      try {
+        const res = await axios.get(
+          `${BACKENDURL}/api/locations/manager/${managerId}`
+        );
+        setVendorId(res.data.vendor._id);
+        setLocations(res.data.locations || []);
+      } catch (err) {
+        console.error("Failed to fetch vendor locations:", err);
+      }
+    };
+
+    fetchVendorAndLocations();
+  }, [managerId]);
+
+  // Create new location
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!token) {
-      setMessage({ type: "error", text: "Access token not found in session." });
+    if (!token || !vendorId) {
+      setMessage({ type: "error", text: "Missing vendor or token." });
       return;
     }
 
     try {
       const res = await axios.post(
         `${BACKENDURL}/api/createVendorLocation`,
-        { location, price },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { vendorId, location, price },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setMessage({
-        type: "success",
-        text: "Location added/updated successfully!",
-      });
+      setMessage({ type: "success", text: "Location added successfully!" });
       setLocation("");
       setPrice("");
+      setLocations((prev) => [...prev, res.data.location]);
     } catch (err) {
       setMessage({
         type: "error",
         text: err.response?.data?.message || "Failed to create location.",
+      });
+    }
+  };
+
+  // Start editing
+  const startEditing = (loc) => {
+    setEditingId(loc._id);
+    setEditValues({ location: loc.location, price: loc.price });
+  };
+
+  // Save edit
+  const saveEdit = async (id) => {
+    try {
+      // send as an array since backend expects { locations: [...] }
+      const res = await axios.put(
+        `${BACKENDURL}/api/locations/${managerId}`,
+        { locations: [editValues] },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Update local state
+      const updatedLoc = res.data.locations.find(
+        (l) => l.location === editValues.location
+      );
+
+      setLocations((prev) =>
+        prev.map((loc) => (loc._id === id ? updatedLoc : loc))
+      );
+      setEditingId(null);
+      setMessage({ type: "success", text: "Location updated successfully!" });
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: err.response?.data?.message || "Failed to update location.",
       });
     }
   };
@@ -89,28 +138,28 @@ export default function ManageLocation() {
             </Link>
             <Link
               href="/vendors/ManageLocation"
-              className="flex items-center gap-2 text-[#AE2108] hover:text-[#AE2108]"
+              className="flex items-center gap-2 text-[#AE2108] hover:text-[#AE2108] font-semibold"
             >
               <LocationEditIcon size={18} />
               Locations
             </Link>
             <Link
               href="/manager/ManagerOrder"
-              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
+              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108] font-semibold"
             >
               <UtensilsCrossed size={18} />
               Orders
             </Link>
             <Link
               href="/vendors/ManageProducts"
-              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
+              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108] font-semibold"
             >
               <PackageOpen size={18} />
               Products
             </Link>
             <Link
               href="/manager/Profile"
-              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108]"
+              className="flex items-center gap-2 text-gray-700 hover:text-[#AE2108] font-semibold"
             >
               <Settings size={18} />
               Profile
@@ -118,7 +167,6 @@ export default function ManageLocation() {
           </nav>
         </div>
 
-        {/* Logout Button Fixed Bottom */}
         <div className="p-4 border-t">
           <button
             onClick={handleLogout}
@@ -132,8 +180,8 @@ export default function ManageLocation() {
 
       {/* Main Content */}
       <div className="flex-1 p-6 ml-0 overflow-y-auto bg-gray-50">
-        <div className="max-w-xl mx-auto mt-8">
-          <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="max-w-3xl mx-auto mt-8">
+          <div className="bg-white rounded-xl shadow-md p-6 mb-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">
               Add Delivery Location
             </h1>
@@ -186,6 +234,85 @@ export default function ManageLocation() {
                 Save Location
               </button>
             </form>
+          </div>
+
+          {/* Existing Locations */}
+          <div className="bg-white rounded-xl shadow-md p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              Existing Locations
+            </h2>
+            {!vendorId ? (
+              <p className="text-gray-500">Loading vendor...</p>
+            ) : locations.length === 0 ? (
+              <p className="text-gray-500">No locations yet.</p>
+            ) : (
+              <table className="min-w-full text-sm border">
+                <thead className="bg-gray-100 text-left">
+                  <tr>
+                    <th className="px-4 py-2 border">Location</th>
+                    <th className="px-4 py-2 border">Price (₦)</th>
+                    <th className="px-4 py-2 border">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {locations.map((loc) => (
+                    <tr key={loc._id} className="border-t">
+                      <td className="px-4 py-2 border">
+                        {editingId === loc._id ? (
+                          <input
+                            type="text"
+                            value={editValues.location}
+                            onChange={(e) =>
+                              setEditValues((prev) => ({
+                                ...prev,
+                                location: e.target.value,
+                              }))
+                            }
+                            className="border px-2 py-1 rounded w-full"
+                          />
+                        ) : (
+                          loc.location
+                        )}
+                      </td>
+                      <td className="px-4 py-2 border">
+                        {editingId === loc._id ? (
+                          <input
+                            type="number"
+                            value={editValues.price}
+                            onChange={(e) =>
+                              setEditValues((prev) => ({
+                                ...prev,
+                                price: e.target.value,
+                              }))
+                            }
+                            className="border px-2 py-1 rounded w-full"
+                          />
+                        ) : (
+                          `₦${Number(loc.price).toLocaleString()}`
+                        )}
+                      </td>
+                      <td className="px-4 py-2 border">
+                        {editingId === loc._id ? (
+                          <button
+                            onClick={() => saveEdit(loc._id)}
+                            className="flex items-center gap-1 bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                          >
+                            <Save size={14} /> Save
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => startEditing(loc)}
+                            className="flex items-center gap-1 bg-[#AE2108] text-white px-3 py-1 rounded hover:bg-blue-600"
+                          >
+                            <Pencil size={14} /> Edit
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

@@ -38,7 +38,6 @@ const Checkout = () => {
   });
 
   const [deliveryFee, setDeliveryFee] = useState(0);
-  const [cartPackFees, setCartPackFees] = useState([]);
 
   const cartItems = cart.flat();
   const cartTotal = cartItems.reduce(
@@ -46,9 +45,12 @@ const Checkout = () => {
     0
   );
 
-  let charges = vendor?.paymentPreference === "paystack" ? 200 : 50;
-  const packFee = cartPackFees.reduce((sum, fee) => sum + (fee || 0), 0);
-  const finalTotal = cartTotal + deliveryFee + packFee + charges;
+  // ✅ Fixed fees
+  const packFee = cart.length * 300; // ₦300 per pack
+  const bankCharge = 50; // fixed ₦50
+  const serviceCharge = vendor?.paymentPreference === "paystack" ? 200 : 0; // keep your service charge logic if needed
+  const finalTotal =
+    cartTotal + deliveryFee + packFee + bankCharge + serviceCharge;
 
   useEffect(() => {
     if (session?.user) {
@@ -96,15 +98,6 @@ const Checkout = () => {
     }
   };
 
-  const handlePackChange = (packIndex, selectedType) => {
-    const packOption = vendor.packOptions?.find((p) => p.type === selectedType);
-    setCartPackFees((prev) => {
-      const newFees = [...prev];
-      newFees[packIndex] = packOption?.fee || 0;
-      return newFees;
-    });
-  };
-
   const generateWhatsAppMessage = () => {
     const orderId = `CS-${Date.now().toString().slice(-6)}-${Math.random()
       .toString(36)
@@ -123,8 +116,14 @@ const Checkout = () => {
     });
 
     message += `\n💰 Subtotal: ₦${formatCurrency(cartTotal)}\n`;
+    message += `📦 Packing Fee (₦300 x ${cart.length}): ₦${formatCurrency(
+      packFee
+    )}\n`;
     message += `🚚 Delivery Fee: ₦${formatCurrency(deliveryFee)}\n`;
-    message += `💵 Total: ₦${formatCurrency(finalTotal)}\n`;
+    message += `🏦 Bank Charge: ₦${formatCurrency(bankCharge)}\n`;
+    if (serviceCharge > 0)
+      message += `⚙️ Service Fee: ₦${formatCurrency(serviceCharge)}\n`;
+    message += `\n💵 Total: ₦${formatCurrency(finalTotal)}\n`;
 
     message += `\n👤 Customer Details:\n`;
     message += `• Name: ${deliveryDetails.name}\n`;
@@ -169,7 +168,6 @@ const Checkout = () => {
       })),
       deliveryMethod: "delivery",
       note: "",
-      packFees: cartPackFees,
       totalAmount: finalTotal,
       paymentRef: txRef,
       paymentMethod:
@@ -181,7 +179,6 @@ const Checkout = () => {
     else orderPayload.guestInfo = { name, email: guestEmail, phone, address };
 
     try {
-      // If direct payment, open WhatsApp **first**
       if (vendor.paymentPreference === "direct") {
         const waLink = `https://wa.me/${formatPhoneNumber(
           vendor.contact
@@ -189,10 +186,8 @@ const Checkout = () => {
         window.location.href = waLink;
       }
 
-      // Create order in DB
       await axios.post(`${BACKENDURL}/api/orders`, orderPayload);
 
-      // Online payment
       if (vendor.paymentPreference !== "direct") {
         const res = await axios.post(`${BACKENDURL}/api/init-payment`, {
           amount: finalTotal,
@@ -232,6 +227,7 @@ const Checkout = () => {
         <span className="text-[#AE2108]">{vendor.businessName}</span>
       </h1>
 
+      {/* Cart Display */}
       {cart.length === 0 || cart.every((pack) => pack.length === 0) ? (
         <p className="text-center text-gray-500 py-10 text-lg">
           Your cart is empty.
@@ -295,32 +291,11 @@ const Checkout = () => {
                 </div>
               ))}
             </div>
-
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Packaging
-              </label>
-              <select
-                value={
-                  vendor.packOptions?.find(
-                    (p) => p.fee === cartPackFees[packIndex]
-                  )?.type || ""
-                }
-                onChange={(e) => handlePackChange(packIndex, e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-[#AE2108] focus:border-[#AE2108] transition"
-              >
-                <option value="">Select Packaging</option>
-                {vendor.packOptions?.map((opt) => (
-                  <option key={opt.name} value={opt.name}>
-                    {opt.name} - ₦{formatCurrency(opt.fee)}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
         ))
       )}
 
+      {/* Totals + Delivery Form */}
       <section className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
           Delivery Details
@@ -392,13 +367,14 @@ const Checkout = () => {
             </select>
           </div>
 
+          {/* Order Summary */}
           <div className="mt-8 border-t pt-6 space-y-3 text-gray-700 text-sm">
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span>₦{formatCurrency(cartTotal)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Packing Fee</span>
+              <span>Packing Fee (₦300 × {cart.length})</span>
               <span>₦{formatCurrency(packFee)}</span>
             </div>
             <div className="flex justify-between">
@@ -406,9 +382,15 @@ const Checkout = () => {
               <span>₦{formatCurrency(deliveryFee)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Service fee</span>
-              <span>₦{formatCurrency(charges)}</span>
+              <span>Bank Charges</span>
+              <span>₦{formatCurrency(bankCharge)}</span>
             </div>
+            {serviceCharge > 0 && (
+              <div className="flex justify-between">
+                <span>Service Fee</span>
+                <span>₦{formatCurrency(serviceCharge)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-lg font-semibold pt-4 border-t mt-3">
               <span>Total:</span>
               <span>₦{formatCurrency(finalTotal)}</span>
