@@ -48,7 +48,15 @@ const Checkout = () => {
   // ✅ Fixed fees
   const packFee = cart.length * 300;
   const bankCharge = 50;
-  const serviceCharge = vendor?.paymentPreference === "paystack" ? 60 : 0; // keep your service charge logic if needed
+
+  let serviceCharge = 0;
+
+  if (vendor?.paymentPreference === "paystack") {
+    serviceCharge = (3.5 / 100) * totalAmount;
+  } else if (vendor?.paymentPreference === "whatsapp") {
+    serviceCharge = 60;
+  }
+
   const finalTotal =
     cartTotal + deliveryFee + packFee + bankCharge + serviceCharge;
 
