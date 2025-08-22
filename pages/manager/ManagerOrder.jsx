@@ -266,25 +266,31 @@ export default function ManagerOrder() {
           </div>
         </div>
 
-        {/* Orders Table */}
         {loading ? (
-          <p className="text-gray-600">Loading orders...</p>
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-12 h-12 border-4 border-gray-200 border-t-[#AE2108] rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-600 font-medium">Loading orders...</p>
+          </div>
         ) : error ? (
-          <p className="text-red-500">{error}</p>
+          <div className="flex flex-col items-center justify-center py-20">
+            <p className="text-red-500 font-medium">{error}</p>
+          </div>
         ) : filteredOrders.length === 0 ? (
-          <p className="text-gray-500">No orders found.</p>
+          <div className="flex flex-col items-center justify-center py-20">
+            <p className="text-gray-500 font-medium">No orders found.</p>
+          </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl shadow-sm bg-white">
+          <div className="overflow-x-auto rounded-xl shadow-sm ">
             <div className="flex flex-col gap-4">
               {filteredOrders.map((order) => {
                 const disp = disputes.find((d) => d.orderId === order._id);
                 return (
                   <div
                     key={order._id}
-                    className="bg-white rounded-lg shadow p-4 hover:shadow-md transition"
+                    className="bg-white rounded-lg shadow p-4  hover:shadow-md transition"
                   >
                     <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-3">
                         <span className="font-bold">
                           #{order._id.slice(-6).toUpperCase()}
                         </span>
