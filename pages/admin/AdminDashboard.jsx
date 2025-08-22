@@ -22,6 +22,7 @@ const menuItems = [
   { name: "Manage Vendors", icon: Users, path: "/admin/ManageVendor" },
   { name: "Settings", icon: Settings, path: "/admin/settings" },
   { name: "Promotion", icon: Settings, path: "/admin/Promotion" },
+  { name: "Order Analysis", icon: Settings, path: "/admin/OrderAnalysis" },
   {
     name: "Conatct-support",
     icon: PhoneCall,

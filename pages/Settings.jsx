@@ -146,9 +146,6 @@ export default function StoreHours() {
             <button className="md:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu size={24} />
             </button>
-            <h2 className="text-lg font-semibold text-gray-800">
-              Set Store Hours
-            </h2>
           </header>
 
           <div className="grid gap-10">

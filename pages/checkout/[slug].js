@@ -46,10 +46,7 @@ const Checkout = () => {
     0
   );
 
-  let charges = 250;
-  if (cartTotal >= 100000) charges = 1000;
-  else if (cartTotal >= 20000) charges = 400;
-
+  let charges = vendor?.paymentPreference === "paystack" ? 200 : 50;
   const packFee = cartPackFees.reduce((sum, fee) => sum + (fee || 0), 0);
   const finalTotal = cartTotal + deliveryFee + packFee + charges;
 
