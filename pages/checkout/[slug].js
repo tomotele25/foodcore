@@ -46,9 +46,9 @@ const Checkout = () => {
   );
 
   // ✅ Fixed fees
-  const packFee = cart.length * 300; // ₦300 per pack
-  const bankCharge = 50; // fixed ₦50
-  const serviceCharge = vendor?.paymentPreference === "paystack" ? 200 : 0; // keep your service charge logic if needed
+  const packFee = cart.length * 300;
+  const bankCharge = 50;
+  const serviceCharge = vendor?.paymentPreference === "paystack" ? 60 : 0; // keep your service charge logic if needed
   const finalTotal =
     cartTotal + deliveryFee + packFee + bankCharge + serviceCharge;
 
