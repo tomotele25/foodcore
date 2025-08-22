@@ -275,99 +275,115 @@ export default function ManagerOrder() {
           <p className="text-gray-500">No orders found.</p>
         ) : (
           <div className="overflow-x-auto rounded-xl shadow-sm bg-white">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-100 text-left">
-                <tr>
-                  <th className="px-4 py-3">Order ID</th>
-                  <th className="px-4 py-3">Customer</th>
-                  <th className="px-4 py-3">Items</th>
-                  <th className="px-4 py-3">Total</th>
-                  <th className="px-4 py-3">Delivery Info</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Payment</th>
-                  <th className="px-4 py-3">Toggle</th>
-                  <th className="px-4 py-3">Dispute</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOrders.map((order) => {
-                  const disp = disputes.find((d) => d.orderId === order._id);
-                  return (
-                    <tr key={order._id} className="border-t hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium flex items-center gap-2">
-                        #{order._id.slice(-6).toUpperCase()}
+            <div className="flex flex-col gap-4">
+              {filteredOrders.map((order) => {
+                const disp = disputes.find((d) => d.orderId === order._id);
+                return (
+                  <div
+                    key={order._id}
+                    className="bg-white rounded-lg shadow p-4 hover:shadow-md transition"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">
+                          #{order._id.slice(-6).toUpperCase()}
+                        </span>
                         {newOrderIds.includes(order._id) &&
                           order.status !== "completed" && (
-                            <span className="bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full">
+                            <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
                               NEW
                             </span>
                           )}
-                      </td>
+                      </div>
+                      <span
+                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                          order.status === "completed"
+                            ? "bg-green-100 text-green-700"
+                            : order.status === "pending"
+                            ? "bg-yellow-100 text-yellow-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {order.status}
+                      </span>
+                    </div>
 
-                      <td className="px-4 py-3">
-                        {order.guestInfo?.name}
-                        <br />
-                        {order.customerId?.fullname}
-                      </td>
-                      <td className="px-4 py-3">
-                        {order.items
-                          ?.map((item) => `${item.name} x${item.quantity}`)
-                          .join(", ")}
-                      </td>
-                      <td className="px-4 py-3">₦{order.totalAmount}</td>
-                      <td className="px-4 py-3 text-xs">
-                        <div>
-                          <strong>Phone:</strong>{" "}
-                          {order.guestInfo?.phone || "N/A"}
-                        </div>
-                        <div>
-                          <strong>Address:</strong>{" "}
-                          {order.guestInfo?.address || "N/A"}
-                        </div>
-                        <div>
-                          <strong>Method:</strong>{" "}
-                          {order.deliveryMethod || "N/A"}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 capitalize">
+                    <div className="mt-2 flex flex-col md:flex-row md:justify-between gap-2">
+                      <div className="flex flex-col text-sm text-gray-600">
+                        <span>
+                          <strong>Customer:</strong>{" "}
+                          {order.guestInfo?.name || order.customerId?.fullname}
+                        </span>
+                        <span>
+                          <strong>Total:</strong> ₦{order.totalAmount}
+                        </span>
                         <span
                           className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            order.status === "completed"
+                            (order.paymentStatus || "").toLowerCase() === "paid"
                               ? "bg-green-100 text-green-700"
-                              : order.status === "pending"
+                              : (order.paymentStatus || "").toLowerCase() ===
+                                "pending"
                               ? "bg-yellow-100 text-yellow-700"
-                              : "bg-gray-100 text-gray-500"
+                              : "bg-red-100 text-red-700"
                           }`}
-                        >
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 capitalize">
-                        <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusClasses(
-                            order.paymentStatus
-                          )}`}
                         >
                           {order.paymentStatus || "pending"}
                         </span>
-                      </td>
-                      <td className="px-4 py-3">
+                      </div>
+
+                      <div className="flex flex-col gap-1 text-sm text-gray-500">
+                        <span>
+                          <strong>Delivery:</strong>{" "}
+                          {order.deliveryMethod || "N/A"}
+                        </span>
+                        <span>
+                          <strong>Phone:</strong>{" "}
+                          {order.guestInfo?.phone || "N/A"}
+                        </span>
+                        <span>
+                          <strong>Address:</strong>{" "}
+                          {order.guestInfo?.address || "N/A"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-2 md:mt-0">
                         <button
                           onClick={() =>
                             handleToggleStatus(order._id, order.status)
                           }
-                          className="border border-gray-300 text-gray-700 px-3 py-1 rounded hover:bg-gray-100 text-xs"
+                          className="px-3 py-1 text-xs border rounded hover:bg-gray-100"
                         >
                           Mark{" "}
                           {order.status === "pending" ? "Completed" : "Pending"}
                         </button>
-                      </td>
-                      <td className="px-4 py-3">{disp?.message || "None"}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+                    </div>
+
+                    {/* Collapsible Items */}
+                    <details className="mt-2 border-t pt-2">
+                      <summary className="cursor-pointer font-medium text-gray-700">
+                        Items ({order.items?.length})
+                      </summary>
+                      <div className="mt-2 max-h-48 overflow-y-auto text-sm text-gray-600">
+                        {order.items?.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="flex justify-between border-b py-1"
+                          >
+                            <span>{item.name}</span>
+                            <span>x{item.quantity}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+
+                    <div className="mt-2 text-red-600 text-sm">
+                      Dispute: {disp?.message || "None"}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </main>
