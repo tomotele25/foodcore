@@ -17,6 +17,13 @@ const formatPhoneNumber = (number) => {
   return digits;
 };
 
+const generateOrderId = () => {
+  return `CS-${Math.floor(100000 + Math.random() * 900000)}-${Math.random()
+    .toString(36)
+    .substring(2, 5)
+    .toUpperCase()}`;
+};
+
 const Checkout = () => {
   const router = useRouter();
   const { slug } = router.query;
@@ -45,17 +52,10 @@ const Checkout = () => {
     0
   );
 
-  // ✅ Fixed fees
   const packFee = cart.length * 300;
   const bankCharge = 50;
 
   let serviceCharge = 0;
-
-  if (vendor?.paymentPreference === "paystack") {
-    serviceCharge = (3.5 / 100) * totalAmount;
-  } else if (vendor?.paymentPreference === "whatsapp") {
-    serviceCharge = 60;
-  }
 
   const finalTotal =
     cartTotal + deliveryFee + packFee + bankCharge + serviceCharge;
@@ -106,44 +106,6 @@ const Checkout = () => {
     }
   };
 
-  const generateWhatsAppMessage = () => {
-    const orderId = `CS-${Date.now().toString().slice(-6)}-${Math.random()
-      .toString(36)
-      .substring(2, 5)
-      .toUpperCase()}`;
-
-    let message = `🛒 *CHOWSPACE ORDER CONFIRMATION*\n\n`;
-    message += `🆔 Order ID: ${orderId}\n`;
-    message += `📦 Items:\n`;
-
-    cart.forEach((pack, packIndex) => {
-      message += `\n📦 Pack ${packIndex + 1}:\n`;
-      pack.forEach((item) => {
-        message += `• ${item.productName} x${item.quantity}\n`;
-      });
-    });
-
-    message += `\n💰 Subtotal: ₦${formatCurrency(cartTotal)}\n`;
-    message += `📦 Packing Fee (₦300 x ${cart.length}): ₦${formatCurrency(
-      packFee
-    )}\n`;
-    message += `🚚 Delivery Fee: ₦${formatCurrency(deliveryFee)}\n`;
-    message += `🏦 Bank Charge: ₦${formatCurrency(bankCharge)}\n`;
-    if (serviceCharge > 0)
-      message += `⚙️ Service Fee: ₦${formatCurrency(serviceCharge)}\n`;
-    message += `\n💵 Total: ₦${formatCurrency(finalTotal)}\n`;
-
-    message += `\n👤 Customer Details:\n`;
-    message += `• Name: ${deliveryDetails.name}\n`;
-    message += `• Location: ${deliveryDetails.location}\n`;
-    message += `• Address: ${deliveryDetails.address}\n`;
-    message += `• Phone: ${deliveryDetails.phone}\n`;
-
-    message += `\n📌 Thank you for ordering from CHOWSPACE!`;
-
-    return encodeURIComponent(message);
-  };
-
   const handlePay = async () => {
     if (loading) return;
     setLoading(true);
@@ -161,11 +123,13 @@ const Checkout = () => {
       return;
     }
 
+    const orderId = generateOrderId();
     const txRef = `chowspace-${Date.now()}`;
     const guestEmail =
       session?.user?.email || email || `guest${Date.now()}@chowspace.com`;
 
     const orderPayload = {
+      orderId,
       vendorId: vendor._id,
       items: cartItems.map((item) => ({
         menuItemId: item._id,
@@ -177,16 +141,45 @@ const Checkout = () => {
       deliveryMethod: "delivery",
       note: "",
       totalAmount: finalTotal,
+      packFees: cart.map(() => 300),
+      deliveryFee,
       paymentRef: txRef,
       paymentMethod:
         vendor.paymentPreference === "direct" ? "direct" : "online",
-      paymentStatus: vendor.paymentPreference === "direct" ? "pending" : "paid",
+      paymentStatus: "pending",
     };
 
     if (session?.user?.id) orderPayload.customerId = session.user.id;
     else orderPayload.guestInfo = { name, email: guestEmail, phone, address };
 
+    const generateWhatsAppMessage = () => {
+      let message = `🛒 *CHOWSPACE ORDER CONFIRMATION*\n\n`;
+      message += `🆔 Order ID: ${orderId}\n\n`;
+
+      cart.forEach((pack, packIndex) => {
+        message += `📦 Pack ${packIndex + 1}:\n`;
+        pack.forEach((item) => {
+          message += `• ${item.productName} x${item.quantity}\n`;
+        });
+        message += "\n";
+      });
+
+      message += `💵 Total: ₦${formatCurrency(finalTotal)}\n\n`;
+      message += `👤 Customer Details:\n`;
+      message += `• Name: ${deliveryDetails.name}\n`;
+      message += `• Location: ${deliveryDetails.location}\n`;
+      message += `• Address: ${deliveryDetails.address}\n`;
+      message += `• Phone: ${deliveryDetails.phone}\n\n`;
+
+      message += `✅ Order Confirmation\nhttps://chowspace.ng/confirm/${orderId}`;
+      return encodeURIComponent(message);
+    };
+
     try {
+      // 1️⃣ Create order in backend
+      await axios.post(`${BACKENDURL}/api/orders`, orderPayload);
+
+      // 2️⃣ Direct payment via WhatsApp
       if (vendor.paymentPreference === "direct") {
         const waLink = `https://wa.me/${formatPhoneNumber(
           vendor.contact
@@ -194,8 +187,7 @@ const Checkout = () => {
         window.location.href = waLink;
       }
 
-      await axios.post(`${BACKENDURL}/api/orders`, orderPayload);
-
+      // 3️⃣ Online payment (Paystack, etc.)
       if (vendor.paymentPreference !== "direct") {
         const res = await axios.post(`${BACKENDURL}/api/init-payment`, {
           amount: finalTotal,
@@ -235,7 +227,6 @@ const Checkout = () => {
         <span className="text-[#AE2108]">{vendor.businessName}</span>
       </h1>
 
-      {/* Cart Display */}
       {cart.length === 0 || cart.every((pack) => pack.length === 0) ? (
         <p className="text-center text-gray-500 py-10 text-lg">
           Your cart is empty.
@@ -303,7 +294,6 @@ const Checkout = () => {
         ))
       )}
 
-      {/* Totals + Delivery Form */}
       <section className="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">
           Delivery Details
@@ -375,7 +365,6 @@ const Checkout = () => {
             </select>
           </div>
 
-          {/* Order Summary */}
           <div className="mt-8 border-t pt-6 space-y-3 text-gray-700 text-sm">
             <div className="flex justify-between">
               <span>Subtotal</span>
