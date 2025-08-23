@@ -27,7 +27,8 @@ export default function ManageLocation() {
   const [editingId, setEditingId] = useState(null);
   const [editValues, setEditValues] = useState({ location: "", price: "" });
 
-  const BACKENDURL = "http://localhost:2005";
+  const BACKENDURL =
+    "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
