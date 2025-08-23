@@ -27,9 +27,7 @@ export default function ManageLocation() {
   const [editingId, setEditingId] = useState(null);
   const [editValues, setEditValues] = useState({ location: "", price: "" });
 
-  const BACKENDURL =
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    "https://chowspace-backend.vercel.app";
+  const BACKENDURL = "http://localhost:2005";
 
   const { data: session } = useSession();
   const token = session?.user?.accessToken;
@@ -58,10 +56,9 @@ export default function ManageLocation() {
     fetchVendorAndLocations();
   }, [managerId]);
 
-  // ✅ Create new location
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token || !vendorId) {
+    if (!token) {
       setMessage({ type: "error", text: "Missing vendor or token." });
       return;
     }
@@ -70,7 +67,7 @@ export default function ManageLocation() {
       const res = await axios.post(
         `${BACKENDURL}/api/createVendorLocation`,
         { vendorId, location, price },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
       );
 
       setMessage({ type: "success", text: "Location added successfully!" });
@@ -188,7 +185,7 @@ export default function ManageLocation() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 p-6 ml-0 overflow-y-auto bg-gray-50">
+      <div className="flex-1 p-6  ml-10 overflow-y-auto bg-gray-50">
         <div className="max-w-3xl mx-auto mt-8">
           <div className="bg-white rounded-xl shadow-md p-6 mb-6">
             <h1 className="text-2xl font-bold text-gray-800 mb-6">

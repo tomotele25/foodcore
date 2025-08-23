@@ -27,8 +27,9 @@ const menuItems = [
     path: "/admin/AdminContactSupport",
   },
 ];
-const BACKENDURL =
-  "https://chowspace-backend.vercel.app" || "http://localhost:2006";
+
+const BACKENDURL = "http://localhost:2005";
+
 const OrderAnalysis = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -50,7 +51,7 @@ const OrderAnalysis = () => {
     await signOut({ callbackUrl: "/Login" });
   };
 
-  // Fetch all vendors
+  // Fetch vendors
   useEffect(() => {
     const fetchVendors = async () => {
       try {
@@ -63,7 +64,7 @@ const OrderAnalysis = () => {
     fetchVendors();
   }, []);
 
-  // Fetch all orders for admin
+  // Fetch orders
   useEffect(() => {
     const fetchOrders = async () => {
       if (!session?.user?.accessToken) return;
@@ -91,7 +92,9 @@ const OrderAnalysis = () => {
   };
 
   const getVendorOrders = (vendorId, date = null) => {
-    let filtered = orders.filter((order) => order.vendorId === vendorId);
+    let filtered = orders.filter(
+      (order) => order.vendorId?._id?.toString() === vendorId.toString()
+    );
     if (date) {
       filtered = filtered.filter((order) =>
         isSameUTCDate(new Date(order.createdAt), date)
@@ -100,32 +103,27 @@ const OrderAnalysis = () => {
     return filtered;
   };
 
-  const getVendorOrdersCount = (vendorId) => {
-    const today = new Date();
-    return getVendorOrders(vendorId, today).length;
-  };
-
-  const getVendorOrdersTotal = (vendorId) => {
+  const getVendorSummary = (vendorId) => {
     const today = new Date();
     const vendorOrders = getVendorOrders(vendorId, today);
-    const total = vendorOrders.reduce(
-      (sum, order) => sum + (order.totalAmount - 60),
-      0
-    );
-    return total;
+
+    const gross = vendorOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+    const commission = vendorOrders.length * 60;
+    const net = gross - commission;
+
+    return { gross, commission, net, count: vendorOrders.length };
   };
 
   const openVendorModal = (vendor) => {
     setSelectedVendor(vendor);
     const vendorOrders = getVendorOrders(vendor._id);
     setFilteredOrders(vendorOrders);
-    setFilterDate(""); // reset date filter
+    setFilterDate("");
     setModalOpen(true);
   };
 
   const applyDateFilter = () => {
     if (!selectedVendor) return;
-
     const date = filterDate ? new Date(filterDate) : null;
     const vendorOrders = getVendorOrders(selectedVendor._id, date);
     setFilteredOrders(vendorOrders);
@@ -138,11 +136,11 @@ const OrderAnalysis = () => {
     setFilterDate("");
   };
 
-  const getFilteredOrdersTotal = () => {
-    return filteredOrders.reduce(
-      (sum, order) => sum + (order.totalAmount - 60),
-      0
-    );
+  const getFilteredSummary = () => {
+    const gross = filteredOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+    const commission = filteredOrders.length * 60;
+    const net = gross - commission;
+    return { gross, commission, net, count: filteredOrders.length };
   };
 
   return (
@@ -158,7 +156,6 @@ const OrderAnalysis = () => {
             <h1 className="text-xl font-bold text-[#AE2108]">Admin Panel</h1>
             <button onClick={toggleSidebar} className="md:hidden text-gray-600">
               <X size={24} />
-              <span className="sr-only">Close</span>
             </button>
           </div>
           <nav className="mt-4 space-y-1 px-4">
@@ -201,31 +198,42 @@ const OrderAnalysis = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {vendors.length > 0 ? (
-              vendors.map((vendor) => (
-                <div
-                  key={vendor._id}
-                  className="bg-white rounded-lg shadow-md p-4 flex flex-col justify-between"
-                >
-                  <h3 className="text-xl font-semibold text-[#AE2108]">
-                    {vendor.businessName}
-                  </h3>
-                  <p className="text-gray-600 mt-2">
-                    Total Orders Today: {getVendorOrdersCount(vendor._id)}
-                  </p>
-                  <p className="text-gray-600 mt-1">
-                    Total Amount Today: ₦{getVendorOrdersTotal(vendor._id)}
-                  </p>
-                  <p className="text-gray-500 mt-1">
-                    Status: {vendor.status || "Active"}
-                  </p>
-                  <button
-                    onClick={() => openVendorModal(vendor)}
-                    className="mt-4 text-sm text-white bg-[#AE2108] hover:bg-[#941B06] px-3 py-2 rounded-md"
+              vendors.map((vendor) => {
+                const { gross, commission, net, count } = getVendorSummary(
+                  vendor._id
+                );
+                return (
+                  <div
+                    key={vendor._id}
+                    className="bg-white rounded-lg shadow-md p-4 flex flex-col justify-between"
                   >
-                    View Orders
-                  </button>
-                </div>
-              ))
+                    <h3 className="text-xl font-semibold text-[#AE2108]">
+                      {vendor.businessName}
+                    </h3>
+                    <p className="text-gray-600 mt-2">
+                      Total Orders Today: {count}
+                    </p>
+                    <p className="text-gray-600">
+                      Gross: ₦{gross.toLocaleString()}
+                    </p>
+                    <p className="text-gray-600">
+                      Our Commission: ₦{commission.toLocaleString()}
+                    </p>
+                    <p className="text-gray-600">
+                      Vendor Net: ₦{net.toLocaleString()}
+                    </p>
+                    <p className="text-gray-500 mt-1">
+                      Status: {vendor.status || "Active"}
+                    </p>
+                    <button
+                      onClick={() => openVendorModal(vendor)}
+                      className="mt-4 text-sm text-white bg-[#AE2108] hover:bg-[#941B06] px-3 py-2 rounded-md"
+                    >
+                      View Orders
+                    </button>
+                  </div>
+                );
+              })
             ) : (
               <p className="text-gray-500 col-span-full">No vendors found.</p>
             )}
@@ -272,17 +280,33 @@ const OrderAnalysis = () => {
 
             {filteredOrders.length > 0 ? (
               <>
-                <p className="font-semibold mb-2">
-                  Total Amount (after ₦60 deduction per order): ₦
-                  {getFilteredOrdersTotal()}
-                </p>
+                {(() => {
+                  const { gross, commission, net, count } =
+                    getFilteredSummary();
+                  return (
+                    <div className="mb-4 space-y-1">
+                      <p className="font-semibold">Total Orders: {count}</p>
+                      <p className="font-semibold">
+                        Gross Amount: ₦{gross.toLocaleString()}
+                      </p>
+                      <p className="font-semibold">
+                        Our Commission: ₦{commission.toLocaleString()}
+                      </p>
+                      <p className="font-semibold">
+                        Vendor Net: ₦{net.toLocaleString()}
+                      </p>
+                    </div>
+                  );
+                })()}
+
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="bg-gray-200">
                       <th className="border px-2 py-1">#</th>
                       <th className="border px-2 py-1">Customer</th>
                       <th className="border px-2 py-1">Items</th>
-                      <th className="border px-2 py-1">Total</th>
+                      <th className="border px-2 py-1">Gross</th>
+                      <th className="border px-2 py-1">Net</th>
                       <th className="border px-2 py-1">Status</th>
                       <th className="border px-2 py-1">Payment</th>
                     </tr>
@@ -292,7 +316,9 @@ const OrderAnalysis = () => {
                       <tr key={order._id}>
                         <td className="border px-2 py-1">{idx + 1}</td>
                         <td className="border px-2 py-1">
-                          {order.guestInfo?.name || "Guest"}
+                          {order.guestInfo?.name ||
+                            order.customerId?.email ||
+                            "Guest"}
                         </td>
                         <td className="border px-2 py-1">
                           {order.items
@@ -300,7 +326,10 @@ const OrderAnalysis = () => {
                             .join(", ")}
                         </td>
                         <td className="border px-2 py-1">
-                          ₦{order.totalAmount - 60}
+                          ₦{order.totalAmount.toLocaleString()}
+                        </td>
+                        <td className="border px-2 py-1">
+                          ₦{(order.totalAmount - 60).toLocaleString()}
                         </td>
                         <td className="border px-2 py-1">{order.status}</td>
                         <td className="border px-2 py-1">

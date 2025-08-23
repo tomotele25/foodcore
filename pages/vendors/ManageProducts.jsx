@@ -38,6 +38,9 @@ export default function ManageProducts() {
     imagePreview: null,
   });
 
+  // ✅ New state for search
+  const [search, setSearch] = useState("");
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -173,11 +176,16 @@ export default function ManageProducts() {
     }
   };
 
+  // ✅ Filtered products
+  const filteredProducts = products.filter((prod) =>
+    prod.productName.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Toaster position="top-right" />
 
-      {/* ... Sidebar and header skipped for brevity ... */}
+      {/* Sidebar (skipped same as before) */}
       <aside className="w-64 bg-white shadow-md p-4 hidden md:flex flex-col justify-between sticky top-0 h-screen">
         <div>
           <h2 className="text-xl font-bold text-[#AE2108] mb-6">
@@ -205,9 +213,10 @@ export default function ManageProducts() {
           <LogOut size={18} /> Logout
         </button>
       </aside>
+
       {/* Product Grid */}
       <main className="flex-1 p-6">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between">
           <button
             onClick={() => router.back()}
             className="inline-flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md shadow-sm hover:bg-gray-100"
@@ -215,12 +224,22 @@ export default function ManageProducts() {
             <ArrowLeftCircle size={18} />
             <span>Back</span>
           </button>
+
+          {/* ✅ Search Input */}
+          <input
+            type="text"
+            placeholder="Search by name..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="px-4 py-2 border rounded-lg w-64 focus:ring-[#AE2108] focus:outline-none"
+          />
         </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {products.length === 0 ? (
-            <p className="text-gray-500">No products available.</p>
+          {filteredProducts.length === 0 ? (
+            <p className="text-gray-500">No products found.</p>
           ) : (
-            products.map((prod) => (
+            filteredProducts.map((prod) => (
               <div
                 key={prod._id}
                 className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 text-sm relative"
@@ -265,7 +284,7 @@ export default function ManageProducts() {
 
                 <button
                   onClick={() => handleEdit(prod)}
-                  className="absolute top-2 right-2  text-gray-500 hover:text-[#AE2108]"
+                  className="absolute top-2 right-2 text-gray-500 hover:text-[#AE2108]"
                 >
                   <Pencil size={20} />
                 </button>
@@ -274,7 +293,6 @@ export default function ManageProducts() {
           )}
         </div>
 
-        {/* Add/Edit Product Modal */}
         {showModal && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md relative">

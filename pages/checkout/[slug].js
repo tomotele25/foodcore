@@ -171,10 +171,6 @@ const Checkout = () => {
       });
 
       message += `SUB TOTAL : ₦${formatCurrency(cartTotal)}\n`;
-      message += `DELIVERY PRICE : ₦${formatCurrency(deliveryFee)}\n`;
-      if (serviceCharge > 0)
-        message += `SERVICE FEE : ₦${formatCurrency(serviceCharge)}\n`;
-      message += `TOTAL PRICE : ₦${formatCurrency(finalTotal)}\n`;
       message += `------CUSTOMER DETAILS------\n`;
       message += `Name : ${deliveryDetails.name}\n`;
       message += `Location : ${deliveryDetails.location}\n`;

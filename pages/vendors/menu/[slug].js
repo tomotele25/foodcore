@@ -74,6 +74,16 @@ const VendorMenuPage = () => {
     fetchData();
   }, [slug]);
 
+  // 🔥 Sort products so "drinks" go to the bottom
+  const sortedProducts = [...products].sort((a, b) => {
+    const aIsDrink = a.category?.toLowerCase().includes("drink");
+    const bIsDrink = b.category?.toLowerCase().includes("drink");
+
+    if (aIsDrink && !bIsDrink) return 1;
+    if (!aIsDrink && bIsDrink) return -1;
+    return 0;
+  });
+
   return (
     <>
       <Head>
@@ -154,9 +164,9 @@ const VendorMenuPage = () => {
             <p>Loading...</p>
           ) : error ? (
             <p className="text-red-600">{error}</p>
-          ) : products.length > 0 ? (
+          ) : sortedProducts.length > 0 ? (
             <div className="grid pb-15 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {products.map((product) => {
+              {sortedProducts.map((product) => {
                 const item = currentPack.find((p) => p._id === product._id);
                 const count = item ? item.quantity : 0;
 
@@ -242,10 +252,8 @@ const VendorMenuPage = () => {
           {/* Minimizable Cart Drawer */}
           {currentPack.length > 0 && (
             <>
-              {/* Mobile: sticky bar */}
-              {/* Mobile: expandable sticky cart */}
+              {/* Mobile drawer */}
               <div className="fixed bottom-0 left-0 w-full z-50 md:hidden">
-                {/* Minimized bar */}
                 <div
                   className="bg-white border-t border-gray-200 shadow-lg p-4 flex justify-between items-center cursor-pointer"
                   onClick={() => setCartOpen(!cartOpen)}
@@ -264,7 +272,6 @@ const VendorMenuPage = () => {
                   </button>
                 </div>
 
-                {/* Expanded cart drawer */}
                 {cartOpen && (
                   <div className="bg-white border-t border-gray-200 shadow-inner p-4 max-h-80 overflow-y-auto">
                     <ul className="divide-y text-sm">
@@ -304,9 +311,8 @@ const VendorMenuPage = () => {
                 )}
               </div>
 
-              {/* Desktop: floating minimizable cart */}
+              {/* Desktop cart */}
               <div className="hidden md:flex fixed right-8 bottom-8 w-80 bg-white border border-gray-200 rounded-2xl shadow-lg flex-col z-50 transition-all duration-300">
-                {/* Header: toggle open/close */}
                 <div className="flex justify-between items-center p-3 border-b cursor-pointer">
                   <div className="flex items-center gap-2">
                     <ShoppingCart size={18} />
@@ -319,7 +325,6 @@ const VendorMenuPage = () => {
                   </button>
                 </div>
 
-                {/* Cart content */}
                 {cartOpen && (
                   <div className="p-4 flex flex-col">
                     <ul className="divide-y text-sm max-h-60 overflow-y-auto">

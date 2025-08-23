@@ -21,7 +21,7 @@ export default function OrderConfirmation() {
         .get(`${BACKENDURL}/api/confirm/${orderId}`)
         .then((res) => {
           if (res.data.success) {
-            setOrder(res.data.order || res.data.totalAmount);
+            setOrder(res.data.order);
           } else {
             setError("Could not fetch order details");
           }
@@ -63,13 +63,10 @@ export default function OrderConfirmation() {
             <span className="font-semibold">CHOWSPACE</span>.
           </p>
 
+          {/* Order summary */}
           <div className="w-full bg-gray-100 rounded-xl p-4 mb-6 space-y-2">
             <p className="text-gray-700">
               <span className="font-semibold">Order ID:</span> {orderId}
-            </p>
-            <p className="text-gray-700">
-              <span className="font-semibold">Vendor:</span>{" "}
-              {order?.vendorId?.name || "N/A"}
             </p>
             <p className="text-gray-700">
               <span className="font-semibold">Customer:</span>{" "}
@@ -79,6 +76,29 @@ export default function OrderConfirmation() {
               <span className="font-semibold">Total:</span> ₦
               {order?.totalAmount || "N/A"}
             </p>
+          </div>
+
+          {/* Items list */}
+          <div className="w-full bg-gray-50 border rounded-xl p-4 mb-6">
+            <h2 className="font-semibold text-gray-800 mb-3">Items Ordered</h2>
+            {order?.items && order.items.length > 0 ? (
+              <ul className="space-y-2">
+                {order.items.map((item, idx) => (
+                  <li
+                    key={idx}
+                    className="flex justify-between text-gray-700 text-sm border-b pb-2"
+                  >
+                    <span>
+                      {item.productName}{" "}
+                      <span className="text-gray-500">x{item.quantity}</span>
+                    </span>
+                    <span>₦{item.price * item.quantity}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500 text-sm">No items found.</p>
+            )}
           </div>
 
           <p className="text-green-600 font-bold text-center text-lg">
