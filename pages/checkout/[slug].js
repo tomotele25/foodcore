@@ -55,7 +55,13 @@ const Checkout = () => {
   const packFee = cart.length * 300;
   const bankCharge = 50;
 
+  // Conditional service fee
   let serviceCharge = 0;
+  if (vendor?.paymentPreference === "direct") {
+    serviceCharge = 60; // WhatsApp flat fee
+  } else if (vendor?.paymentPreference === "online") {
+    serviceCharge = Math.ceil(cartTotal * 0.035); // Paystack 3.5%
+  }
 
   const finalTotal =
     cartTotal + deliveryFee + packFee + bankCharge + serviceCharge;
@@ -143,6 +149,7 @@ const Checkout = () => {
       totalAmount: finalTotal,
       packFees: cart.map(() => 300),
       deliveryFee,
+      serviceCharge,
       paymentRef: txRef,
       paymentMethod:
         vendor.paymentPreference === "direct" ? "direct" : "online",
@@ -153,25 +160,28 @@ const Checkout = () => {
     else orderPayload.guestInfo = { name, email: guestEmail, phone, address };
 
     const generateWhatsAppMessage = () => {
-      let message = `🛒 *CHOWSPACE ORDER CONFIRMATION*\n\n`;
-      message += `🆔 Order ID: ${orderId}\n\n`;
+      let message = `I ORDER FROM CHOWSPACE\nORDER DETAILS\nOrder ID : ${orderId}\n--�--\n`;
 
       cart.forEach((pack, packIndex) => {
-        message += `📦 Pack ${packIndex + 1}:\n`;
+        message += `PACK${packIndex + 1}\n--�--\n`;
         pack.forEach((item) => {
-          message += `• ${item.productName} x${item.quantity}\n`;
+          message += `${item.productName} | qty:${item.quantity}\n`;
         });
         message += "\n";
       });
 
-      message += `💵 Total: ₦${formatCurrency(finalTotal)}\n\n`;
-      message += `👤 Customer Details:\n`;
-      message += `• Name: ${deliveryDetails.name}\n`;
-      message += `• Location: ${deliveryDetails.location}\n`;
-      message += `• Address: ${deliveryDetails.address}\n`;
-      message += `• Phone: ${deliveryDetails.phone}\n\n`;
+      message += `SUB TOTAL : ₦${formatCurrency(cartTotal)}\n`;
+      message += `DELIVERY PRICE : ₦${formatCurrency(deliveryFee)}\n`;
+      if (serviceCharge > 0)
+        message += `SERVICE FEE : ₦${formatCurrency(serviceCharge)}\n`;
+      message += `TOTAL PRICE : ₦${formatCurrency(finalTotal)}\n`;
+      message += `------CUSTOMER DETAILS------\n`;
+      message += `Name : ${deliveryDetails.name}\n`;
+      message += `Location : ${deliveryDetails.location}\n`;
+      message += `Address : ${deliveryDetails.address}\n`;
+      message += `Phone number : ${deliveryDetails.phone}\n`;
+      message += `---PRICE CONFIRMATION---\nhttps://chowspace.ng/confirm/${orderId}`;
 
-      message += `✅ Order Confirmation\nhttps://chowspace.ng/confirm/${orderId}`;
       return encodeURIComponent(message);
     };
 
@@ -187,7 +197,7 @@ const Checkout = () => {
         window.location.href = waLink;
       }
 
-      // 3️⃣ Online payment (Paystack, etc.)
+      // 3️⃣ Online payment (Paystack)
       if (vendor.paymentPreference !== "direct") {
         const res = await axios.post(`${BACKENDURL}/api/init-payment`, {
           amount: finalTotal,
