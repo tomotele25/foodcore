@@ -89,7 +89,7 @@ export default function OrderConfirmation() {
                     className="flex justify-between text-gray-700 text-sm border-b pb-2"
                   >
                     <span>
-                      {item.productName}{" "}
+                      {item.name}{" "}
                       <span className="text-gray-500">x{item.quantity}</span>
                     </span>
                     <span>₦{item.price * item.quantity}</span>
