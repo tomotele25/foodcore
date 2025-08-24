@@ -174,6 +174,8 @@ const Checkout = () => {
       });
 
       message += `SUBTOTAL: ₦${formatCurrency(cartTotal)}\n`;
+      message += `DELIVERY FEE: ₦${formatCurrency(deliveryFee)}\n`;
+      message += `SERVICE CHARGE: ₦${formatCurrency(serviceFee)}\n`;
       message += `TOTAL: ₦${formatCurrency(finalTotal)}\n\n`;
 
       message += `CUSTOMER DETAILS\n`;
