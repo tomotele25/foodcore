@@ -160,23 +160,29 @@ const Checkout = () => {
     else orderPayload.guestInfo = { name, email: guestEmail, phone, address };
 
     const generateWhatsAppMessage = () => {
-      let message = `I ORDER FROM CHOWSPACE\nORDER DETAILS\nOrder ID : ${orderId}\n--�--\n`;
+      let message = `I ORDER FROM CHOWSPACE\nORDER DETAILS\nOrder ID: ${orderId}\n====================\n`;
 
       cart.forEach((pack, packIndex) => {
-        message += `PACK${packIndex + 1}\n--�--\n`;
+        message += `PACK ${packIndex + 1}\n`;
         pack.forEach((item) => {
-          message += `${item.productName} | qty:${item.quantity}\n`;
+          const itemTotal = item.price * item.quantity;
+          message += `${item.productName} - ₦${formatCurrency(item.price)} x ${
+            item.quantity
+          } = ₦${formatCurrency(itemTotal)}\n`;
         });
-        message += "\n";
+        message += "--------------------\n";
       });
 
-      message += `SUB TOTAL : ₦${formatCurrency(cartTotal)}\n`;
-      message += `------CUSTOMER DETAILS------\n`;
-      message += `Name : ${deliveryDetails.name}\n`;
-      message += `Location : ${deliveryDetails.location}\n`;
-      message += `Address : ${deliveryDetails.address}\n`;
-      message += `Phone number : ${deliveryDetails.phone}\n`;
-      message += `---PRICE CONFIRMATION---\nhttps://chowspace.ng/confirm/${orderId}`;
+      message += `SUBTOTAL: ₦${formatCurrency(cartTotal)}\n`;
+      message += `TOTAL: ₦${formatCurrency(finalTotal)}\n\n`;
+
+      message += `CUSTOMER DETAILS\n`;
+      message += `Name: ${deliveryDetails.name}\n`;
+      message += `Location: ${deliveryDetails.location}\n`;
+      message += `Address: ${deliveryDetails.address}\n`;
+      message += `Phone: ${deliveryDetails.phone}\n\n`;
+
+      message += `PRICE CONFIRMATION\nhttps://chowspace.ng/confirm/${orderId}`;
 
       return encodeURIComponent(message);
     };
