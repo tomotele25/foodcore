@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import axios from "axios";
 import { useRouter } from "next/router";
@@ -16,7 +16,7 @@ import {
   LocationEditIcon,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { useRef } from "react";
+
 export default function ManagerOrder() {
   const { data: session, status } = useSession();
   const [orders, setOrders] = useState([]);
@@ -94,44 +94,8 @@ export default function ManagerOrder() {
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  const handleToggleStatus = async (orderId, currentStatus) => {
-    const newStatus = currentStatus === "pending" ? "completed" : "pending";
-    try {
-      await axios.put(
-        `${BACKENDURL}/api/order/${orderId}`,
-        { status: newStatus },
-        {
-          headers: {
-            Authorization: `Bearer ${session?.user?.accessToken}`,
-          },
-        }
-      );
-      setOrders((prev) =>
-        prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o))
-      );
-      toast.success(`Order marked as ${newStatus}`);
-    } catch (err) {
-      console.error("Status update failed", err);
-      toast.error("Failed to update order status");
-    }
-  };
-
-  const handleCleanup = async () => {
-    try {
-      const token = session?.user?.accessToken;
-      if (!token) return toast.error("Unauthorized");
-
-      await axios.delete(`${BACKENDURL}/api/cleanupPendingOrders`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      toast.success("Pending unpaid orders cleaned up");
-      router.reload();
-    } catch (err) {
-      console.error("Cleanup failed", err);
-      toast.error("Failed to cleanup pending orders");
-    }
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/Login" });
   };
 
   const filteredOrders =
@@ -139,22 +103,8 @@ export default function ManagerOrder() {
       ? orders
       : orders.filter((order) => order.status === statusFilter);
 
-  const getPaymentStatusClasses = (paymentStatus) => {
-    switch ((paymentStatus || "").toLowerCase()) {
-      case "paid":
-        return "bg-green-100 text-green-700";
-      case "pending":
-      case "unpaid":
-        return "bg-yellow-100 text-yellow-700";
-      default:
-        return "bg-red-100 text-red-700";
-    }
-  };
-  const handleLogout = () => {
-    signOut({ callbackUrl: "/Login" });
-  };
   return (
-    <div className="flex h-screen bg-gray-100 relative">
+    <div className="flex h-screen bg-gray-50 relative">
       {/* Mobile Topbar */}
       <div className="md:hidden flex justify-between items-center px-4 py-3 bg-white shadow z-30 w-full fixed top-0">
         <h1 className="text-xl font-bold text-[#AE2108]">Manager Panel</h1>
@@ -165,7 +115,7 @@ export default function ManagerOrder() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-40 h-full w-64 bg-white shadow-lg flex flex-col justify-between transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 z-40 h-full w-64 bg-white shadow-xl flex flex-col justify-between transition-transform duration-300 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0`}
       >
@@ -180,7 +130,7 @@ export default function ManagerOrder() {
           <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
             <Link
               href="/vendors/ManagerDashboard"
-              className="flex items-center gap-2 text-gray-700 font-semibold"
+              className="flex items-center gap-2 text-gray-700 font-semibold hover:text-[#AE2108]"
             >
               <LayoutDashboard size={18} />
               Dashboard
@@ -194,7 +144,7 @@ export default function ManagerOrder() {
             </Link>
             <Link
               href="/manager/ManagerOrder"
-              className="flex items-center gap-2 text-[#AE2108] hover:text-[#AE2108]"
+              className="flex items-center gap-2 text-[#AE2108] font-semibold"
             >
               <UtensilsCrossed size={18} />
               Orders
@@ -216,18 +166,20 @@ export default function ManagerOrder() {
           </nav>
         </div>
 
-        {/* Logout Button Fixed Bottom */}
+        {/* Logout */}
         <div className="p-4 border-t">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 text-red-600 hover:bg-red-100 px-3 py-2 rounded-md w-full"
+            className="flex items-center gap-2 text-red-600 hover:bg-red-100 px-3 py-2 rounded-lg w-full transition"
           >
             <LogOut size={18} />
             Logout
           </button>
         </div>
       </aside>
+
       <audio ref={audioRef} src="/notification.mp3" preload="auto" />
+
       {/* Main Content */}
       <main className="flex-1 pt-16 md:pt-0 md:ml-64 p-6 overflow-auto">
         {/* Filters */}
@@ -239,37 +191,23 @@ export default function ManagerOrder() {
               <input
                 type="date"
                 value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="border border-gray-300 px-3 py-1 rounded text-sm"
+                onChange={(e) => {
+                  setLoading(true);
+                  setDateFilter(e.target.value);
+                }}
+                className="border border-gray-300 px-3 py-1 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#AE2108]/50"
               />
             </div>
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-600">
-                Status:
-              </label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="border border-gray-300 px-3 py-1 rounded text-sm"
-              >
-                <option value="all">All</option>
-                <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
-            <button
-              onClick={handleCleanup}
-              className="bg-[#AE2108] hover:bg-red-700 text-white px-4 py-1 text-sm rounded"
-            >
-              Cleanup Pending Orders
-            </button>
           </div>
         </div>
 
+        {/* Orders List */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-12 h-12 border-4 border-gray-200 border-t-[#AE2108] rounded-full animate-spin mb-4"></div>
-            <p className="text-gray-600 font-medium">Loading orders...</p>
+            <p className="text-gray-600 font-medium">
+              Loading orders for {dateFilter || "today"}...
+            </p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20">
@@ -277,119 +215,86 @@ export default function ManagerOrder() {
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <p className="text-gray-500 font-medium">No orders found.</p>
+            <p className="text-gray-500 font-medium">
+              No orders found for {dateFilter}.
+            </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-xl shadow-sm ">
-            <div className="flex flex-col gap-4">
-              {filteredOrders.map((order) => {
-                const disp = disputes.find((d) => d.orderId === order._id);
-                return (
-                  <div
-                    key={order._id}
-                    className="bg-white rounded-lg shadow p-4  hover:shadow-md transition"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <span className="font-bold">
-                          #{order._id.slice(-6).toUpperCase()}
-                        </span>
-                        {newOrderIds.includes(order._id) &&
-                          order.status !== "completed" && (
-                            <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">
-                              NEW
-                            </span>
-                          )}
-                      </div>
-                      <span
-                        className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          order.status === "completed"
-                            ? "bg-green-100 text-green-700"
-                            : order.status === "pending"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-gray-100 text-gray-500"
-                        }`}
-                      >
-                        {order.status}
+          <div className="grid md:grid-cols-2 gap-6">
+            {filteredOrders.map((order) => {
+              const disp = disputes.find((d) => d.orderId === order._id);
+              return (
+                <div
+                  key={order._id}
+                  className="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition border border-gray-100 flex flex-col overflow-hidden"
+                >
+                  {/* Header */}
+                  <div className="flex justify-between items-center mb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold text-gray-800">
+                        #{order._id.slice(-6).toUpperCase()}
                       </span>
-                    </div>
-
-                    <div className="mt-2 flex flex-col md:flex-row md:justify-between gap-2">
-                      <div className="flex flex-col text-sm text-gray-600">
-                        <span>
-                          <strong>Customer:</strong>{" "}
-                          {order.guestInfo?.name || order.customerId?.fullname}
-                        </span>
-                        <span>
-                          <strong>Total:</strong> ₦{order.totalAmount}
-                        </span>
-                        <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            (order.paymentStatus || "").toLowerCase() === "paid"
-                              ? "bg-green-100 text-green-700"
-                              : (order.paymentStatus || "").toLowerCase() ===
-                                "pending"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {order.paymentStatus || "pending"}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-col gap-1 text-sm text-gray-500">
-                        <span>
-                          <strong>Delivery:</strong>{" "}
-                          {order.deliveryMethod || "N/A"}
-                        </span>
-                        <span>
-                          <strong>Phone:</strong>{" "}
-                          {order.guestInfo?.phone || "N/A"}
-                        </span>
-                        <span>
-                          <strong>Address:</strong>{" "}
-                          {order.guestInfo?.address || "N/A"}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2 mt-2 md:mt-0">
-                        <button
-                          onClick={() =>
-                            handleToggleStatus(order._id, order.status)
-                          }
-                          className="px-3 py-1 text-xs border rounded hover:bg-gray-100"
-                        >
-                          Mark{" "}
-                          {order.status === "pending" ? "Completed" : "Pending"}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Collapsible Items */}
-                    <details className="mt-2 border-t pt-2">
-                      <summary className="cursor-pointer font-medium text-gray-700">
-                        Items ({order.items?.length})
-                      </summary>
-                      <div className="mt-2 max-h-48 overflow-y-auto text-sm text-gray-600">
-                        {order.items?.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="flex justify-between border-b py-1"
-                          >
-                            <span>{item.name}</span>
-                            <span>x{item.quantity}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </details>
-
-                    <div className="mt-2 text-red-600 text-sm">
-                      Dispute: {disp?.message || "None"}
+                      {newOrderIds.includes(order._id) &&
+                        order.status !== "completed" && (
+                          <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
+                            NEW
+                          </span>
+                        )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
+
+                  {/* Order Details */}
+                  <div className="flex flex-col gap-2 text-sm text-gray-700">
+                    <span>
+                      <strong>Customer:</strong>{" "}
+                      {order.guestInfo?.name || order.customerId?.fullname}
+                    </span>
+                    <span>
+                      <strong>Total:</strong> ₦{order.totalAmount}
+                    </span>
+                    <span>
+                      <strong>Delivery:</strong> {order.deliveryMethod || "N/A"}
+                    </span>
+                    <span>
+                      <strong>Phone:</strong> {order.guestInfo?.phone || "N/A"}
+                    </span>
+                    <span>
+                      <strong>Address:</strong>{" "}
+                      {order.guestInfo?.address || "N/A"}
+                    </span>
+                  </div>
+
+                  {/* Items */}
+                  <details className="mt-3 border-t pt-2 group">
+                    <summary className="cursor-pointer font-medium text-gray-700 hover:text-[#AE2108]">
+                      Items ({order.items?.length})
+                    </summary>
+                    <div className="mt-2 max-h-40 overflow-y-auto text-sm text-gray-600 space-y-1 transition-all duration-300">
+                      {order.items?.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex justify-between border-b py-1"
+                        >
+                          <span>{item.name}</span>
+                          <span>x{item.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+
+                  {/* Dispute */}
+                  <div className="mt-3">
+                    {disp?.message ? (
+                      <span className="inline-block bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs">
+                        Dispute: {disp.message}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-gray-400">No dispute</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </main>

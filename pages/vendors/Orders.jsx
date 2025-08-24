@@ -86,7 +86,6 @@ export default function OrdersPage() {
                   <th className="px-4 py-3">Items</th>
                   <th className="px-4 py-3">Total</th>
                   <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -107,17 +106,6 @@ export default function OrdersPage() {
                       <td className="px-4 py-3">₦{order.totalAmount}</td>
                       <td className="px-4 py-3">
                         {new Date(order.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            order.status === "pending"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {order.status || "Pending"}
-                        </span>
                       </td>
                     </tr>
                   ))
