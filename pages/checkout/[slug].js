@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import axios from "axios";
 import { useCart } from "@/context/CartContext";
@@ -32,6 +32,7 @@ const Checkout = () => {
     "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
   const { cart, addToCart, removeFromCart } = useCart();
+  const isSubmitting = useRef(false);
 
   const [vendor, setVendor] = useState(null);
   const [locations, setLocations] = useState([]);
@@ -43,7 +44,6 @@ const Checkout = () => {
     location: "",
     email: "",
   });
-
   const [deliveryFee, setDeliveryFee] = useState(0);
 
   const cartItems = cart.flat();
@@ -55,12 +55,11 @@ const Checkout = () => {
   const packFee = cart.length * 300;
   const bankCharge = 50;
 
-  // Conditional service fee
   let serviceCharge = 0;
   if (vendor?.paymentPreference === "direct") {
-    serviceCharge = 60; // WhatsApp flat fee
+    serviceCharge = 60;
   } else if (vendor?.paymentPreference === "online") {
-    serviceCharge = Math.ceil(cartTotal * 0.035); // Paystack 3.5%
+    serviceCharge = Math.ceil(cartTotal * 0.035);
   }
 
   const finalTotal =
@@ -113,19 +112,22 @@ const Checkout = () => {
   };
 
   const handlePay = async () => {
-    if (loading) return;
+    if (loading || isSubmitting.current) return; // ✅ prevent duplicates
+    isSubmitting.current = true;
     setLoading(true);
 
     const { name, phone, address, location, email } = deliveryDetails;
     if (!name || !phone || !address || !location) {
       toast.error("Fill in all delivery details");
       setLoading(false);
+      isSubmitting.current = false;
       return;
     }
 
     if (!vendor?._id) {
       toast.error("Vendor not loaded.");
       setLoading(false);
+      isSubmitting.current = false;
       return;
     }
 
@@ -151,7 +153,7 @@ const Checkout = () => {
       deliveryFee,
       serviceCharge,
       paymentRef: txRef,
-      paymentMethod: "direct", // 👈 force direct for now
+      paymentMethod: "direct",
       paymentStatus: "pending",
     };
 
@@ -160,7 +162,6 @@ const Checkout = () => {
 
     const generateWhatsAppMessage = () => {
       let message = `I ORDER FROM CHOWSPACE\nORDER DETAILS\nOrder ID : ${orderId}\n`;
-
       cart.forEach((pack, packIndex) => {
         message += `--•--\nPACK${packIndex + 1}\n--•--\n`;
         pack.forEach((item) => {
@@ -168,29 +169,22 @@ const Checkout = () => {
         });
         message += "\n";
       });
-
       message += `SUB TOTAL : ₦${formatCurrency(cartTotal)}\n`;
       message += `DELIVERY PRICE : ₦${formatCurrency(deliveryFee)}\n`;
       message += `SERVICE FEE : ₦${formatCurrency(serviceCharge)}\n`;
       message += `TOTAL PRICE : ₦${formatCurrency(finalTotal)}\n`;
-
       message += `------CUSTOMER DETAILS------\n`;
       message += `Name : ${deliveryDetails.name}\n`;
       message += `Location : ${deliveryDetails.location}\n`;
       message += `Address : ${deliveryDetails.address}\n`;
       message += `Phone number : ${deliveryDetails.phone}\n`;
-
       message += `---PRICE CONFIRMATION---\n`;
       message += `https://chowspace.ng/confirm/${orderId}`;
-
       return encodeURIComponent(message);
     };
 
     try {
-      // 1️⃣ Create order in backend
       await axios.post(`${BACKENDURL}/api/orders`, orderPayload);
-
-      // 2️⃣ Always redirect to WhatsApp
       const waLink = `https://wa.me/${formatPhoneNumber(
         vendor.contact
       )}?text=${generateWhatsAppMessage()}`;
@@ -200,6 +194,7 @@ const Checkout = () => {
       toast.error("Could not process order");
     } finally {
       setLoading(false);
+      isSubmitting.current = false; // ✅ release lock
     }
   };
 
@@ -298,10 +293,9 @@ const Checkout = () => {
           className="space-y-6"
         >
           {["name", "phone", "address", "email"]
-            .filter((field) => {
-              if (!session) return true;
-              return field === "phone" || field === "address";
-            })
+            .filter((field) =>
+              !session ? true : field === "phone" || field === "address"
+            )
             .map((field) => (
               <div key={field}>
                 <label
