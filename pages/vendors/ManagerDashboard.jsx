@@ -37,7 +37,16 @@ export default function ManagerDashboard() {
         const res = await axios.get(`${BACKENDURL}/api/manager/orders`, {
           headers: { Authorization: `Bearer ${session.user.accessToken}` },
         });
-        setOrders(res.data.orders);
+
+        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        const todaysOrders = res.data.orders.filter((order) => {
+          const orderDate = new Date(order.createdAt)
+            .toISOString()
+            .slice(0, 10);
+          return orderDate === today;
+        });
+
+        setOrders(todaysOrders);
       } catch {
         toast.error("Failed to load orders");
       }
@@ -46,14 +55,10 @@ export default function ManagerDashboard() {
     const fetchVendorStatus = async () => {
       try {
         const res = await axios.get(`${BACKENDURL}/api/getVendorStatus`, {
-          headers: {
-            Authorization: `Bearer ${session?.user?.accessToken}`,
-          },
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         });
-        const status = res.data.status;
-        if (status) setVendorStatus(status);
-      } catch (err) {
-        console.error(err);
+        if (res.data.status) setVendorStatus(res.data.status);
+      } catch {
         toast.error("Failed to load store status");
       }
     };
@@ -69,9 +74,7 @@ export default function ManagerDashboard() {
         `${BACKENDURL}/api/vendor/toggleStatus`,
         { status: newStatus },
         {
-          headers: {
-            Authorization: `Bearer ${session?.user?.accessToken}`,
-          },
+          headers: { Authorization: `Bearer ${session?.user?.accessToken}` },
         }
       );
       setVendorStatus(res.data.vendor?.status);
@@ -149,7 +152,7 @@ export default function ManagerDashboard() {
           </nav>
         </div>
 
-        {/* Logout Button Fixed Bottom */}
+        {/* Logout Button */}
         <div className="p-4 border-t">
           <button
             onClick={handleLogout}
@@ -164,7 +167,7 @@ export default function ManagerDashboard() {
       {/* Main Content */}
       <main className="flex-1 md:ml-64 overflow-y-auto p-6 mt-16 md:mt-0">
         <h1 className="text-2xl font-bold text-[#AE2108] mb-4">
-          Manager Overview
+          Manager Overview (Today’s Orders)
         </h1>
 
         {vendorStatus && (
@@ -195,13 +198,13 @@ export default function ManagerDashboard() {
         {/* Dashboard Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-5">
-            <h3 className="text-gray-600 text-sm mb-2">Total Orders</h3>
+            <h3 className="text-gray-600 text-sm mb-2">Total Orders Today</h3>
             <p className="text-3xl font-bold text-[#AE2108]">{orders.length}</p>
           </div>
           <div className="bg-white rounded-lg shadow p-5">
-            <h3 className="text-gray-600 text-sm mb-2">Recent Status</h3>
+            <h3 className="text-gray-600 text-sm mb-2">Latest Order Status</h3>
             <p className="text-md font-semibold capitalize">
-              {orders[0]?.status || "No orders yet"}
+              {orders[0]?.status || "No orders today"}
             </p>
           </div>
         </div>
@@ -209,7 +212,7 @@ export default function ManagerDashboard() {
         {/* Recent Orders */}
         <div className="bg-white rounded-lg shadow p-5">
           <h3 className="text-lg font-bold mb-4 text-[#AE2108]">
-            Recent Orders
+            Today’s Orders
           </h3>
           <ul className="divide-y divide-gray-200">
             {orders
@@ -240,7 +243,7 @@ export default function ManagerDashboard() {
               ))}
           </ul>
           {orders.length === 0 && (
-            <p className="text-gray-500 text-sm">No recent orders found.</p>
+            <p className="text-gray-500 text-sm">No orders placed today yet.</p>
           )}
         </div>
       </main>
