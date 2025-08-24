@@ -40,7 +40,6 @@ const BACKENDURL =
 export default function VendorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [storeStatus, setStoreStatus] = useState("closed");
-  const [storeHours, setStoreHours] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
 
@@ -57,26 +56,24 @@ export default function VendorDashboard() {
       const res = await axios.get(
         `${BACKENDURL}/api/getAllOrders?vendorId=${session?.user?.vendorId}`
       );
-      setOrders(res.data.orders || []);
+
+      const allOrders = res.data.orders || [];
+
+      // Filter today's orders
+      const today = new Date();
+      const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+      const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+
+      const todaysOrders = allOrders.filter((order) => {
+        const createdAt = new Date(order.createdAt);
+        return createdAt >= startOfDay && createdAt <= endOfDay;
+      });
+
+      setOrders(todaysOrders);
     } catch (err) {
       console.error("Failed to fetch orders:", err);
     } finally {
       setLoadingOrders(false);
-    }
-  };
-
-  // Fetch store hours
-  const fetchStoreHours = async () => {
-    try {
-      if (!session?.user?.vendorId) return;
-      const res = await axios.get(
-        `${BACKENDURL}/api/vendor/${session.user.vendorId}/opening-hours`,
-        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
-      );
-      setStoreHours(res.data.openingHours || []);
-    } catch (err) {
-      console.error("Failed to fetch opening hours:", err);
-      setStoreHours([]);
     }
   };
 
@@ -108,67 +105,13 @@ export default function VendorDashboard() {
     }
   };
 
-  // Sync store status to backend
-  const syncStoreStatusToDB = async (status) => {
-    try {
-      await axios.put(
-        `${BACKENDURL}/api/vendor/toggleStatus`,
-        { status },
-        { headers: { Authorization: `Bearer ${session?.user?.accessToken}` } }
-      );
-    } catch (err) {
-      console.error("Failed to sync store status to DB:", err);
-    }
-  };
-
-  // Automatic store closure based on hours
-  const checkStoreHours = async () => {
-    if (!storeHours || storeHours.length === 0) {
-      setStoreStatus("closed");
-      return;
-    }
-
-    const now = new Date();
-    const dayName = now.toLocaleDateString("en-US", { weekday: "long" });
-    const todayHours = storeHours.find((d) => d.day === dayName);
-
-    if (!todayHours) {
-      setStoreStatus("closed");
-      await syncStoreStatusToDB("closed");
-      return;
-    }
-
-    const [openHour, openMin] = todayHours.open.split(":").map(Number);
-    const [closeHour, closeMin] = todayHours.close.split(":").map(Number);
-
-    const openTime = new Date();
-    openTime.setHours(openHour, openMin, 0, 0);
-
-    const closeTime = new Date();
-    closeTime.setHours(closeHour, closeMin, 0, 0);
-
-    const newStatus = now >= openTime && now <= closeTime ? "opened" : "closed";
-    setStoreStatus(newStatus);
-    await syncStoreStatusToDB(newStatus);
-  };
-
   // Initial fetch
   useEffect(() => {
     if (status === "authenticated") {
       fetchOrders();
-      fetchStoreHours();
       fetchStoreStatus();
     }
   }, [session, status]);
-
-  // Check store hours every minute
-  useEffect(() => {
-    if (storeHours.length > 0) {
-      checkStoreHours(); // run immediately
-      const interval = setInterval(checkStoreHours, 60000);
-      return () => clearInterval(interval);
-    }
-  }, [storeHours]);
 
   const handleLogout = async () => {
     const toastId = toast.loading("Logging out...");
@@ -266,13 +209,17 @@ export default function VendorDashboard() {
           {/* Metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <div className="bg-white p-5 rounded-xl shadow-sm">
-              <h3 className="text-sm font-semibold text-gray-600">Orders</h3>
+              <h3 className="text-sm font-semibold text-gray-600">
+                Today’s Orders
+              </h3>
               <p className="text-2xl font-bold text-[#AE2108] mt-2">
                 {loadingOrders ? "..." : orders.length}
               </p>
             </div>
             <div className="bg-white p-5 rounded-xl shadow-sm">
-              <h3 className="text-sm font-semibold text-gray-600">Revenue</h3>
+              <h3 className="text-sm font-semibold text-gray-600">
+                Today’s Revenue
+              </h3>
               <p className="text-2xl font-bold text-[#AE2108] mt-2">
                 ₦
                 {loadingOrders
@@ -291,7 +238,7 @@ export default function VendorDashboard() {
           {/* Orders Table */}
           <div>
             <h3 className="text-xl font-semibold mb-4 text-gray-800">
-              Recent Orders
+              Today’s Orders
             </h3>
             <div className="overflow-x-auto rounded-xl shadow bg-white">
               <table className="min-w-full text-sm">
@@ -316,7 +263,7 @@ export default function VendorDashboard() {
                         colSpan={4}
                         className="text-center py-6 text-gray-500"
                       >
-                        No orders yet
+                        No orders yet today
                       </td>
                     </tr>
                   ) : (
