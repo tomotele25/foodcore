@@ -28,7 +28,8 @@ const menuItems = [
   },
 ];
 
-const BACKENDURL = "http://localhost:2005";
+const BACKENDURL =
+  "https://chowspace-backend.vercel.app" || "http://localhost:2005";
 
 const OrderAnalysis = () => {
   const { data: session, status } = useSession();
