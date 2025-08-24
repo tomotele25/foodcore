@@ -151,8 +151,7 @@ const Checkout = () => {
       deliveryFee,
       serviceCharge,
       paymentRef: txRef,
-      paymentMethod:
-        vendor.paymentPreference === "direct" ? "direct" : "online",
+      paymentMethod: "direct", // 👈 force direct for now
       paymentStatus: "pending",
     };
 
@@ -172,7 +171,7 @@ const Checkout = () => {
 
       message += `SUB TOTAL : ₦${formatCurrency(cartTotal)}\n`;
       message += `DELIVERY PRICE : ₦${formatCurrency(deliveryFee)}\n`;
-      message += `SERVICE FEE : ₦${formatCurrency(serviceFee)}\n`;
+      message += `SERVICE FEE : ₦${formatCurrency(serviceCharge)}\n`;
       message += `TOTAL PRICE : ₦${formatCurrency(finalTotal)}\n`;
 
       message += `------CUSTOMER DETAILS------\n`;
@@ -191,34 +190,14 @@ const Checkout = () => {
       // 1️⃣ Create order in backend
       await axios.post(`${BACKENDURL}/api/orders`, orderPayload);
 
-      // 2️⃣ Direct payment via WhatsApp
-      if (vendor.paymentPreference === "direct") {
-        const waLink = `https://wa.me/${formatPhoneNumber(
-          vendor.contact
-        )}?text=${generateWhatsAppMessage()}`;
-        window.location.href = waLink;
-      }
-
-      // 3️⃣ Online payment (Paystack)
-      if (vendor.paymentPreference !== "direct") {
-        const res = await axios.post(`${BACKENDURL}/api/init-payment`, {
-          amount: finalTotal,
-          email: guestEmail,
-          vendorId: vendor._id,
-          tx_ref: txRef,
-          orderPayload,
-        });
-
-        if (res.data.success && res.data.paymentLink) {
-          localStorage.setItem("latestOrder", JSON.stringify(orderPayload));
-          window.location.href = res.data.paymentLink;
-        } else {
-          toast.error("Payment initialization failed");
-        }
-      }
+      // 2️⃣ Always redirect to WhatsApp
+      const waLink = `https://wa.me/${formatPhoneNumber(
+        vendor.contact
+      )}?text=${generateWhatsAppMessage()}`;
+      window.location.href = waLink;
     } catch (err) {
       console.error(err);
-      toast.error("Could not process payment/order");
+      toast.error("Could not process order");
     } finally {
       setLoading(false);
     }
