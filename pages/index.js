@@ -145,7 +145,7 @@ export default function Home() {
         {/* Vendor Links Section with animation */}
         <section id="vendors" className="px-5 py-5 bg-[#fffdfc]">
           {loading ? (
-            <p>Loading vendors...</p>
+            <p></p>
           ) : vendors.length > 0 ? (
             <div className="overflow-hidden relative w-full">
               <div className="flex gap-3 whitespace-nowrap animate-marquee">
