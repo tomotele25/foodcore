@@ -5,7 +5,6 @@ Allow: /
 # Disallow sensitive/private routes
 Disallow: /Login
 Disallow: /Signup
-Disallow: /vendor
 Disallow: /manager
 Disallow: /admin
 Disallow: /Payment-Redirect
